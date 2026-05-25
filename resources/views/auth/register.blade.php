@@ -14,7 +14,7 @@
 
             <div>
                 <label for="name" class="auth-label">Nama Lengkap</label>
-                <input id="name" class="auth-input" type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name" placeholder="Andi Saputra">
+                <input id="name" class="auth-input" type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name" placeholder="Nama lengkap sesuai identitas">
                 <x-input-error :messages="$errors->get('name')" class="auth-error" />
             </div>
 
@@ -28,7 +28,7 @@
                 <div>
                     <label for="gender" class="auth-label">Jenis Kelamin</label>
                     <select id="gender" name="gender" class="auth-input" required>
-                        <option value="" @selected(old('gender') === null)>Pilih gender</option>
+                        <option value="" @selected(old('gender') === null)>Pilih jenis kelamin</option>
                         <option value="male" @selected(old('gender') === 'male')>Laki-laki</option>
                         <option value="female" @selected(old('gender') === 'female')>Perempuan</option>
                     </select>
@@ -38,13 +38,13 @@
 
             <div>
                 <label for="phone" class="auth-label">No. WhatsApp</label>
-                <input id="phone" class="auth-input" type="tel" name="phone" value="{{ old('phone') }}" required autocomplete="tel" placeholder="081234567890" maxlength="20">
+                <input id="phone" class="auth-input" type="tel" name="phone" value="{{ old('phone') }}" required autocomplete="tel" placeholder="08xxxxxxxxxx" maxlength="20">
                 <x-input-error :messages="$errors->get('phone')" class="auth-error" />
             </div>
 
             <div>
                 <label for="email" class="auth-label">Alamat Email</label>
-                <input id="email" class="auth-input" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="andi@email.com">
+                <input id="email" class="auth-input" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="nama@email.com">
                 <x-input-error :messages="$errors->get('email')" class="auth-error" />
             </div>
 

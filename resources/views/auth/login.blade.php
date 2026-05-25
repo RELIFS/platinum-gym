@@ -16,7 +16,7 @@
 
             <div>
                 <label for="email" class="auth-label">Alamat Email</label>
-                <input id="email" class="auth-input" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="andi@email.com">
+                <input id="email" class="auth-input" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="nama@email.com">
                 <x-input-error :messages="$errors->get('email')" class="auth-error" />
             </div>
 
@@ -27,7 +27,7 @@
                         <a class="auth-link text-sm" href="{{ route('password.request') }}">Lupa Kata Sandi?</a>
                     @endif
                 </div>
-                <input id="password" class="auth-input" type="password" name="password" required autocomplete="current-password" placeholder="Minimal 8 karakter">
+                <input id="password" class="auth-input" type="password" name="password" required autocomplete="current-password" placeholder="Masukkan kata sandi">
                 <x-input-error :messages="$errors->get('password')" class="auth-error" />
             </div>
 
