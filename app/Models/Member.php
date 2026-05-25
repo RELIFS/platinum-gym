@@ -19,6 +19,21 @@ class Member extends Model
         return ['birth_date' => 'date', 'is_student' => 'boolean', 'weight_kg' => 'decimal:2', 'joined_at' => 'date'];
     }
 
+    public static function generateMemberCode(): string
+    {
+        $prefix = 'PG-'.now()->format('Ymd').'-';
+        $sequence = static::withTrashed()
+            ->where('member_code', 'like', $prefix.'%')
+            ->count() + 1;
+
+        do {
+            $code = $prefix.str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
+            $sequence++;
+        } while (static::withTrashed()->where('member_code', $code)->exists());
+
+        return $code;
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
