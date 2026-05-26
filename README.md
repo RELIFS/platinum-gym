@@ -1,59 +1,166 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Platinum Gym Padang
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Website Company Profile dan Sistem Informasi Layanan Platinum Gym Padang berbasis Laravel.
 
-## About Laravel
+## Deskripsi Proyek
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Platinum Gym Padang adalah aplikasi web untuk membantu pengelolaan informasi layanan gym, registrasi member, autentikasi pengguna, dan dasar pengembangan sistem operasional gym.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Dokumentasi proyek disusun agar aplikasi mudah dipasang, dipelihara, dikembangkan, dan digunakan sebagai dasar kolaborasi tim.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tujuan Proyek
 
-## Learning Laravel
+- Menyediakan company profile digital untuk Platinum Gym Padang.
+- Menyediakan fondasi autentikasi untuk member, admin, dan owner.
+- Menyiapkan struktur aplikasi untuk fitur membership, booking, pembayaran, check-in, dan laporan.
+- Mendokumentasikan proses konstruksi dan evolusi perangkat lunak secara bertahap.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Masalah Yang Diselesaikan
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- Informasi layanan gym belum terdokumentasi dalam satu sistem web.
+- Registrasi member perlu dibuat lebih terstruktur.
+- Hak akses pengguna perlu dipisahkan berdasarkan role.
+- Perubahan dependency, fitur, dan refactoring perlu dicatat agar evolusi proyek mudah ditelusuri.
 
-## Laravel Sponsors
+## Target Pengguna
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- Pengunjung website yang ingin melihat informasi Platinum Gym.
+- Member yang melakukan registrasi dan login.
+- Admin yang mengelola data operasional gym.
+- Owner yang memantau laporan dan perkembangan bisnis.
+- Developer yang mengembangkan dan memelihara aplikasi.
 
-### Premium Partners
+## Fitur Utama
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Fitur Sudah Tersedia
 
-## Contributing
+- Registrasi member dengan data profil awal.
+- Login dan logout pengguna.
+- Verifikasi email setelah registrasi.
+- Pengiriman ulang email verifikasi.
+- Proteksi dashboard menggunakan middleware `auth` dan `verified`.
+- Role `member` menggunakan Spatie Laravel Permission.
+- Tampilan autentikasi bertema Platinum Gym.
+- Toggle tema dark/light mengikuti preferensi perangkat dan pilihan pengguna.
+- Testing fitur autentikasi menggunakan Pest.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Fitur Rencana Pengembangan
 
-## Code of Conduct
+- Dashboard member, admin, dan owner.
+- Manajemen paket membership.
+- Booking kelas.
+- Pembayaran membership dan layanan.
+- Check-in gym.
+- Laporan owner.
+- Upload media konten website.
+- Audit log aktivitas sistem.
+- Login/register Google.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Tech Stack
 
-## Security Vulnerabilities
+- Laravel 12
+- PHP 8.2+
+- MySQL/MariaDB
+- Laravel Breeze
+- Spatie Laravel Permission
+- Spatie Laravel MediaLibrary
+- Spatie Laravel Activitylog
+- Laravel Socialite
+- Pest PHP
+- Blade
+- Tailwind CSS
+- Alpine.js
+- Vite
+- Composer
+- NPM
+- Git dan GitHub
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Instalasi Singkat
 
-## License
+```bash
+git clone <url-repository>
+cd platinum-gym
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed
+npm.cmd run build
+php artisan serve
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Catatan Windows PowerShell: jika `npm` atau `npx` diblokir karena execution policy, gunakan `npm.cmd` dan `npx.cmd`.
+
+Dokumentasi instalasi lengkap tersedia di `docs/installation.md`.
+
+## Menjalankan Test
+
+```bash
+php artisan test
+```
+
+Project menggunakan Pest PHP. Pest berjalan di atas ekosistem PHPUnit, sehingga tetap kompatibel dengan testing Laravel.
+
+## Build Asset Frontend
+
+```bash
+npm.cmd run build
+```
+
+Untuk development frontend:
+
+```bash
+npm.cmd run dev
+```
+
+## Struktur Dokumentasi
+
+```text
+README.md
+CHANGELOG.md
+dependency-package.md
+
+docs/
+├── installation.md
+├── features.md
+├── dependency.md
+├── refactoring.md
+└── github-actions.md
+```
+
+## Screenshot Proyek
+
+Screenshot aplikasi akan ditambahkan setelah halaman siap digunakan dan telah diverifikasi.
+
+Rencana screenshot minimal:
+
+- Halaman login.
+- Halaman registrasi member.
+- Halaman verifikasi email.
+- Dashboard member.
+- Dashboard admin atau owner.
+
+## Documentation
+
+| Dokumen | Deskripsi |
+|---|---|
+| `docs/installation.md` | Panduan instalasi lokal dan troubleshooting |
+| `docs/features.md` | Dokumentasi fitur aplikasi |
+| `docs/dependency.md` | Dokumentasi dependency backend dan frontend |
+| `docs/refactoring.md` | Catatan refactoring dan perbaikan struktur kode |
+| `docs/github-actions.md` | Rencana workflow CI/CD |
+| `CHANGELOG.md` | Riwayat perubahan proyek |
+
+## Tim Pengembang
+
+| Nama | NIM | Peran Proyek |
+|---|---|---|
+| Muhammad Luthfi | 2411083023 | Project Manager |
+| Rossi Firmanda | 2411081039 | System Analyst |
+| Sulthaan Dzakii Alfitri | 2411082032 | Lead Programmer |
+| Muhammad Raffi | 2411082039 | AI Specialist |
+| Faiz Altamis Akhyar | 2311083016 | Quality Assurance |
+
+## Repository
+
+Repository ini digunakan sebagai pusat kolaborasi kode, dokumentasi teknis, dan riwayat perubahan proyek.
