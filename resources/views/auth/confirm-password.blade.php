@@ -1,27 +1,28 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('This is a secure area of the application. Please confirm your password before continuing.') }}
+    <div class="w-full">
+        <div class="mb-8">
+            <h2 class="mb-3 text-3xl font-extrabold leading-tight text-zinc-950 dark:text-white">
+                Konfirmasi <span class="text-gold-500">Akses</span>
+            </h2>
+            <p class="auth-panel-copy">
+                Masukkan kata sandi untuk melanjutkan ke area aman akun Anda.
+            </p>
+        </div>
+
+        <form method="POST" action="{{ route('password.confirm') }}" class="space-y-5">
+            @csrf
+
+            @include('auth.partials.password-field', [
+                'id' => 'password',
+                'name' => 'password',
+                'label' => 'Kata Sandi',
+                'autocomplete' => 'current-password',
+                'placeholder' => 'Masukkan kata sandi',
+            ])
+
+            <button type="submit" class="auth-button-primary">
+                Konfirmasi
+            </button>
+        </form>
     </div>
-
-    <form method="POST" action="{{ route('password.confirm') }}">
-        @csrf
-
-        <!-- Password -->
-        <div>
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <div class="flex justify-end mt-4">
-            <x-primary-button>
-                {{ __('Confirm') }}
-            </x-primary-button>
-        </div>
-    </form>
 </x-guest-layout>

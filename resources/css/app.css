@@ -14,22 +14,54 @@
 
 @layer components {
     .auth-input {
-        @apply block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500;
+        @apply block w-full rounded-lg border border-zinc-300 bg-white px-4 py-3.5 text-base text-zinc-950 shadow-sm transition placeholder:text-zinc-400 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:placeholder:text-zinc-500;
     }
 
     .auth-label {
-        @apply mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300;
+        @apply mb-2 block text-sm font-semibold text-zinc-700 dark:text-zinc-300;
     }
 
     .auth-error {
-        @apply mt-1.5 text-xs font-medium text-red-500 dark:text-red-400;
+        @apply mt-1.5 text-xs font-medium text-red-600 dark:text-red-400;
+    }
+
+    .auth-helper {
+        @apply mt-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400;
     }
 
     .auth-button-primary {
-        @apply inline-flex w-full items-center justify-center rounded-xl bg-gold-500 px-5 py-3.5 text-base font-bold text-slate-950 shadow-[0_4px_20px_rgba(254,180,37,0.28)] transition hover:scale-[1.01] hover:bg-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:ring-offset-2 focus:ring-offset-white active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 dark:focus:ring-offset-slate-950;
+        @apply inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-gold-500 px-5 py-3 text-base font-bold text-zinc-950 shadow-[0_4px_20px_rgba(254,180,37,0.30)] transition hover:bg-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:ring-offset-2 focus:ring-offset-zinc-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 dark:focus:ring-offset-zinc-950;
+    }
+
+    .auth-button-secondary {
+        @apply inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-zinc-200 bg-white px-5 py-3 text-base font-bold text-zinc-700 shadow-sm transition hover:border-gold-500/60 hover:bg-zinc-50 hover:text-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:border-gold-500/50 dark:hover:bg-zinc-900 dark:hover:text-gold-400;
+    }
+
+    .auth-button-google {
+        @apply inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-zinc-200 bg-white px-5 py-3 text-base font-semibold text-zinc-800 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-gold-500/30 active:scale-[0.99] dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-zinc-600 dark:hover:bg-zinc-900;
     }
 
     .auth-link {
-        @apply font-semibold text-gold-600 transition hover:text-gold-500 dark:text-gold-500 dark:hover:text-gold-400;
+        @apply font-semibold text-gold-600 transition hover:text-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:text-gold-500 dark:hover:text-gold-400;
+    }
+
+    .auth-divider {
+        @apply relative my-6 flex items-center justify-center text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400 dark:text-zinc-500;
+    }
+
+    .auth-divider::before {
+        @apply absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-zinc-200 content-[''] dark:bg-zinc-800;
+    }
+
+    .auth-divider span {
+        @apply relative bg-zinc-50 px-4 dark:bg-zinc-950;
+    }
+
+    .auth-panel-copy {
+        @apply font-medium leading-relaxed text-zinc-500 dark:text-zinc-400;
+    }
+
+    .auth-password-toggle {
+        @apply absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white;
     }
 }
