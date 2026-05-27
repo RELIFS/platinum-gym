@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\CompleteMemberProfileController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
@@ -36,6 +37,14 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::middleware(['verified', 'role:member'])->group(function () {
+        Route::get('member/complete-profile', [CompleteMemberProfileController::class, 'create'])
+            ->name('member.profile.complete');
+
+        Route::post('member/complete-profile', [CompleteMemberProfileController::class, 'store'])
+            ->name('member.profile.complete.store');
+    });
+
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
 
