@@ -1,0 +1,69 @@
+<x-public-layout :settings="$settings" title="Jadwal Kelas Platinum Gym Padang" description="Lihat jadwal kelas Aerobic, Zumba, Poundfit, dan Muaythai Platinum Gym Padang.">
+    @include('public.partials.page-hero', [
+        'eyebrow' => 'Jadwal Kelas',
+        'title' => 'Kelas aktif dengan coach dan kuota jelas.',
+        'description' => 'Gunakan filter hari dan jenis kelas untuk menemukan jadwal yang sesuai rutinitas Anda.',
+    ])
+
+    <section class="public-section bg-zinc-50 dark:bg-zinc-950">
+        <div class="public-container">
+            <form method="GET" action="{{ route('public.classes') }}" class="public-card grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end" aria-describedby="classes-filter-status">
+                <div>
+                    <label for="hari" class="mb-2 block text-sm font-bold text-zinc-700 dark:text-zinc-300">Hari</label>
+                    <select id="hari" name="hari" class="public-input">
+                        <option value="">Semua hari</option>
+                        @foreach ($dayOptions as $day => $value)
+                            <option value="{{ $day }}" @selected($selectedDay === $day)>{{ $dayLabels[$value] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label for="jenis" class="mb-2 block text-sm font-bold text-zinc-700 dark:text-zinc-300">Jenis kelas</label>
+                    <select id="jenis" name="jenis" class="public-input">
+                        <option value="">Semua jenis</option>
+                        @foreach ($classTypeOptions as $value => $label)
+                            <option value="{{ $value }}" @selected($selectedType === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="public-button-primary w-full md:w-auto">Terapkan</button>
+                    <a href="{{ route('public.classes') }}" class="public-button-secondary w-full md:w-auto">Reset</a>
+                </div>
+            </form>
+
+            <p id="classes-filter-status" class="mt-5 break-words text-sm font-semibold text-zinc-600 dark:text-zinc-400" role="status">
+                Menampilkan {{ $schedules->count() }} jadwal{{ $selectedDay ? ' untuk hari '.$dayLabels[$dayOptions[$selectedDay]] : '' }}{{ $selectedType ? ' jenis '.$classTypeOptions[$selectedType] : '' }}.
+            </p>
+
+            <div class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                @forelse ($schedules as $schedule)
+                    @include('public.partials.schedule-card', ['schedule' => $schedule, 'dayLabels' => $dayLabels, 'settings' => $settings])
+                @empty
+                    <div class="public-card md:col-span-2 xl:col-span-3">
+                        <h2 class="text-xl font-black text-zinc-950 dark:text-white">Jadwal tidak ditemukan.</h2>
+                        <p class="mt-2 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Coba ubah filter hari atau jenis kelas.</p>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+    </section>
+
+    <section class="public-section bg-white dark:bg-zinc-900/40">
+        <div class="public-container grid gap-6 lg:grid-cols-3">
+            <article class="public-card">
+                <h2 class="text-xl font-black text-zinc-950 dark:text-white">Included Class</h2>
+                <p class="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Aerobic dan Zumba dapat termasuk dalam paket senam sesuai membership aktif.</p>
+            </article>
+            <article class="public-card">
+                <h2 class="text-xl font-black text-zinc-950 dark:text-white">Paid Class</h2>
+                <p class="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Poundfit dan beberapa sesi khusus dapat memiliki harga terpisah sesuai jadwal dan kuota.</p>
+            </article>
+            <article class="public-card">
+                <h2 class="text-xl font-black text-zinc-950 dark:text-white">Booking</h2>
+                <p class="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Masuk ke akun member untuk fitur booking saat modul booking aktif. Saat ini, hubungi admin untuk konfirmasi.</p>
+                <a href="{{ route('login') }}" class="public-button-primary mt-6 w-full">Masuk untuk Booking</a>
+            </article>
+        </div>
+    </section>
+</x-public-layout>

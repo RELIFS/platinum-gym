@@ -25,7 +25,7 @@ Status penggunaan dibagi menjadi:
 | Package | Fungsi | Alasan | Versi | Risiko | Status |
 |---|---|---|---|---|---|
 | `laravel/framework` | Framework utama aplikasi | Menyediakan routing, MVC, ORM, migration, middleware, queue, dan fitur inti Laravel | `^12.0` | Perubahan major version dapat memerlukan penyesuaian kode | Sudah digunakan |
-| `laravel/socialite` | OAuth login menggunakan provider pihak ketiga | Disiapkan untuk login/register Google | `*` | Perlu konfigurasi OAuth, callback URL, dan pengamanan secret | Sudah dipasang, belum diimplementasikan penuh |
+| `laravel/socialite` | OAuth login menggunakan provider pihak ketiga | Digunakan untuk login/register Google member | `*` | Perlu konfigurasi OAuth, callback URL, dan pengamanan secret | Sudah digunakan |
 | `laravel/tinker` | Interaksi aplikasi melalui REPL | Membantu debugging dan eksplorasi model saat development | `^2.10.1` | Tidak untuk workflow production user | Dependency development |
 | `spatie/laravel-permission` | Role dan permission | Mengelola role `member`, `admin`, dan `owner` secara rapi | `*` | Salah konfigurasi role dapat membuka akses tidak sesuai | Sudah digunakan |
 | `spatie/laravel-medialibrary` | Upload dan manajemen media | Disiapkan untuk foto profil, galeri, bukti pembayaran, dan konten website | `*` | Butuh pengaturan storage, validasi file, dan pembatasan ukuran upload | Sudah dipasang, belum diimplementasikan penuh |
@@ -95,11 +95,11 @@ Referensi:
 | 5W+1H | Penjelasan |
 |---|---|
 | What | Laravel Socialite adalah package Laravel untuk autentikasi menggunakan provider pihak ketiga seperti Google. |
-| Why | Socialite disiapkan agar member bisa mendaftar dan login menggunakan akun Google. |
+| Why | Socialite digunakan agar member bisa mendaftar dan login menggunakan akun Google. |
 | Who | Digunakan oleh member sebagai alternatif login/register. Admin dan owner tetap dapat memakai email dan password. |
-| When | Digunakan saat fitur Google Auth mulai diimplementasikan. |
-| Where | Direncanakan pada modul autentikasi, callback Google, dan pembuatan akun member otomatis. |
-| How | Socialite dikonfigurasi dengan Google OAuth Client ID, Client Secret, dan callback URL. Setelah user berhasil login Google, sistem mengambil data email dan nama. |
+| When | Digunakan pada route redirect dan callback Google OAuth. |
+| Where | Digunakan pada modul autentikasi, callback Google, auto-link email existing, pembuatan user member Google, dan onboarding complete profile. |
+| How | Socialite dikonfigurasi dengan Google OAuth Client ID, Client Secret, dan callback URL. Setelah user berhasil login Google, sistem mengambil email/nama/provider ID, menautkan atau membuat user, memberi role `member`, lalu mengarahkan user baru ke complete profile jika data member lokal belum lengkap. |
 
 Referensi:
 
