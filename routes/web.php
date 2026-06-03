@@ -1,11 +1,19 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicWebsiteController;
 use App\Support\RoleRedirect;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
+Route::controller(PublicWebsiteController::class)->group(function () {
+    Route::get('/', 'home')->name('public.home');
+    Route::get('/tentang-kami', 'about')->name('public.about');
+    Route::get('/layanan', 'services')->name('public.services');
+    Route::get('/kelas', 'classes')->name('public.classes');
+    Route::get('/produk', 'products')->name('public.products');
+    Route::get('/galeri', 'gallery')->name('public.gallery');
+    Route::get('/lokasi', 'location')->name('public.location');
+    Route::get('/bmi', 'bmi')->name('public.bmi');
 });
 
 Route::view('/syarat-ketentuan', 'legal.terms')->name('legal.terms');
