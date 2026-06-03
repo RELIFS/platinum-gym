@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
             GymClassSeeder::class,
             ProductSeeder::class,
             SettingSeeder::class,
+            PromoSeeder::class,
+            TestimonialSeeder::class,
+            GallerySeeder::class,
         ]);
     }
 }
