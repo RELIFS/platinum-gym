@@ -2,17 +2,13 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Features\Auth\Actions\ResolveGoogleUserAction;
 use App\Http\Controllers\Controller;
-use App\Models\SocialAccount;
-use App\Models\User;
 use App\Support\RoleRedirect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Laravel\Socialite\Contracts\User as SocialiteUser;
 use Laravel\Socialite\Facades\Socialite;
-use Spatie\Permission\Models\Role;
 use Throwable;
 
 class GoogleAuthController extends Controller
@@ -28,7 +24,7 @@ class GoogleAuthController extends Controller
         return Socialite::driver('google')->redirect();
     }
 
-    public function callback(Request $request): RedirectResponse
+    public function callback(Request $request, ResolveGoogleUserAction $resolveGoogleUser): RedirectResponse
     {
         if (! $this->hasGoogleConfig()) {
             return redirect()->route('login')->withErrors([
@@ -56,7 +52,7 @@ class GoogleAuthController extends Controller
             ]);
         }
 
-        $user = DB::transaction(fn () => $this->findOrCreateUser($googleUser));
+        $user = $resolveGoogleUser->execute($googleUser);
 
         Auth::login($user);
 
@@ -77,62 +73,6 @@ class GoogleAuthController extends Controller
         }
 
         return redirect()->intended($path);
-    }
-
-    private function findOrCreateUser(SocialiteUser $googleUser): User
-    {
-        $socialAccount = SocialAccount::query()
-            ->where('provider', 'google')
-            ->where('provider_user_id', $googleUser->getId())
-            ->first();
-
-        if ($socialAccount !== null) {
-            $this->updateSocialAccount($socialAccount, $googleUser);
-
-            return $socialAccount->user;
-        }
-
-        $user = User::query()->where('email', $googleUser->getEmail())->first();
-
-        if ($user === null) {
-            $user = User::create([
-                'name' => $googleUser->getName() ?: $googleUser->getNickname() ?: (string) str($googleUser->getEmail())->before('@')->headline(),
-                'email' => $googleUser->getEmail(),
-                'avatar' => $googleUser->getAvatar(),
-                'password' => null,
-                'status' => 'active',
-            ]);
-
-            $user->forceFill(['email_verified_at' => now()])->save();
-            $user->assignRole(Role::findOrCreate('member', 'web'));
-        } elseif (! $user->hasVerifiedEmail()) {
-            $user->forceFill(['email_verified_at' => now()])->save();
-        }
-
-        $socialAccount = $user->socialAccounts()->create([
-            'provider' => 'google',
-            'provider_user_id' => $googleUser->getId(),
-        ]);
-
-        $this->updateSocialAccount($socialAccount, $googleUser);
-
-        return $user;
-    }
-
-    private function updateSocialAccount(SocialAccount $socialAccount, SocialiteUser $googleUser): void
-    {
-        $attributes = [
-            'provider_email' => $googleUser->getEmail(),
-            'provider_avatar' => $googleUser->getAvatar(),
-            'access_token' => $googleUser->token ?? null,
-            'token_expires_at' => isset($googleUser->expiresIn) ? now()->addSeconds((int) $googleUser->expiresIn) : null,
-        ];
-
-        if (filled($googleUser->refreshToken ?? null)) {
-            $attributes['refresh_token'] = $googleUser->refreshToken;
-        }
-
-        $socialAccount->forceFill($attributes)->save();
     }
 
     private function hasGoogleConfig(): bool

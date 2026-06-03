@@ -65,13 +65,22 @@ test('role guarded dashboards allow only matching role', function () {
     $owner = User::factory()->create();
     $owner->assignRole('owner');
 
-    $this->actingAs($member)->get('/member/dashboard')->assertOk();
+    $this->actingAs($member)->get('/member/dashboard')
+        ->assertOk()
+        ->assertSee('Dashboard Member')
+        ->assertDontSee("You're logged in!");
     $this->actingAs($member)->get('/admin')->assertForbidden();
 
-    $this->actingAs($admin)->get('/admin')->assertOk();
+    $this->actingAs($admin)->get('/admin')
+        ->assertOk()
+        ->assertSee('Dashboard Admin')
+        ->assertDontSee("You're logged in!");
     $this->actingAs($admin)->get('/owner')->assertForbidden();
 
-    $this->actingAs($owner)->get('/owner')->assertOk();
+    $this->actingAs($owner)->get('/owner')
+        ->assertOk()
+        ->assertSee('Dashboard Owner')
+        ->assertDontSee("You're logged in!");
     $this->actingAs($owner)->get('/admin')->assertForbidden();
 });
 

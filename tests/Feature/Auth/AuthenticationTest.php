@@ -11,7 +11,12 @@ beforeEach(function () {
 test('login screen can be rendered', function () {
     $response = $this->get('/login');
 
-    $response->assertStatus(200);
+    $response->assertStatus(200)
+        ->assertSee('brand-logo', false)
+        ->assertDontSee('brand-logo-frame', false)
+        ->assertSee('data-theme-toggle', false)
+        ->assertSee('aria-label="Aktifkan mode gelap"', false)
+        ->assertDontSee('aria-pressed=', false);
 });
 
 test('users can authenticate using the login screen', function () {

@@ -191,3 +191,21 @@ test('google callback failure redirects to login with error', function () {
     $response->assertSessionHasErrors('email');
     $this->assertGuest();
 });
+
+test('complete profile validation errors do not create member profile', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'phone' => null,
+    ]);
+    $user->assignRole('member');
+
+    $response = $this->actingAs($user)->post('/member/complete-profile', [
+        'birth_date' => now()->addDay()->toDateString(),
+        'gender' => 'other',
+        'phone' => '12345',
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasErrors(['birth_date', 'gender', 'phone']);
+    expect($user->fresh()->member)->toBeNull();
+});
