@@ -4,21 +4,11 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="theme-color" content="#fafafa">
 
-        @include('partials.head-brand')
+        @include('partials.head-brand', ['title' => 'Akun Platinum Gym Padang'])
 
-        <script>
-            (() => {
-                const savedTheme = localStorage.getItem('theme');
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
-            })();
-        </script>
+        @include('partials.theme-script')
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=poppins:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -33,11 +23,8 @@
                 <div class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-gold-500/10 to-transparent"></div>
 
                 <div class="relative z-10 flex h-full w-full flex-col justify-between p-12 xl:p-16">
-                    <a href="/" class="inline-flex w-fit items-center gap-4 text-white" aria-label="Platinum Gym Padang">
-                        <span class="inline-flex h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-zinc-950 ring-1 ring-gold-500/40 shadow-[0_0_24px_rgba(254,172,24,0.25)]">
-                            <img src="{{ asset('images/logo-platinum-gym.jpg') }}" alt="Platinum Gym Padang" class="h-full w-full object-cover" draggable="false">
-                        </span>
-                        <span class="text-2xl font-extrabold tracking-wide">Platinum<span class="text-gold-500">Gym</span></span>
+                    <a href="/" class="inline-flex w-fit items-center text-white" aria-label="Platinum Gym Padang">
+                        <img src="{{ asset('images/brand/platinum-gym-wordmark-480.webp') }}" alt="Platinum Gym Padang" class="brand-logo h-12 w-auto" draggable="false" width="480" height="112">
                     </a>
 
                     <div class="max-w-xl">
@@ -67,23 +54,12 @@
                         <span class="hidden min-w-0 truncate md:inline">Kembali ke Beranda</span>
                     </a>
 
-                    <button type="button" data-theme-toggle class="inline-flex h-10 w-10 shrink-0 items-center justify-center justify-self-end rounded-full border border-zinc-200 bg-white/85 text-zinc-700 shadow-sm backdrop-blur-sm transition hover:border-gold-500/60 hover:bg-white hover:text-gold-600 active:scale-95 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-gold-500 sm:h-11 sm:w-11" aria-label="Ganti mode tampilan">
-                        <svg class="h-5 w-5 dark:hidden" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                            <path d="M10 2.5V1M10 19V17.5M17.5 10H19M1 10H2.5M15.3 4.7L16.36 3.64M3.64 16.36L4.7 15.3M15.3 15.3L16.36 16.36M3.64 3.64L4.7 4.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                            <circle cx="10" cy="10" r="3.75" stroke="currentColor" stroke-width="1.7" />
-                        </svg>
-                        <svg class="hidden h-5 w-5 dark:block" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                            <path d="M16.5 12.3C15.47 12.82 14.3 13.12 13.06 13.12C8.8 13.12 5.35 9.68 5.35 5.43C5.35 4.36 5.57 3.34 5.97 2.41C3.42 3.61 1.65 6.2 1.65 9.2C1.65 13.34 5.01 16.7 9.15 16.7C12.41 16.7 15.19 14.62 16.23 11.71L16.5 12.3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
-                        </svg>
-                    </button>
+                    <x-theme-toggle class="h-10 w-10 sm:h-11 sm:w-11" />
                 </div>
 
                 <div class="w-full max-w-[30rem]">
-                    <a href="/" class="mb-8 inline-flex items-center gap-3 lg:hidden" aria-label="Platinum Gym Padang">
-                        <span class="inline-flex h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-zinc-950 ring-1 ring-gold-500/40 shadow-[0_0_20px_rgba(254,172,24,0.18)]">
-                            <img src="{{ asset('images/logo-platinum-gym.jpg') }}" alt="Platinum Gym Padang" class="h-full w-full object-cover" draggable="false">
-                        </span>
-                        <span class="text-2xl font-extrabold tracking-wide text-zinc-950 dark:text-white">Platinum<span class="text-gold-500">Gym</span></span>
+                    <a href="/" class="mb-8 inline-flex items-center lg:hidden" aria-label="Platinum Gym Padang">
+                        <img src="{{ asset('images/brand/platinum-gym-wordmark-480.webp') }}" alt="Platinum Gym Padang" class="brand-logo h-11 w-auto" draggable="false" width="480" height="112">
                     </a>
 
                     {{ $slot }}
@@ -91,65 +67,5 @@
             </main>
         </div>
 
-        <script>
-            document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
-                button.addEventListener('click', () => {
-                    const isDark = document.documentElement.classList.toggle('dark');
-                    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-                });
-            });
-
-            document.querySelectorAll('[data-password-toggle]').forEach((button) => {
-                button.addEventListener('click', () => {
-                    const input = document.getElementById(button.dataset.passwordToggle);
-
-                    if (!input) {
-                        return;
-                    }
-
-                    const shouldShow = input.type === 'password';
-                    input.type = shouldShow ? 'text' : 'password';
-                    button.setAttribute('aria-label', shouldShow ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
-                    button.querySelector('[data-eye-open]')?.classList.toggle('hidden', shouldShow);
-                    button.querySelector('[data-eye-closed]')?.classList.toggle('hidden', !shouldShow);
-                });
-            });
-
-            document.querySelectorAll('[data-password-feedback-input]').forEach((input) => {
-                const feedback = document.getElementById(`${input.id}-feedback`);
-
-                if (!feedback) {
-                    return;
-                }
-
-                const updatePasswordFeedback = () => {
-                    const shouldShow = input.value.length > 0 && input.value.length < 8;
-                    feedback.classList.toggle('hidden', !shouldShow);
-                };
-
-                input.addEventListener('input', updatePasswordFeedback);
-                input.addEventListener('blur', updatePasswordFeedback);
-                updatePasswordFeedback();
-            });
-
-            document.querySelectorAll('[data-phone-feedback-input]').forEach((input) => {
-                const feedback = document.getElementById(`${input.id}-feedback`);
-                const phonePattern = /^08\d{8,12}$/;
-
-                if (!feedback) {
-                    return;
-                }
-
-                const updatePhoneFeedback = () => {
-                    const normalized = input.value.replace(/\D+/g, '');
-                    const shouldShow = normalized.length >= 2 && !phonePattern.test(normalized);
-                    feedback.classList.toggle('hidden', !shouldShow);
-                };
-
-                input.addEventListener('input', updatePhoneFeedback);
-                input.addEventListener('blur', updatePhoneFeedback);
-                updatePhoneFeedback();
-            });
-        </script>
     </body>
 </html>

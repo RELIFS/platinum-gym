@@ -1,38 +1,38 @@
-<x-guest-layout>
-    <div class="w-full">
-        <div class="mb-8">
-            <h2 class="mb-3 text-3xl font-extrabold leading-tight text-zinc-950 dark:text-white">
-                Kebijakan <span class="text-gold-500">Privasi</span>
-            </h2>
-            <p class="auth-panel-copy">
-                Ringkasan penggunaan data akun dan member Platinum Gym Padang.
-            </p>
+<x-public-layout title="Kebijakan Privasi Platinum Gym Padang" description="Kebijakan penggunaan data akun, member, Google OAuth, dan perlindungan data Platinum Gym Padang.">
+    @include('public.partials.page-hero', [
+        'eyebrow' => 'Legal',
+        'title' => 'Kebijakan Privasi',
+        'description' => 'Ringkasan penggunaan data akun dan member Platinum Gym Padang.',
+    ])
+
+    <section class="public-section">
+        <div class="public-container">
+            <div class="public-card mx-auto max-w-3xl space-y-6 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                <section>
+                    <h2 class="mb-2 text-base font-black text-zinc-950 dark:text-white">Data yang Disimpan</h2>
+                    <p>Sistem menyimpan data akun, profil member, nomor WhatsApp, status membership, booking, transaksi, dan data pendukung lain yang dibutuhkan untuk layanan.</p>
+                </section>
+
+                <section>
+                    <h2 class="mb-2 text-base font-black text-zinc-950 dark:text-white">Penggunaan Data</h2>
+                    <p>Data dipakai untuk autentikasi, pengelolaan membership, booking, pembayaran, notifikasi layanan, dukungan pelanggan, dan keamanan akun.</p>
+                </section>
+
+                <section>
+                    <h2 class="mb-2 text-base font-black text-zinc-950 dark:text-white">Login Google</h2>
+                    <p>Jika memakai Google, sistem menggunakan email, nama, provider ID, dan avatar untuk membuat atau menghubungkan akun lokal. Token OAuth tidak ditampilkan di UI.</p>
+                </section>
+
+                <section>
+                    <h2 class="mb-2 text-base font-black text-zinc-950 dark:text-white">Perlindungan Data</h2>
+                    <p>Akses data dibatasi sesuai role pengguna. Member hanya boleh melihat data miliknya sendiri, sedangkan admin dan owner mengikuti hak akses yang ditentukan sistem.</p>
+                </section>
+
+                <div class="flex flex-col gap-3 border-t border-zinc-200 pt-6 dark:border-white/10 sm:flex-row">
+                    <a href="{{ route('register') }}" class="public-button-primary">Daftar Member</a>
+                    <a href="{{ route('public.home') }}" class="public-button-secondary">Kembali ke Beranda</a>
+                </div>
+            </div>
         </div>
-
-        <div class="space-y-5 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
-            <section>
-                <h3 class="mb-2 text-base font-bold text-zinc-950 dark:text-white">Data yang Disimpan</h3>
-                <p>Sistem menyimpan data akun, profil member, nomor WhatsApp, status membership, booking, transaksi, dan data pendukung lain yang dibutuhkan untuk layanan.</p>
-            </section>
-
-            <section>
-                <h3 class="mb-2 text-base font-bold text-zinc-950 dark:text-white">Penggunaan Data</h3>
-                <p>Data dipakai untuk autentikasi, pengelolaan membership, booking, pembayaran, notifikasi layanan, dukungan pelanggan, dan keamanan akun.</p>
-            </section>
-
-            <section>
-                <h3 class="mb-2 text-base font-bold text-zinc-950 dark:text-white">Login Google</h3>
-                <p>Jika memakai Google, sistem menggunakan email, nama, provider ID, dan avatar untuk membuat atau menghubungkan akun lokal. Token OAuth tidak ditampilkan di UI.</p>
-            </section>
-
-            <section>
-                <h3 class="mb-2 text-base font-bold text-zinc-950 dark:text-white">Perlindungan Data</h3>
-                <p>Akses data dibatasi sesuai role pengguna. Member hanya boleh melihat data miliknya sendiri, sedangkan admin dan owner mengikuti hak akses yang ditentukan sistem.</p>
-            </section>
-        </div>
-
-        <button type="button" onclick="window.history.length > 1 ? window.history.back() : window.location.assign('{{ route('register') }}')" class="auth-button-secondary mt-8">
-            Kembali
-        </button>
-    </div>
-</x-guest-layout>
+    </section>
+</x-public-layout>

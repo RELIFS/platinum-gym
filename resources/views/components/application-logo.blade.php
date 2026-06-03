@@ -1,1 +1,1 @@
-<img src="{{ asset('images/logo-platinum-gym.jpg') }}" alt="Platinum Gym Padang" {{ $attributes }}>
+<img src="{{ asset('images/brand/platinum-gym-wordmark-480.webp') }}" alt="Platinum Gym Padang" {{ $attributes }}>
