@@ -59,6 +59,8 @@ class RolePermissionSeeder extends Seeder
                 Permission::findOrCreate($permission, 'web');
             }
 
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+
             $role->syncPermissions($permissions);
         }
 
