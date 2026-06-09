@@ -12,8 +12,8 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 
 | Area | Status |
 |---|---|
-| Auth, role, permission, Google OAuth | Selesai fase foundation |
-| Public website company profile | Selesai fase public + polish responsive |
+| Auth, role, permission, Google OAuth | Selesai fase foundation + polish visual auth |
+| Public website company profile | Selesai fase public + polish responsive, termasuk katalog produk stok aktual dan real image assets |
 | Clean architecture foundation | Selesai tahap awal berbasis `app/Features` |
 | Dashboard member/admin/owner | Placeholder untuk validasi auth dan role |
 | Payment, booking, QR, laporan, AI backend | Belum dikerjakan |
@@ -56,11 +56,11 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 - Policy dasar untuk membatasi akses data milik member sendiri.
 - Website public Blade untuk Beranda, Tentang Kami, Layanan, Kelas, Produk, Galeri, Lokasi, dan BMI.
 - Filter jadwal kelas berbasis query string.
-- Filter dan pencarian produk berbasis query string.
+- Katalog produk dengan foto/fallback, harga, stok aktual dari database, filter, pencarian, dan arahan pembelian langsung di lokasi.
 - Chatbot public statis dengan quick replies dan eskalasi WhatsApp.
 - Google Maps iframe embed tanpa API key pada halaman Lokasi.
-- Seeder kontak public, promo, testimoni, dan galeri.
-- Tampilan autentikasi bertema Platinum Gym.
+- Seeder kontak public, promo, testimoni, galeri, produk, dan foto produk optimized.
+- Tampilan autentikasi bertema Platinum Gym dengan panel visual foto gym pada desktop dan form panel responsive.
 - Toggle tema dark/light mengikuti preferensi perangkat dan pilihan pengguna.
 - Struktur feature-based awal untuk Auth, PublicWebsite, dan Shared support.
 - Testing fitur autentikasi menggunakan Pest.
@@ -122,7 +122,9 @@ php artisan test --no-ansi
 
 Project menggunakan Pest PHP. Pest berjalan di atas ekosistem PHPUnit, sehingga tetap kompatibel dengan testing Laravel.
 
-Baseline validasi terakhir pada fase public/auth polish: `76 passed / 356 assertions` dan `npm.cmd run build` berhasil.
+Baseline validasi terakhir pada fase public/auth/product polish: `79 passed / 536 assertions` dan `npm.cmd run build` berhasil.
+
+Catatan: konfigurasi `phpunit.xml` memakai SQLite in-memory untuk testing. Pastikan PHP CLI memiliki extension `pdo_sqlite` aktif sebelum menjalankan full test suite lokal.
 
 ## Build Asset Frontend
 
@@ -141,14 +143,12 @@ npm.cmd run dev
 ```text
 README.md
 CHANGELOG.md
-dependency-package.md
 
 docs/
 |-- installation.md
 |-- features.md
 |-- dependency.md
 |-- refactoring.md
-|-- public-responsive-audit.md
 `-- github-actions.md
 ```
 
@@ -174,7 +174,6 @@ Rencana screenshot minimal:
 | `docs/features.md` | Dokumentasi fitur aplikasi |
 | `docs/dependency.md` | Dokumentasi dependency backend dan frontend |
 | `docs/refactoring.md` | Catatan refactoring dan perbaikan struktur kode |
-| `docs/public-responsive-audit.md` | Audit responsive dan smoke test public website |
 | `docs/github-actions.md` | Rencana workflow CI/CD |
 | `CHANGELOG.md` | Riwayat perubahan proyek |
 

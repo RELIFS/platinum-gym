@@ -5,9 +5,9 @@
         'description' => 'Gunakan filter hari dan jenis kelas untuk menemukan jadwal yang sesuai rutinitas Anda.',
     ])
 
-    <section class="public-section bg-zinc-50 dark:bg-zinc-950">
+    <section class="public-section public-section-muted">
         <div class="public-container">
-            <form method="GET" action="{{ route('public.classes') }}" class="public-card grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end" aria-describedby="classes-filter-status">
+            <form method="GET" action="{{ route('public.classes') }}" class="public-card grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end md:p-7" aria-describedby="classes-filter-status">
                 <div>
                     <label for="hari" class="mb-2 block text-sm font-bold text-zinc-700 dark:text-zinc-300">Hari</label>
                     <select id="hari" name="hari" class="public-input">
@@ -49,7 +49,7 @@
         </div>
     </section>
 
-    <section class="public-section bg-white dark:bg-zinc-900/40">
+    <section class="public-section public-section-plain">
         <div class="public-container grid gap-6 lg:grid-cols-3">
             <article class="public-card">
                 <h2 class="text-xl font-black text-zinc-950 dark:text-white">Included Class</h2>
@@ -61,7 +61,7 @@
             </article>
             <article class="public-card">
                 <h2 class="text-xl font-black text-zinc-950 dark:text-white">Booking</h2>
-                <p class="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Masuk ke akun member untuk fitur booking saat modul booking aktif. Saat ini, hubungi admin untuk konfirmasi.</p>
+                <p class="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Jadwal, coach, kuota, dan harga ditampilkan di website. Booking digital akan masuk ke dashboard member saat modul aktif.</p>
                 <a href="{{ route('login') }}" class="public-button-primary mt-6 w-full">Masuk untuk Booking</a>
             </article>
         </div>

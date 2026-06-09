@@ -5,11 +5,11 @@
         'description' => 'Platinum Gym Padang hadir sebagai ruang latihan yang strategis, aktif, dan ramah untuk member pemula sampai berpengalaman.',
     ])
 
-    <section class="public-section bg-zinc-50 dark:bg-zinc-950">
+    <section class="public-section public-section-muted">
         <div class="public-container grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
             <div>
                 <p class="public-eyebrow">Profil</p>
-                <h2 class="mt-3 text-3xl font-black tracking-tight text-zinc-950 dark:text-white sm:text-4xl">Tempat latihan di pusat Kota Padang.</h2>
+                <h2 class="public-heading-balance mt-3 text-3xl font-black text-zinc-950 dark:text-white sm:text-4xl">Tempat latihan di pusat Kota Padang.</h2>
                 <p class="mt-5 text-sm leading-7 text-zinc-600 dark:text-zinc-400">
                     Platinum Gym Padang menggabungkan layanan gym, kelas grup, personal trainer, Muaythai, Poundfit, dan kebutuhan produk fitness. Website ini menjadi pintu masuk digital untuk mengenal layanan, melihat jadwal, dan mulai membuat akun member.
                 </p>
@@ -20,10 +20,9 @@
             </div>
 
             <div class="relative">
-                <div class="absolute inset-6 rounded-[2rem] bg-gold-500/20 blur-3xl"></div>
                 <div class="relative overflow-hidden rounded-[2rem] border border-zinc-200 bg-white p-3 shadow-2xl dark:border-white/10 dark:bg-white/[0.04]">
                     <div class="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-zinc-950">
-                        <img src="{{ asset('images/public/gallery/platinum-gym-padang-instagram-04.webp') }}" alt="Pendampingan personal trainer Platinum Gym Padang" class="h-full w-full object-cover">
+                        <img src="{{ asset('images/public/gallery/platinum-gym-padang-training-floor.webp') }}" alt="Training floor dan alat strength Platinum Gym Padang" class="h-full w-full object-cover" width="600" height="336" loading="lazy">
                         <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/20 to-transparent"></div>
                         <div class="absolute bottom-5 left-5 right-5 text-white">
                             <p class="public-eyebrow">Suasana Gym</p>
@@ -49,11 +48,11 @@
         </div>
     </section>
 
-    <section class="public-section bg-white dark:bg-zinc-900/40">
+    <section class="public-section public-section-plain">
         <div class="public-container">
             <div class="max-w-3xl">
                 <p class="public-eyebrow">Keunggulan</p>
-                <h2 class="mt-3 text-3xl font-black tracking-tight text-zinc-950 dark:text-white sm:text-4xl">Dirancang untuk latihan yang jelas, aman, dan berkelanjutan.</h2>
+                <h2 class="public-heading-balance mt-3 text-3xl font-black text-zinc-950 dark:text-white sm:text-4xl">Dirancang untuk latihan yang jelas, aman, dan berkelanjutan.</h2>
             </div>
             <div class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
                 @foreach ([
@@ -71,12 +70,12 @@
         </div>
     </section>
 
-    <section class="public-section bg-zinc-50 dark:bg-zinc-950">
+    <section class="public-section public-section-muted">
         <div class="public-container">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div class="max-w-3xl">
                     <p class="public-eyebrow">Tim Coach</p>
-                    <h2 class="mt-3 text-3xl font-black tracking-tight text-zinc-950 dark:text-white sm:text-4xl">Coach sesuai program latihan.</h2>
+                    <h2 class="public-heading-balance mt-3 text-3xl font-black text-zinc-950 dark:text-white sm:text-4xl">Coach sesuai program latihan.</h2>
                 </div>
                 <a href="{{ route('public.classes') }}" class="public-button-secondary">Lihat Jadwal</a>
             </div>

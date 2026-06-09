@@ -5,7 +5,7 @@
         'description' => 'Lihat dokumentasi aktivitas kelas, personal trainer, dan suasana latihan Platinum Gym Padang.',
     ])
 
-    <section class="public-section bg-zinc-50 dark:bg-zinc-950">
+    <section class="public-section public-section-muted">
         <div class="public-container">
             <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 @forelse ($galleries as $item)

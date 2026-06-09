@@ -58,7 +58,7 @@
                     </template>
                 </div>
                 <div class="flex gap-2">
-                    <input type="text" class="public-input h-11 min-w-0 flex-1 border-zinc-700 bg-zinc-900 text-base text-zinc-100 placeholder:text-zinc-500" placeholder="Ketik pertanyaan…" aria-label="Ketik pertanyaan chatbot" x-model="input" x-on:keydown.enter.prevent="send()">
+                    <input type="text" class="public-input h-11 min-w-0 flex-1 border-zinc-700 bg-zinc-900 text-base text-zinc-100 placeholder:text-zinc-500" placeholder="Ketik pertanyaan..." aria-label="Ketik pertanyaan chatbot" x-model="input" x-on:keydown.enter.prevent="send()">
                     <button type="button" class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full bg-gold-500 text-zinc-950 transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Kirim pesan chatbot" x-bind:disabled="!input.trim()" x-on:click="send()">
                         <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                             <path d="M3 10L17 3L12 17L9.5 10.5L3 10Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
@@ -71,14 +71,14 @@
             </div>
         </section>
 
-        <button type="button" x-show="!open" x-transition x-ref="trigger" class="group inline-flex min-h-14 touch-manipulation items-center gap-3 rounded-full bg-gold-500 px-4 py-3 text-zinc-950 shadow-[0_18px_50px_rgba(254,172,24,0.34)] ring-1 ring-zinc-950/10 transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-offset-zinc-950" aria-label="Buka chatbot Platinum Gym" x-on:click="openChat()">
+        <button type="button" x-show="!open" x-transition x-ref="trigger" class="group inline-flex h-12 w-12 touch-manipulation items-center justify-center gap-3 rounded-full bg-gold-500 p-0 text-zinc-950 shadow-[0_18px_50px_rgba(254,172,24,0.34)] ring-1 ring-zinc-950/10 transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-offset-zinc-950 sm:h-auto sm:min-h-14 sm:w-auto sm:px-4 sm:py-3" aria-label="Buka chatbot Platinum Gym" x-on:click="openChat()">
             <span class="relative inline-flex h-8 w-8 items-center justify-center rounded-full bg-zinc-950/10">
                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                     <path d="M4 5.5C4 4.12 5.12 3 6.5 3H13.5C14.88 3 16 4.12 16 5.5V10.5C16 11.88 14.88 13 13.5 13H9L5.5 16V13H6.5C5.12 13 4 11.88 4 10.5V5.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
                 </svg>
                 <span class="absolute -right-1 -top-1 h-3.5 min-w-3.5 rounded-full bg-red-600 px-1 text-[0.55rem] font-black leading-3.5 text-white">1</span>
             </span>
-            <span class="hidden leading-tight sm:block">
+            <span class="hidden leading-tight 2xl:block">
                 <span class="block text-[0.65rem] font-black uppercase tracking-[0.18em]">Chatbot</span>
                 <span class="block text-sm font-black">Tanya Cepat</span>
             </span>

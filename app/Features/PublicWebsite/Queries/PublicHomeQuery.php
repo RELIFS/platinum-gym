@@ -3,7 +3,9 @@
 namespace App\Features\PublicWebsite\Queries;
 
 use App\Models\Gallery;
+use App\Models\GymClass;
 use App\Models\Package;
+use App\Models\Product;
 use App\Models\Promo;
 use App\Models\Testimonial;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,6 +32,11 @@ class PublicHomeQuery
             'classSchedules' => $this->classSchedules->preview(8),
             'dayLabels' => $this->classSchedules->dayLabels(),
             'products' => $this->products->preview(6),
+            'stats' => [
+                'packages' => Package::query()->where('is_active', true)->count(),
+                'classes' => GymClass::query()->where('is_active', true)->count(),
+                'products' => Product::query()->where('is_active', true)->count(),
+            ],
             'galleries' => Gallery::query()
                 ->where('is_published', true)
                 ->orderBy('sort_order')

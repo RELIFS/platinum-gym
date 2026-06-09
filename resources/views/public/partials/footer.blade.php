@@ -2,14 +2,12 @@
     $siteName = $settings['site_name'] ?? 'Platinum Gym Padang';
     $hours = $settings['operational_hours'] ?? ['weekday' => '06:00-22:00', 'weekend' => '06:00-20:00'];
     $phoneNumber = preg_replace('/\D+/', '', (string) ($settings['whatsapp_number'] ?? '6282174777761'));
-    $whatsappUrl = $settings['whatsapp_url'] ?? 'https://wa.me/6282174777761';
-    $whatsappFooterUrl = $whatsappUrl.(str_contains($whatsappUrl, '?') ? '&' : '?').http_build_query([
-        'text' => 'Halo Platinum Gym Padang, saya ingin tanya paket latihan.',
-    ]);
 @endphp
 
-<footer class="border-t border-zinc-200 bg-white dark:border-white/10 dark:bg-zinc-950">
-    <div class="public-container py-12 sm:py-16">
+<footer class="relative overflow-hidden border-t border-zinc-200 bg-white dark:border-white/10 dark:bg-zinc-950">
+    <div class="public-surface-grid absolute inset-0 opacity-20 dark:opacity-15" aria-hidden="true"></div>
+    <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-500/50 to-transparent"></div>
+    <div class="public-container relative py-12 sm:py-16">
         <div class="grid gap-10 lg:grid-cols-[1.15fr_0.85fr_0.85fr]">
             <div>
                 <a href="{{ route('public.home') }}" class="inline-flex min-h-11 touch-manipulation items-center rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-950" aria-label="{{ $siteName }}">
@@ -20,7 +18,7 @@
                 </p>
                 <div class="mt-6 flex flex-wrap gap-3">
                     <a href="{{ route('register') }}" class="public-button-primary">Daftar Member</a>
-                    <a href="{{ $whatsappFooterUrl }}" target="_blank" rel="noopener noreferrer" class="public-button-secondary">WhatsApp</a>
+                    <a href="{{ route('public.location') }}" class="public-button-secondary">Lokasi &amp; Kontak</a>
                 </div>
             </div>
 
