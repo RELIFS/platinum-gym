@@ -1,22 +1,20 @@
 @php
-    $whatsappUrl = ($settings['whatsapp_url'] ?? 'https://wa.me/6282174777761');
-    $packageCtaUrl = $whatsappUrl.(str_contains($whatsappUrl, '?') ? '&' : '?').http_build_query([
-        'text' => 'Halo Platinum Gym Padang, saya ingin tanya paket '.$package->name.'.',
-    ]);
     $kind = \Illuminate\Support\Str::lower((string) $package->package_kind);
     $name = \Illuminate\Support\Str::lower($package->name);
+    $registrationLabel = str_contains($kind, 'membership') ? 'Daftar Membership' : 'Daftar Paket';
     $visual = match (true) {
         str_contains($kind, 'pt'), str_contains($name, 'pt'), str_contains($name, 'trainer') => 'platinum-gym-padang-instagram-01.webp',
         str_contains($name, 'muaythai') => 'platinum-gym-padang-instagram-07.webp',
         str_contains($name, 'senam'), str_contains($name, 'zumba'), str_contains($name, 'aerobic') => 'platinum-gym-padang-instagram-06.webp',
-        default => 'platinum-gym-padang-instagram-05.webp',
+        default => 'platinum-gym-padang-training-floor.webp',
     };
 @endphp
 
-<article class="public-card public-card-hover flex h-full flex-col">
-    <div class="relative -mx-2 -mt-2 mb-5 aspect-[4/3] overflow-hidden rounded-2xl bg-zinc-950">
-        <img src="{{ asset('images/public/gallery/'.$visual) }}" alt="Ilustrasi {{ $package->name }} di Platinum Gym Padang" class="h-full w-full object-cover transition duration-500 hover:scale-105" loading="lazy">
+<article class="group public-card public-card-hover flex h-full flex-col">
+    <div class="public-media-frame -mx-2 -mt-2 mb-5 aspect-[4/3]">
+        <img src="{{ asset('images/public/gallery/'.$visual) }}" alt="Ilustrasi {{ $package->name }} di Platinum Gym Padang" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" width="600" height="1000" loading="lazy">
         <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/85 via-zinc-950/20 to-transparent"></div>
+        <div class="absolute inset-0 ring-1 ring-inset ring-white/10"></div>
         <span class="absolute bottom-4 left-4 max-w-[calc(100%-2rem)] break-words rounded-full bg-gold-500 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-zinc-950">
             {{ \Illuminate\Support\Str::headline($package->package_kind) }}
         </span>
@@ -50,5 +48,5 @@
             </li>
         @endforeach
     </ul>
-    <a href="{{ $packageCtaUrl }}" target="_blank" rel="noopener noreferrer" class="public-button-primary mt-auto w-full">Tanya Paket</a>
+    <a href="{{ route('register') }}" class="public-button-primary mt-auto w-full" aria-label="{{ $registrationLabel }} {{ $package->name }}">{{ $registrationLabel }}</a>
 </article>
