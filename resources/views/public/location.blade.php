@@ -1,8 +1,8 @@
 <x-public-layout :settings="$settings" title="Lokasi Platinum Gym Padang" description="Alamat, jam operasional, WhatsApp, Instagram, dan Google Maps Platinum Gym Padang.">
     @include('public.partials.page-hero', [
         'eyebrow' => 'Lokasi & Kontak',
-        'title' => 'Datang langsung atau hubungi admin Platinum Gym.',
-        'description' => 'Temukan lokasi, jam operasional, WhatsApp, email, Instagram, dan Google Maps resmi Platinum Gym Padang.',
+        'title' => 'Datang langsung ke Platinum Gym Padang.',
+        'description' => 'Temukan alamat, jam operasional, kontak resmi, Instagram, dan rute Google Maps Platinum Gym Padang.',
     ])
 
     @php
@@ -15,7 +15,7 @@
         ]);
     @endphp
 
-    <section class="public-section bg-zinc-50 dark:bg-zinc-950">
+    <section class="public-section public-section-muted">
         <div class="public-container grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
             <div class="space-y-5">
                 <article class="public-card">
@@ -67,16 +67,16 @@
                     </div>
                 @else
                     <div class="relative flex min-h-96 flex-1 items-end overflow-hidden p-8">
-                        <img src="{{ asset('images/public/gallery/platinum-gym-padang-instagram-06.webp') }}" alt="Kelas aktif Platinum Gym Padang" class="absolute inset-0 h-full w-full object-cover opacity-45" loading="lazy" width="540" height="960">
+                        <img src="{{ asset('images/public/gallery/platinum-gym-padang-gym-exterior.webp') }}" alt="Tampak depan Platinum Gym Padang" class="absolute inset-0 h-full w-full object-cover opacity-45" loading="lazy" width="600" height="336">
                         <div class="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-950/85 to-gold-600/50"></div>
-                        <div class="absolute inset-0 opacity-[0.18]" style="background-image: linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px); background-size: 40px 40px;"></div>
+                        <div class="absolute inset-0 opacity-[0.10]" aria-hidden="true" style="background-image: linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px); background-size: 48px 48px;"></div>
                         <div class="absolute right-6 top-6 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-right backdrop-blur">
                             <p class="text-xs font-black uppercase tracking-[0.18em] text-gold-400">Padang Timur</p>
                             <p class="mt-1 text-sm font-bold text-white">Sawahan</p>
                         </div>
                         <div class="relative max-w-xl">
                             <p class="public-eyebrow">Google Maps</p>
-                            <h2 class="public-heading-balance mt-3 break-words text-4xl font-black tracking-tight">Jl. H. Agus Salim No.3A</h2>
+                            <h2 class="public-heading-balance mt-3 break-words text-4xl font-black">Jl. H. Agus Salim No.3A</h2>
                             <p class="mt-4 break-words text-sm leading-7 text-zinc-300">Buka Google Maps untuk rute langsung ke lokasi resmi Platinum Gym Padang.</p>
                         </div>
                     </div>

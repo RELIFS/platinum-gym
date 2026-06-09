@@ -27,12 +27,32 @@ test('brand logo assets are optimized for repeated UI use', function () {
 });
 
 test('public gallery images stay within card performance budget', function () {
-    foreach (range(1, 8) as $index) {
-        [$size, $width, $height] = publicAssetInfo(sprintf('images/public/gallery/platinum-gym-padang-instagram-%02d.webp', $index));
+    $galleryImages = glob(public_path('images/public/gallery/*.webp')) ?: [];
+
+    expect($galleryImages)->not->toBeEmpty();
+
+    foreach ($galleryImages as $absolutePath) {
+        $relativePath = str_replace(public_path().DIRECTORY_SEPARATOR, '', $absolutePath);
+        [$size, $width, $height] = publicAssetInfo($relativePath);
 
         expect($size)->toBeLessThan(90 * 1024)
             ->and($width)->toBeLessThanOrEqual(600)
             ->and($height)->toBeLessThanOrEqual(1000);
+    }
+});
+
+test('public product images stay within catalog card performance budget', function () {
+    $products = glob(public_path('images/public/products/*.webp')) ?: [];
+
+    expect($products)->toHaveCount(40);
+
+    foreach ($products as $absolutePath) {
+        $relativePath = str_replace(public_path().DIRECTORY_SEPARATOR, '', $absolutePath);
+        [$size, $width, $height] = publicAssetInfo($relativePath);
+
+        expect($size)->toBeLessThan(50 * 1024)
+            ->and($width)->toBe(640)
+            ->and($height)->toBe(480);
     }
 });
 

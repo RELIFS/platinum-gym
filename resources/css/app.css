@@ -5,10 +5,13 @@
 @layer base {
     :root {
         color-scheme: light;
+        --public-grid-line: rgba(24, 24, 27, 0.045);
+        --public-grid-size: 56px;
     }
 
     .dark {
         color-scheme: dark;
+        --public-grid-line: rgba(255, 255, 255, 0.075);
     }
 
     [x-cloak] {
@@ -34,6 +37,10 @@
 }
 
 @layer components {
+    .auth-panel {
+        @apply rounded-2xl border border-zinc-200/85 bg-white/90 p-4 shadow-[0_22px_70px_rgba(24,24,27,0.10)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/80 dark:shadow-[0_24px_80px_rgba(0,0,0,0.34)] sm:p-6;
+    }
+
     .auth-input {
         @apply block w-full rounded-lg border border-zinc-300 bg-white px-4 py-3.5 text-base text-zinc-950 shadow-sm transition placeholder:text-zinc-400 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:placeholder:text-zinc-500;
     }
@@ -75,7 +82,7 @@
     }
 
     .auth-divider span {
-        @apply relative bg-zinc-50 px-4 dark:bg-zinc-950;
+        @apply relative bg-white px-4 dark:bg-zinc-950;
     }
 
     .auth-panel-copy {
@@ -90,6 +97,19 @@
         @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
     }
 
+    .public-surface-grid {
+        background-image: linear-gradient(var(--public-grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--public-grid-line) 1px, transparent 1px);
+        background-size: var(--public-grid-size) var(--public-grid-size);
+    }
+
+    .public-section-muted {
+        @apply bg-[linear-gradient(180deg,#fafafa,#f4f4f5)] dark:bg-[linear-gradient(180deg,#09090b,#18181b)];
+    }
+
+    .public-section-plain {
+        @apply bg-white dark:bg-zinc-900/40;
+    }
+
     .public-skip-link {
         @apply fixed left-4 top-4 z-[60] -translate-y-24 rounded-full bg-gold-500 px-5 py-3 text-sm font-black text-zinc-950 shadow-xl transition focus:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-offset-zinc-950;
     }
@@ -102,6 +122,10 @@
         text-wrap: balance;
     }
 
+    .public-text-pretty {
+        text-wrap: pretty;
+    }
+
     .public-text-link {
         @apply inline-flex min-h-11 max-w-full touch-manipulation items-center break-words rounded-md py-1 font-semibold transition hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
     }
@@ -111,11 +135,11 @@
     }
 
     .public-header-link {
-        @apply inline-flex h-11 touch-manipulation items-center justify-center rounded-full border border-zinc-300 bg-white/80 px-4 text-sm font-semibold text-zinc-900 transition hover:border-gold-500/70 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:border-gold-400/60 dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex h-11 touch-manipulation items-center justify-center rounded-full border border-zinc-300 bg-white/85 px-4 text-sm font-semibold text-zinc-900 shadow-sm transition hover:-translate-y-0.5 hover:border-gold-500/70 hover:bg-white hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:hover:border-gold-400/60 dark:hover:bg-white/[0.08] dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
     }
 
     .public-header-cta {
-        @apply inline-flex h-11 touch-manipulation items-center justify-center gap-2 rounded-full bg-gold-500 px-4 text-sm font-bold text-zinc-950 shadow-[0_10px_28px_rgba(254,172,24,0.24)] transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex h-11 touch-manipulation items-center justify-center gap-2 rounded-full bg-gold-500 px-4 text-sm font-bold text-zinc-950 shadow-[0_14px_34px_rgba(254,172,24,0.30)] transition hover:-translate-y-0.5 hover:bg-gold-400 hover:shadow-[0_18px_42px_rgba(254,172,24,0.36)] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:focus-visible:ring-offset-zinc-950;
     }
 
     .public-section {
@@ -123,11 +147,44 @@
     }
 
     .public-card {
-        @apply rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition dark:border-white/10 dark:bg-white/[0.04];
+        @apply min-w-0 rounded-2xl border border-zinc-200/85 bg-white/95 p-6 shadow-[0_18px_50px_rgba(24,24,27,0.06)] backdrop-blur-sm transition duration-300 dark:border-white/10 dark:bg-white/[0.045] dark:shadow-[0_18px_60px_rgba(0,0,0,0.24)];
     }
 
     .public-card-hover {
-        @apply hover:-translate-y-1 hover:border-gold-500/50 hover:shadow-[0_18px_60px_rgba(254,172,24,0.14)];
+        @apply hover:-translate-y-1 hover:border-gold-500/60 hover:shadow-[0_24px_70px_rgba(254,172,24,0.16)] dark:hover:shadow-[0_24px_70px_rgba(254,172,24,0.10)];
+    }
+
+    .public-media-frame {
+        @apply relative overflow-hidden rounded-2xl bg-zinc-950 ring-1 ring-zinc-200/80 dark:ring-white/10;
+    }
+
+    .public-info-panel {
+        @apply rounded-2xl border border-gold-500/30 bg-gold-500/10 p-5 shadow-[0_18px_50px_rgba(254,172,24,0.08)] sm:p-6 dark:border-gold-400/30 dark:bg-gold-400/10;
+    }
+
+    .public-product-notice {
+        @apply rounded-2xl border border-gold-500/30 p-5 shadow-[0_18px_50px_rgba(254,172,24,0.10)] backdrop-blur sm:p-6;
+        background-image: radial-gradient(circle at 82% 15%, rgba(254, 172, 24, 0.18), transparent 34%), linear-gradient(135deg, rgba(254, 172, 24, 0.12), rgba(255, 255, 255, 0.86));
+    }
+
+    .dark .public-product-notice {
+        background-image: radial-gradient(circle at 82% 15%, rgba(254, 172, 24, 0.20), transparent 34%), linear-gradient(135deg, rgba(254, 172, 24, 0.12), rgba(255, 255, 255, 0.045));
+    }
+
+    .public-product-filter {
+        @apply min-w-0 rounded-2xl border border-zinc-200/85 bg-white/95 p-5 shadow-[0_18px_50px_rgba(24,24,27,0.06)] backdrop-blur-sm transition duration-300 dark:border-white/10 dark:bg-white/[0.045] dark:shadow-[0_18px_60px_rgba(0,0,0,0.24)] md:p-7;
+    }
+
+    .public-product-stat {
+        @apply min-w-0 rounded-xl border border-zinc-950/10 bg-white/70 px-3.5 py-3 shadow-sm dark:border-white/10 dark:bg-zinc-950/35;
+    }
+
+    .public-product-stat dt {
+        @apply break-words text-[0.65rem] font-black uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400;
+    }
+
+    .public-product-stat dd {
+        @apply mt-1 break-words text-sm font-black text-zinc-950 dark:text-white;
     }
 
     .public-eyebrow {
@@ -135,14 +192,41 @@
     }
 
     .public-button-primary {
-        @apply inline-flex min-h-12 touch-manipulation items-center justify-center rounded-full bg-gold-500 px-6 py-3 text-sm font-bold text-zinc-950 shadow-[0_12px_36px_rgba(254,172,24,0.26)] transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-12 max-w-full touch-manipulation items-center justify-center whitespace-normal break-words rounded-full bg-gold-500 px-6 py-3 text-center text-sm font-bold text-zinc-950 shadow-[0_14px_38px_rgba(254,172,24,0.30)] transition hover:-translate-y-0.5 hover:bg-gold-400 hover:shadow-[0_20px_50px_rgba(254,172,24,0.38)] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:focus-visible:ring-offset-zinc-950;
     }
 
     .public-button-secondary {
-        @apply inline-flex min-h-12 touch-manipulation items-center justify-center rounded-full border border-zinc-300 bg-white/80 px-6 py-3 text-sm font-semibold text-zinc-900 transition hover:border-gold-500/70 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:border-gold-400/60 dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-12 max-w-full touch-manipulation items-center justify-center whitespace-normal break-words rounded-full border border-zinc-300 bg-white/85 px-6 py-3 text-center text-sm font-semibold text-zinc-900 shadow-sm transition hover:-translate-y-0.5 hover:border-gold-500/70 hover:bg-white hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.045] dark:text-white dark:hover:border-gold-400/60 dark:hover:bg-white/[0.075] dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
     }
 
     .public-input {
-        @apply w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm font-medium text-zinc-950 shadow-sm transition placeholder:text-zinc-400 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:placeholder:text-zinc-500;
+        @apply min-h-12 w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-base font-medium text-zinc-950 shadow-sm transition placeholder:text-zinc-400 hover:border-zinc-400 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:placeholder:text-zinc-500 dark:hover:border-white/20 sm:text-sm;
+    }
+
+    .public-filter-chip {
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center whitespace-normal break-words rounded-full px-4 py-2 text-center text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-950;
+    }
+
+    .public-product-card {
+        @apply p-4 sm:p-5;
+    }
+
+    .public-product-media {
+        @apply -mx-1 -mt-1 bg-white shadow-inner dark:bg-zinc-950;
+    }
+
+    .public-product-title,
+    .public-product-description {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .public-product-title {
+        -webkit-line-clamp: 2;
+    }
+
+    .public-product-description {
+        -webkit-line-clamp: 3;
     }
 }
