@@ -53,7 +53,7 @@ npm ci
 npm run build
 php artisan key:generate
 php artisan migrate --force
-php artisan test
+php artisan test --no-ansi
 ```
 
 ## Testing Framework
@@ -61,7 +61,7 @@ php artisan test
 Project menggunakan Pest PHP.
 
 ```bash
-php artisan test
+php artisan test --no-ansi
 ```
 
 Pest berjalan di atas PHPUnit, sehingga tetap kompatibel dengan workflow testing Laravel.

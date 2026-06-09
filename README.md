@@ -1,17 +1,28 @@
 # Platinum Gym Padang
 
-Website Company Profile dan Sistem Informasi Layanan Platinum Gym Padang berbasis Laravel.
+Website Company Profile dan Sistem Informasi Layanan Platinum Gym Padang berbasis Laravel 12.
 
 ## Deskripsi Proyek
 
 Platinum Gym Padang adalah aplikasi web untuk membantu pengelolaan informasi layanan gym, registrasi member, autentikasi pengguna, dan dasar pengembangan sistem operasional gym.
 
-Dokumentasi proyek disusun agar aplikasi mudah dipasang, dipelihara, dikembangkan, dan digunakan sebagai dasar kolaborasi tim.
+Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dikembangkan, dan digunakan sebagai dasar kolaborasi tim.
+
+## Status Saat Ini
+
+| Area | Status |
+|---|---|
+| Auth, role, permission, Google OAuth | Selesai fase foundation + polish visual auth |
+| Public website company profile | Selesai fase public + polish responsive, termasuk katalog produk stok aktual dan real image assets |
+| Clean architecture foundation | Selesai tahap awal berbasis `app/Features` |
+| Dashboard member/admin/owner | Placeholder untuk validasi auth dan role |
+| Payment, booking, QR, laporan, AI backend | Belum dikerjakan |
 
 ## Tujuan Proyek
 
 - Menyediakan company profile digital untuk Platinum Gym Padang.
 - Menyediakan fondasi autentikasi untuk member, admin, dan owner.
+- Menyediakan halaman public untuk layanan, jadwal kelas, produk, galeri, lokasi, dan BMI.
 - Menyiapkan struktur aplikasi untuk fitur membership, booking, pembayaran, check-in, dan laporan.
 - Mendokumentasikan proses konstruksi dan evolusi perangkat lunak secara bertahap.
 
@@ -36,13 +47,24 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, dipelihara, dikembangka
 
 - Registrasi member dengan data profil awal.
 - Login dan logout pengguna.
+- Login/register Google untuk member.
 - Verifikasi email setelah registrasi.
 - Pengiriman ulang email verifikasi.
 - Proteksi dashboard menggunakan middleware `auth` dan `verified`.
-- Role `member` menggunakan Spatie Laravel Permission.
-- Tampilan autentikasi bertema Platinum Gym.
+- Role `member`, `admin`, dan `owner` menggunakan Spatie Laravel Permission.
+- Redirect dashboard berdasarkan role.
+- Policy dasar untuk membatasi akses data milik member sendiri.
+- Website public Blade untuk Beranda, Tentang Kami, Layanan, Kelas, Produk, Galeri, Lokasi, dan BMI.
+- Filter jadwal kelas berbasis query string.
+- Katalog produk dengan foto/fallback, harga, stok aktual dari database, filter, pencarian, dan arahan pembelian langsung di lokasi.
+- Chatbot public statis dengan quick replies dan eskalasi WhatsApp.
+- Google Maps iframe embed tanpa API key pada halaman Lokasi.
+- Seeder kontak public, promo, testimoni, galeri, produk, dan foto produk optimized.
+- Tampilan autentikasi bertema Platinum Gym dengan panel visual foto gym pada desktop dan form panel responsive.
 - Toggle tema dark/light mengikuti preferensi perangkat dan pilihan pengguna.
+- Struktur feature-based awal untuk Auth, PublicWebsite, dan Shared support.
 - Testing fitur autentikasi menggunakan Pest.
+- Testing fitur public website menggunakan Pest.
 
 ### Fitur Rencana Pengembangan
 
@@ -54,7 +76,6 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, dipelihara, dikembangka
 - Laporan owner.
 - Upload media konten website.
 - Audit log aktivitas sistem.
-- Login/register Google.
 
 ## Tech Stack
 
@@ -96,10 +117,14 @@ Dokumentasi instalasi lengkap tersedia di `docs/installation.md`.
 ## Menjalankan Test
 
 ```bash
-php artisan test
+php artisan test --no-ansi
 ```
 
 Project menggunakan Pest PHP. Pest berjalan di atas ekosistem PHPUnit, sehingga tetap kompatibel dengan testing Laravel.
+
+Baseline validasi terakhir pada fase public/auth/product polish: `79 passed / 536 assertions` dan `npm.cmd run build` berhasil.
+
+Catatan: konfigurasi `phpunit.xml` memakai SQLite in-memory untuk testing. Pastikan PHP CLI memiliki extension `pdo_sqlite` aktif sebelum menjalankan full test suite lokal.
 
 ## Build Asset Frontend
 
@@ -118,14 +143,13 @@ npm.cmd run dev
 ```text
 README.md
 CHANGELOG.md
-dependency-package.md
 
 docs/
-├── installation.md
-├── features.md
-├── dependency.md
-├── refactoring.md
-└── github-actions.md
+|-- installation.md
+|-- features.md
+|-- dependency.md
+|-- refactoring.md
+`-- github-actions.md
 ```
 
 ## Screenshot Proyek
@@ -134,6 +158,8 @@ Screenshot aplikasi akan ditambahkan setelah halaman siap digunakan dan telah di
 
 Rencana screenshot minimal:
 
+- Halaman beranda public.
+- Halaman layanan dan kelas.
 - Halaman login.
 - Halaman registrasi member.
 - Halaman verifikasi email.
@@ -150,6 +176,8 @@ Rencana screenshot minimal:
 | `docs/refactoring.md` | Catatan refactoring dan perbaikan struktur kode |
 | `docs/github-actions.md` | Rencana workflow CI/CD |
 | `CHANGELOG.md` | Riwayat perubahan proyek |
+
+Catatan: folder `platinumgym-figma/` adalah workspace referensi lokal/private dan sudah masuk `.gitignore`, sehingga tidak ikut repository production Laravel.
 
 ## Tim Pengembang
 

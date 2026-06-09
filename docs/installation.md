@@ -82,6 +82,17 @@ Jalankan migration dan seeder:
 php artisan migrate --seed
 ```
 
+## Konfigurasi Integrasi Opsional
+
+`.env.example` sudah menyediakan placeholder non-secret untuk Google OAuth, Midtrans, Gemini, mail, queue, dan session secure cookie. Isi hanya nilai yang dibutuhkan pada `.env` lokal atau production; jangan commit secret ke Git.
+
+Untuk Google OAuth lokal, pastikan nilai berikut konsisten dengan Google Cloud Console:
+
+```env
+APP_URL=http://127.0.0.1:8000
+GOOGLE_REDIRECT_URI="${APP_URL}/auth/google/callback"
+```
+
 ## Build Asset Frontend
 
 Untuk production build:
@@ -113,7 +124,7 @@ http://127.0.0.1:8000
 ## Menjalankan Test
 
 ```bash
-php artisan test
+php artisan test --no-ansi
 ```
 
 Proyek menggunakan Pest PHP sebagai framework testing. Pest berjalan di atas PHPUnit dan tetap memakai ekosistem testing Laravel.
@@ -217,6 +228,7 @@ Pada Windows, pastikan folder `storage` dan `bootstrap/cache` dapat ditulis oleh
 Instalasi dianggap berhasil jika:
 
 - Halaman utama dapat dibuka.
+- Halaman public `/`, `/tentang-kami`, `/layanan`, `/kelas`, `/produk`, `/galeri`, `/lokasi`, dan `/bmi` dapat dibuka.
 - Halaman register dapat dibuka.
 - User member dapat registrasi.
 - Halaman pemberitahuan verifikasi email muncul setelah registrasi.

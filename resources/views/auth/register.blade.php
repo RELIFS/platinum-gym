@@ -1,13 +1,18 @@
 <x-guest-layout>
     <div class="w-full">
         <div class="mb-8">
-            <h2 class="mb-3 text-3xl font-black tracking-tight text-slate-950 dark:text-white">
+            <h2 class="mb-3 text-3xl font-extrabold leading-tight text-zinc-950 dark:text-white">
                 Daftar <span class="text-gold-500">Membership</span>
             </h2>
-            <p class="font-medium leading-relaxed text-slate-500 dark:text-slate-400">
-                Mulai perjalanan fitness Anda bersama Platinum Gym hari ini.
+            <p class="auth-panel-copy">
+                Buat akun member dan mulai perjalanan latihan Anda bersama Platinum Gym Padang.
             </p>
         </div>
+
+        @include('auth.partials.google-button', [
+            'label' => 'Daftar dengan Google',
+            'divider' => 'atau daftar manual',
+        ])
 
         <form method="POST" action="{{ route('register') }}" class="space-y-5">
             @csrf
@@ -38,7 +43,8 @@
 
             <div>
                 <label for="phone" class="auth-label">No. WhatsApp</label>
-                <input id="phone" class="auth-input" type="tel" name="phone" value="{{ old('phone') }}" required autocomplete="tel" placeholder="08xxxxxxxxxx" maxlength="20">
+                <input id="phone" class="auth-input" type="tel" name="phone" value="{{ old('phone') }}" required autocomplete="tel" placeholder="08xxxxxxxxxx" maxlength="20" inputmode="tel" data-phone-feedback-input aria-describedby="phone-feedback">
+                <p id="phone-feedback" class="mt-1.5 hidden text-xs font-medium text-red-600 dark:text-red-400" data-phone-feedback>Gunakan format nomor 08xxxxxxxxxx.</p>
                 <x-input-error :messages="$errors->get('phone')" class="auth-error" />
             </div>
 
@@ -48,23 +54,28 @@
                 <x-input-error :messages="$errors->get('email')" class="auth-error" />
             </div>
 
-            <div>
-                <label for="password" class="auth-label">Kata Sandi</label>
-                <input id="password" class="auth-input" type="password" name="password" required autocomplete="new-password" placeholder="Minimal 8 karakter">
-                <x-input-error :messages="$errors->get('password')" class="auth-error" />
-            </div>
+            @include('auth.partials.password-field', [
+                'id' => 'password',
+                'name' => 'password',
+                'label' => 'Kata Sandi',
+                'autocomplete' => 'new-password',
+                'placeholder' => 'Minimal 8 karakter',
+                'strength' => true,
+            ])
+
+            @include('auth.partials.password-field', [
+                'id' => 'password_confirmation',
+                'name' => 'password_confirmation',
+                'label' => 'Konfirmasi Kata Sandi',
+                'autocomplete' => 'new-password',
+                'placeholder' => 'Ulangi kata sandi',
+            ])
 
             <div>
-                <label for="password_confirmation" class="auth-label">Konfirmasi Kata Sandi</label>
-                <input id="password_confirmation" class="auth-input" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Ulangi kata sandi">
-                <x-input-error :messages="$errors->get('password_confirmation')" class="auth-error" />
-            </div>
-
-            <div>
-                <label for="terms" class="flex cursor-pointer items-start gap-3 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                    <input id="terms" type="checkbox" name="terms" value="1" @checked(old('terms')) class="mt-0.5 rounded border-slate-300 text-gold-500 shadow-sm focus:ring-gold-500 dark:border-slate-700 dark:bg-slate-900" required>
+                <label for="terms" class="flex cursor-pointer items-start gap-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    <input id="terms" type="checkbox" name="terms" value="1" @checked(old('terms')) class="mt-0.5 rounded border-zinc-300 bg-white text-gold-500 shadow-sm focus:ring-gold-500 dark:border-zinc-700 dark:bg-zinc-950" required>
                     <span>
-                        Saya menyetujui <a href="#" class="auth-link">Syarat &amp; Ketentuan</a> dan <a href="#" class="auth-link">Kebijakan Privasi</a> Platinum Gym Padang.
+                        Saya menyetujui <a href="{{ route('legal.terms') }}" class="auth-link">Syarat &amp; Ketentuan</a> dan <a href="{{ route('legal.privacy') }}" class="auth-link">Kebijakan Privasi</a> Platinum Gym Padang.
                     </span>
                 </label>
                 <x-input-error :messages="$errors->get('terms')" class="auth-error" />
@@ -75,7 +86,7 @@
             </button>
         </form>
 
-        <p class="mt-8 text-center font-medium text-slate-500 dark:text-slate-400">
+        <p class="mt-8 text-center font-medium text-zinc-500 dark:text-zinc-400">
             Sudah memiliki akun?
             <a href="{{ route('login') }}" class="auth-link">Masuk di sini</a>
         </p>

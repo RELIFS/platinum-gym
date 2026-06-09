@@ -1,6 +1,6 @@
 # Refactoring Documentation
 
-Status: Draft. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
+Status: Updated 2026-06-09. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
 
 Dokumen ini mencatat perubahan struktur kode yang dilakukan untuk meningkatkan keterbacaan, maintainability, dan kesiapan evolusi sistem.
 
@@ -58,7 +58,10 @@ Layout autentikasi dipusatkan dan disesuaikan pada:
 
 ```text
 resources/views/layouts/guest.blade.php
+resources/css/app.css
 ```
+
+Revisi visual terbaru menambahkan panel foto gym asli pada sisi desktop, form panel responsive, dan background ringan pada sisi form. Foto tidak ditampilkan sebagai hero besar di mobile agar halaman register tetap ringkas.
 
 ### Alasan
 
@@ -68,6 +71,7 @@ Halaman login, register, dan verify email membutuhkan tampilan brand yang konsis
 
 - UI autentikasi lebih konsisten.
 - Perubahan layout auth dapat dilakukan dari satu file.
+- Halaman login/register terasa lebih production-ready tanpa mengorbankan keterbacaan form.
 
 ## 3. Penggunaan Logo Lokal
 
@@ -81,11 +85,13 @@ Brand aplikasi kurang kuat dan berpotensi bergantung pada sumber eksternal.
 
 ### Perubahan
 
-Component logo memakai asset lokal:
+Layout public dan dashboard memakai asset lokal:
 
 ```text
-resources/views/components/application-logo.blade.php
-public/images/logo-platinum-gym.jpg
+resources/views/layouts/public.blade.php
+resources/views/layouts/navigation.blade.php
+public/images/brand/platinum-gym-wordmark-480.webp
+public/images/brand/platinum-gym-wordmark-1200.jpg
 ```
 
 ### Alasan
@@ -123,10 +129,12 @@ Nomor WhatsApp dinormalisasi ke format:
 08xxxxxxxxxx
 ```
 
-Logic berada pada proses register di:
+Logic dipusatkan pada shared support dan dipakai oleh action/FormRequest terkait:
 
 ```text
-app/Http/Controllers/Auth/RegisteredUserController.php
+app/Features/Shared/Support/NormalizeIndonesianPhone.php
+app/Features/Auth/Actions/RegisterMemberAction.php
+app/Features/Auth/Actions/CompleteMemberProfileAction.php
 ```
 
 ### Alasan
@@ -173,6 +181,217 @@ Refactoring berikut akan dievaluasi saat kompleksitas fitur bertambah:
 - Pemisahan dashboard berdasarkan role.
 - Service untuk proses membership atau pembayaran jika controller mulai besar.
 - Policy atau middleware untuk pembatasan akses role.
-- Form Request untuk validasi fitur kompleks.
-- Komponen Blade reusable untuk card, form, status badge, dan layout dashboard.
+- Form Request untuk validasi fitur bisnis kompleks berikutnya.
+- Komponen Blade reusable tambahan untuk form, status badge, tabel, dan layout dashboard bisnis.
 - Cleanup route jika jumlah modul bertambah.
+
+## 6. Feature-Based Clean Architecture Foundation
+
+### Sebelum
+
+Workflow register, complete profile, Google OAuth, public settings, public filters, dan query public masih banyak berada langsung di controller.
+
+### Masalah
+
+Controller berisiko membesar saat modul admin, member portal, payment, booking, QR, export, dan AI mulai dibuat.
+
+### Perubahan
+
+Struktur feature-based ditambahkan tanpa memindahkan Eloquent model:
+
+```text
+app/Features/Auth/Actions
+app/Features/Auth/Http/Requests
+app/Features/PublicWebsite/Queries
+app/Features/Shared/Support
+```
+
+Workflow auth dipindah ke action:
+
+```text
+RegisterMemberAction
+CompleteMemberProfileAction
+ResolveGoogleUserAction
+```
+
+Validasi penting dipindah ke FormRequest:
+
+```text
+RegisterMemberRequest
+CompleteMemberProfileRequest
+```
+
+Query public dipindah ke query layer:
+
+```text
+PublicSettingsQuery
+PublicHomeQuery
+PublicClassScheduleQuery
+PublicProductQuery
+PublicAboutQuery
+PublicServicesQuery
+PublicGalleryQuery
+```
+
+Logic chatbot Alpine dipindah dari Blade ke:
+
+```text
+resources/js/public-chatbot.js
+```
+
+### Alasan
+
+- Controller menjadi lebih tipis.
+- Workflow tulis data lebih mudah dites dan diamankan dengan transaction.
+- Query public lebih mudah dikembangkan tanpa mengotori controller.
+- Blade tetap fokus pada render markup dan config.
+
+### Dampak
+
+- Behavior user-facing tetap sama.
+- Foundation siap untuk modul berikutnya.
+- Test auth/public tetap menjadi regression guard utama.
+
+## 7. Production Baseline Environment
+
+### Perubahan
+
+`.env.example` diperbarui dengan placeholder non-secret untuk Google OAuth, Midtrans, Gemini, mail sender, queue/database, dan session secure flags.
+
+`config/services.php` sekarang memiliki entry config untuk:
+
+```text
+google
+midtrans
+gemini
+```
+
+### Catatan
+
+Nilai secret tetap harus diisi hanya di `.env` lokal/production dan tidak boleh masuk Git.
+
+## 8. Modular Views Best Practices
+
+### Perubahan
+
+Sisa view default Breeze dibersihkan dari dashboard root yang tidak dipakai, sementara internal app shell direbrand agar konsisten dengan identitas Platinum Gym.
+
+Komponen dashboard reusable ditambahkan:
+
+```text
+resources/views/components/dashboard/page.blade.php
+resources/views/components/dashboard/card.blade.php
+resources/views/components/dashboard/stat-card.blade.php
+resources/views/components/dashboard/empty-state.blade.php
+```
+
+Dashboard role memakai komponen tersebut:
+
+```text
+resources/views/member/dashboard.blade.php
+resources/views/admin/dashboard.blade.php
+resources/views/owner/dashboard.blade.php
+resources/views/profile/edit.blade.php
+```
+
+Legal pages memakai public layout agar SEO, header, footer, dan brand konsisten:
+
+```text
+resources/views/legal/terms.blade.php
+resources/views/legal/privacy.blade.php
+```
+
+Auth form JavaScript dipindah dari Blade ke:
+
+```text
+resources/js/auth-form.js
+```
+
+Public layout dan chatbot config dipindah ke ViewModel:
+
+```text
+PublicLayoutViewModel
+PublicChatbotViewModel
+```
+
+### Dampak
+
+- Folder views tetap Laravel-native dan tidak mengikuti mirror `app/Features`.
+- Blade lebih fokus pada presentasi.
+- Internal dashboard tidak lagi terasa default Laravel/Breeze.
+- Public/legal/auth/app shell memakai brand dan struktur yang lebih konsisten.
+
+## 9. Public Google Maps Embed Tanpa API Key
+
+### Perubahan
+
+Halaman lokasi sekarang membaca setting public:
+
+```text
+maps_embed_url
+```
+
+Nilai ini berisi `src` iframe dari Google Maps `Share > Embed a map`, bukan Google Maps Embed API endpoint dan bukan API key.
+
+### Dampak
+
+- `/lokasi` menampilkan iframe Google Maps responsive jika `maps_embed_url` tersedia.
+- Jika setting dikosongkan, halaman memakai fallback visual yang tetap menyediakan tombol `Buka Google Maps` dan `Cari di Maps`.
+- Public settings whitelist dan `SettingSeeder` tetap menjadi sumber data lokasi yang konsisten.
+
+## 10. Public Website UX dan Responsive Polish
+
+### Perubahan
+
+Public website dipoles tanpa redesign besar agar lebih nyaman di mobile, tablet, desktop, dan wide desktop.
+
+Perubahan utama:
+
+```text
+resources/views/public/partials/header.blade.php
+resources/views/public/partials/footer.blade.php
+resources/views/public/home.blade.php
+resources/views/public/location.blade.php
+resources/views/public/partials/chatbot.blade.php
+resources/css/app.css
+resources/js/public-chatbot.js
+```
+
+### Detail
+
+- Header logo, CTA, hamburger, footer link, dan contact link memakai tap target lebih nyaman.
+- Focus state public control memakai `focus-visible` agar jelas untuk keyboard dan tidak mengganggu klik mouse.
+- Mobile nav memiliki scroll containment agar tetap bisa dipakai pada device pendek.
+- Dynamic content diberi wrapping guard untuk mencegah horizontal overflow.
+- Chatbot memakai focus return, `aria-live`, dan scroll containment ringan.
+- Home hero mobile dibuat compact dengan visual gym/strength umum sebagai visual utama; Muaythai tetap menjadi visual pendukung di desktop collage.
+- Image public statis diberi dimensi eksplisit, dan hero image above-the-fold memakai `fetchpriority="high"`.
+
+### Dampak
+
+- Public website lebih stabil pada viewport 320px sampai wide desktop.
+- Risiko overflow dari konten admin/seeder lebih kecil.
+- UX keyboard dan touch lebih profesional.
+- Catatan audit responsive diringkas pada dokumentasi fitur dan refactoring agar struktur `docs/` tetap mengikuti modul PBL.
+
+## 11. Product Catalog Scope Dan Asset Cleanup
+
+### Sebelum
+
+Halaman produk masih belum sepenuhnya terkunci sebagai katalog informasi, dan beberapa asset/dokumen tambahan masih berada di root repository walaupun tidak dipakai oleh aplikasi Laravel production.
+
+### Masalah
+
+Scope produk berisiko terbaca seperti toko online jika copy/CTA tidak dibatasi. Asset brand lama, komponen Blade default yang tidak digunakan, dan dokumen audit tambahan di root juga dapat membuat struktur proyek terlihat kurang rapi untuk dokumentasi PBL.
+
+### Perubahan
+
+Produk dikunci sebagai katalog informasi dengan stok aktual dan arahan pembelian langsung di lokasi. Field foto produk ditambahkan ke model/database, foto produk WebP dipakai dari asset optimized, dan produk tanpa foto tetap memakai fallback visual.
+
+Cleanup juga menghapus scaffold kosong, komponen Blade default yang tidak digunakan, asset brand lama yang tidak direferensikan, dan dokumen tambahan root yang sudah dipindahkan ke arsip konteks `platinumgym-figma`.
+
+### Dampak
+
+- Scope produk lebih jelas: tidak ada checkout, cart, invoice, atau transaksi produk online.
+- Public website memakai asset real yang lebih ringan dan stabil.
+- Root Laravel lebih fokus pada kode production dan dokumen modul PBL yang wajib.

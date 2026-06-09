@@ -10,7 +10,7 @@ class Gallery extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['title', 'caption', 'sort_order', 'is_published'];
+    protected $fillable = ['title', 'caption', 'image_path', 'image_alt', 'sort_order', 'is_published'];
 
     protected function casts(): array
     {

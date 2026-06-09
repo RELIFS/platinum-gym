@@ -9,6 +9,8 @@ use Illuminate\Support\Str;
 
 class ProductSeeder extends Seeder
 {
+    private const PRODUCTS_WITHOUT_IMAGES = ['Buah'];
+
     public function run(): void
     {
         $catalog = [
@@ -32,14 +34,38 @@ class ProductSeeder extends Seeder
             ]);
 
             foreach ($products as [$name, $price]) {
-                Product::updateOrCreate(['slug' => Str::slug($name)], [
+                $slug = Str::slug($name);
+                $imagePath = $this->imagePathFor($name, $slug);
+
+                Product::updateOrCreate(['slug' => $slug], [
                     'category_id' => $category->id,
                     'name' => $name,
                     'price' => $price,
                     'stock' => 0,
+                    'description' => $this->descriptionFor($categoryName),
+                    'image_path' => $imagePath,
+                    'image_alt' => $imagePath ? "Foto produk {$name} Platinum Gym Padang" : null,
                     'is_active' => true,
                 ]);
             }
         }
+    }
+
+    private function imagePathFor(string $name, string $slug): ?string
+    {
+        if (in_array($name, self::PRODUCTS_WITHOUT_IMAGES, true)) {
+            return null;
+        }
+
+        return "images/public/products/{$slug}.webp";
+    }
+
+    private function descriptionFor(string $categoryName): string
+    {
+        return match ($categoryName) {
+            'Makanan' => 'Pilihan makanan pendukung latihan yang tersedia untuk pembelian langsung di lokasi Platinum Gym Padang.',
+            'Minuman dan Suplemen' => 'Minuman dan suplemen pendukung hidrasi, energi, dan kebutuhan latihan harian member.',
+            default => 'Perlengkapan dan produk pendukung latihan yang dapat dicek stoknya melalui katalog website.',
+        };
     }
 }
