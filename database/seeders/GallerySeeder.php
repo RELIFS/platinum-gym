@@ -11,6 +11,54 @@ class GallerySeeder extends Seeder
     {
         $items = [
             [
+                'Studio Area',
+                'Area studio serbaguna untuk aktivitas kelas dan latihan grup.',
+                'images/public/gallery/platinum-gym-padang-studio-area.webp',
+                'Area studio Platinum Gym Padang untuk latihan grup.',
+            ],
+            [
+                'Training Floor',
+                'Area latihan utama dengan deretan mesin strength untuk program harian member.',
+                'images/public/gallery/platinum-gym-padang-training-floor.webp',
+                'Training floor Platinum Gym Padang dengan mesin strength.',
+            ],
+            [
+                'Machine Row',
+                'Deretan alat gym untuk latihan beban yang lebih terarah dan aman.',
+                'images/public/gallery/platinum-gym-padang-machine-row.webp',
+                'Deretan alat mesin latihan beban Platinum Gym Padang.',
+            ],
+            [
+                'Free Weight Area',
+                'Area dumbbell dan alat pendukung untuk variasi latihan strength.',
+                'images/public/gallery/platinum-gym-padang-free-weight-area.webp',
+                'Area dumbbell dan free weight Platinum Gym Padang.',
+            ],
+            [
+                'Eksterior Gym',
+                'Tampak depan lokasi Platinum Gym Padang yang mudah dikenali pengunjung.',
+                'images/public/gallery/platinum-gym-padang-gym-exterior.webp',
+                'Tampak depan gedung Platinum Gym Padang.',
+            ],
+            [
+                'Bench Press Detail',
+                'Detail area bench press dan mirror wall untuk latihan beban.',
+                'images/public/gallery/platinum-gym-padang-bench-press-detail.webp',
+                'Area bench press Platinum Gym Padang dengan mirror wall.',
+            ],
+            [
+                'Strength Equipment',
+                'Alat strength training untuk mendukung latihan otot bagian atas dan bawah.',
+                'images/public/gallery/platinum-gym-padang-strength-equipment.webp',
+                'Alat strength training Platinum Gym Padang.',
+            ],
+            [
+                'Equipment Corner',
+                'Sudut alat gym yang memperlihatkan suasana fasilitas latihan harian.',
+                'images/public/gallery/platinum-gym-padang-equipment-corner.webp',
+                'Sudut alat latihan Platinum Gym Padang.',
+            ],
+            [
                 'Personal Trainer',
                 'Pendampingan latihan privat berbasis target member.',
                 'images/public/gallery/platinum-gym-padang-instagram-01.webp',
@@ -21,12 +69,6 @@ class GallerySeeder extends Seeder
                 'Kelas Poundfit rutin dengan suasana aktif dan energik.',
                 'images/public/gallery/platinum-gym-padang-instagram-02.webp',
                 'Kelas Poundfit Platinum Gym Padang.',
-            ],
-            [
-                'Muaythai & Boxing Class',
-                'Latihan teknik, stamina, dan conditioning di area kelas.',
-                'images/public/gallery/platinum-gym-padang-instagram-03.webp',
-                'Kelas Muaythai dan Boxing Platinum Gym Padang.',
             ],
             [
                 'Personal Trainer Equipment',
@@ -53,6 +95,14 @@ class GallerySeeder extends Seeder
                 'Sesi Muaythai Platinum Gym Padang.',
             ],
         ];
+
+        Gallery::query()
+            ->where('image_path', 'like', 'images/public/gallery/platinum-gym-padang-instagram-%')
+            ->update(['is_published' => false]);
+
+        Gallery::query()
+            ->where('image_path', 'images/public/gallery/platinum-gym-padang-class-studio.webp')
+            ->update(['is_published' => false]);
 
         foreach ($items as $index => [$title, $caption, $imagePath, $imageAlt]) {
             Gallery::updateOrCreate(['title' => $title], [

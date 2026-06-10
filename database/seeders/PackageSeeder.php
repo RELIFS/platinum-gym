@@ -11,9 +11,9 @@ class PackageSeeder extends Seeder
     public function run(): void
     {
         $packages = [
-            ['Gym Umum', 'membership', 'gym', 'umum', 'all', null, 249000, 225000, 30, null, false, ['Akses gym selama masa aktif']],
+            ['Gym Umum', 'membership', 'gym', 'umum', 'all', null, 249000, null, 30, null, false, ['Akses gym selama masa aktif']],
             ['Gym Mahasiswa', 'membership', 'gym', 'mahasiswa', 'all', 22, 199000, null, 30, null, false, ['Akses gym untuk mahasiswa maksimal 22 tahun']],
-            ['Senam Umum', 'membership', 'senam', 'umum', 'all', null, 249000, 225000, 30, null, false, ['Akses kelas Aerobic dan Zumba']],
+            ['Senam Umum', 'membership', 'senam', 'umum', 'all', null, 249000, null, 30, null, false, ['Akses kelas Aerobic dan Zumba']],
             ['Senam Mahasiswa', 'membership', 'senam', 'mahasiswa', 'all', 22, 199000, null, 30, null, false, ['Akses senam untuk mahasiswa maksimal 22 tahun']],
             ['Gym + Senam Umum', 'membership', 'include', 'umum', 'female', null, 250000, null, 30, null, false, ['Akses gym, Aerobic, dan Zumba khusus perempuan']],
             ['Gym + Senam Mahasiswa', 'membership', 'include', 'mahasiswa', 'female', 22, 200000, null, 30, null, false, ['Akses gym dan senam untuk mahasiswi maksimal 22 tahun']],

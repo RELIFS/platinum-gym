@@ -62,6 +62,8 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Menambahkan layout public dengan header sticky, navigasi mobile, footer, CTA, SEO dasar, dan tema dark/gold.
 - Menambahkan filter jadwal kelas berbasis query string `hari` dan `jenis`.
 - Menambahkan filter kategori dan pencarian produk berbasis query string `kategori` dan `q`.
+- Menambahkan foto produk optimized WebP, field `image_path`/`image_alt`, stok aktual, dan copy pembelian langsung di lokasi pada katalog produk public.
+- Menambahkan visual auth desktop berbasis foto gym asli dengan form panel responsive untuk login/register dan halaman auth terkait.
 - Menambahkan kalkulator BMI client-side menggunakan Alpine tanpa penyimpanan data.
 - Menambahkan chatbot public statis dengan quick replies, typing state, fallback, dan eskalasi WhatsApp.
 - Menambahkan Google Maps iframe embed tanpa API key melalui setting public `maps_embed_url`.
@@ -70,6 +72,7 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Menambahkan asset brand lokal, favicon, web manifest, gallery images, dan Open Graph image public.
 - Menambahkan `PublicWebsiteTest` untuk route public, CTA, data seeder, filter, kontak, dan proteksi setting sensitif.
 - Menambahkan `PublicImagePerformanceTest` untuk memastikan asset public tetap berada dalam budget performa.
+- Menambahkan coverage test untuk scope produk katalog/stok/lokasi dan budget performa gambar produk.
 
 ### Refactor
 
@@ -87,6 +90,7 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Merebrand auth/app shell agar memakai direct official logo, theme toggle, dan layout Platinum Gym yang konsisten.
 - Mengganti legal pages agar memakai public layout.
 - Menghapus view/test default Laravel yang tidak dipakai.
+- Menghapus scaffold kosong, komponen Blade default yang tidak dipakai, asset brand lama yang tidak direferensikan, dan dokumen tambahan root yang sudah dipindahkan ke arsip konteks.
 
 ### Fixed / Polish
 
@@ -96,7 +100,7 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 
 ### Testing
 
-- `php artisan test --no-ansi` lulus dengan 76 test dan 356 assertion.
+- `php artisan test --no-ansi` lulus dengan 79 test dan 536 assertion.
 - `npm.cmd run build` berhasil membuat asset Vite production.
 
 ### Planned

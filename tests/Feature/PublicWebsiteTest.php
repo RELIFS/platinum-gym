@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\Setting;
 use Database\Seeders\GallerySeeder;
 use Database\Seeders\GymClassSeeder;
@@ -44,7 +46,10 @@ test('home shows brand and core calls to action', function () {
         ->assertSee('Platinum Gym Padang')
         ->assertSee('Daftar Member')
         ->assertSee('Lihat Layanan')
-        ->assertSee('Chatbot Platinum Gym');
+        ->assertSee('Chatbot Platinum Gym')
+        ->assertDontSee('Member Baru Lebih Hemat')
+        ->assertDontSee('Trial Senam Sore')
+        ->assertDontSee('Testimoni belum tersedia');
 });
 
 test('public header exposes clean logo, accessible theme action, and chatbot', function () {
@@ -64,14 +69,26 @@ test('services page shows seeded packages', function () {
         ->assertOk()
         ->assertSee('Gym Umum')
         ->assertSee('PT 10x')
-        ->assertSee('Muaythai Umum 8x');
+        ->assertSee('Muaythai Umum 8x')
+        ->assertSee('Daftar Membership')
+        ->assertSee('Daftar Paket')
+        ->assertDontSee('Lihat Detail Paket')
+        ->assertDontSee('Promo aktif untuk paket pilihan')
+        ->assertDontSee('Member Baru Lebih Hemat')
+        ->assertDontSee('Konsultasi Paket')
+        ->assertDontSee('Tanya Paket');
 });
 
 test('classes page shows schedules and filters by day and type', function () {
     $this->get('/kelas')
         ->assertOk()
         ->assertSee('Aerobic')
-        ->assertSee('Muaythai');
+        ->assertSee('Muaythai')
+        ->assertSee('Member gratis')
+        ->assertSee('Non-member')
+        ->assertDontSee('Konfirmasi Kelas')
+        ->assertDontSee('Tanya Kelas')
+        ->assertDontSee('hubungi admin untuk konfirmasi');
 
     $this->get('/kelas?hari=rabu&jenis=poundfit')
         ->assertOk()
@@ -87,8 +104,46 @@ test('product search and category filter work', function () {
 
     $this->get('/produk?kategori=makanan')
         ->assertOk()
+        ->assertSee('aria-label="Filter kategori produk"', false)
+        ->assertSee('aria-current="page"', false)
         ->assertSee('Roti')
         ->assertDontSee('Glove BN Classic');
+});
+
+test('products page presents catalog stock and location purchase scope', function () {
+    $this->get('/produk')
+        ->assertOk()
+        ->assertSee('Pembelian produk dilakukan langsung di lokasi Platinum Gym Padang')
+        ->assertSee('Stok:')
+        ->assertSee('Lihat Lokasi')
+        ->assertSee('autocomplete="off"', false)
+        ->assertSee('autocapitalize="none"', false)
+        ->assertSee('spellcheck="false"', false)
+        ->assertDontSee('Tanya Produk')
+        ->assertDontSee('Beli langsung di lokasi')
+        ->assertDontSee('saya ingin tanya stok', false)
+        ->assertDontSee('Checkout')
+        ->assertDontSee('Beli Sekarang')
+        ->assertDontSee('Pesan Produk');
+});
+
+test('product seed data keeps catalog images and stock valid', function () {
+    expect(ProductCategory::query()->count())->toBe(3)
+        ->and(Product::query()->count())->toBe(41)
+        ->and(Product::query()->whereNotNull('image_path')->count())->toBe(40)
+        ->and(Product::query()->where('stock', '<', 0)->exists())->toBeFalse()
+        ->and(Product::query()->where('stock', '!=', 0)->exists())->toBeFalse();
+
+    $productWithImage = Product::query()->where('name', 'Roti')->firstOrFail();
+
+    expect($productWithImage->image_path)->toBe('images/public/products/roti.webp')
+        ->and(file_exists(public_path($productWithImage->image_path)))->toBeTrue()
+        ->and($productWithImage->image_alt)->toContain('Roti');
+
+    $productWithoutImage = Product::query()->where('name', 'Buah')->firstOrFail();
+
+    expect($productWithoutImage->image_path)->toBeNull()
+        ->and($productWithoutImage->stock)->toBeGreaterThanOrEqual(0);
 });
 
 test('location page shows final contact data', function () {
@@ -120,7 +175,7 @@ test('location page falls back to visual card when embed url is blank', function
     $this->get('/lokasi')
         ->assertOk()
         ->assertDontSee('data-public-map-embed', false)
-        ->assertSee('Kelas aktif Platinum Gym Padang')
+        ->assertSee('Tampak depan Platinum Gym Padang')
         ->assertSee('Padang Timur')
         ->assertSee('Buka Google Maps');
 });

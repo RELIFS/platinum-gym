@@ -1,6 +1,6 @@
 # Refactoring Documentation
 
-Status: Updated 2026-06-03. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
+Status: Updated 2026-06-09. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
 
 Dokumen ini mencatat perubahan struktur kode yang dilakukan untuk meningkatkan keterbacaan, maintainability, dan kesiapan evolusi sistem.
 
@@ -58,7 +58,10 @@ Layout autentikasi dipusatkan dan disesuaikan pada:
 
 ```text
 resources/views/layouts/guest.blade.php
+resources/css/app.css
 ```
+
+Revisi visual terbaru menambahkan panel foto gym asli pada sisi desktop, form panel responsive, dan background ringan pada sisi form. Foto tidak ditampilkan sebagai hero besar di mobile agar halaman register tetap ringkas.
 
 ### Alasan
 
@@ -68,6 +71,7 @@ Halaman login, register, dan verify email membutuhkan tampilan brand yang konsis
 
 - UI autentikasi lebih konsisten.
 - Perubahan layout auth dapat dilakukan dari satu file.
+- Halaman login/register terasa lebih production-ready tanpa mengorbankan keterbacaan form.
 
 ## 3. Penggunaan Logo Lokal
 
@@ -81,11 +85,11 @@ Brand aplikasi kurang kuat dan berpotensi bergantung pada sumber eksternal.
 
 ### Perubahan
 
-Component logo dan public layout memakai asset lokal:
+Layout public dan dashboard memakai asset lokal:
 
 ```text
-resources/views/components/application-logo.blade.php
 resources/views/layouts/public.blade.php
+resources/views/layouts/navigation.blade.php
 public/images/brand/platinum-gym-wordmark-480.webp
 public/images/brand/platinum-gym-wordmark-1200.jpg
 ```
@@ -368,4 +372,26 @@ resources/js/public-chatbot.js
 - Public website lebih stabil pada viewport 320px sampai wide desktop.
 - Risiko overflow dari konten admin/seeder lebih kecil.
 - UX keyboard dan touch lebih profesional.
-- Detail audit tersimpan di `docs/public-responsive-audit.md`.
+- Catatan audit responsive diringkas pada dokumentasi fitur dan refactoring agar struktur `docs/` tetap mengikuti modul PBL.
+
+## 11. Product Catalog Scope Dan Asset Cleanup
+
+### Sebelum
+
+Halaman produk masih belum sepenuhnya terkunci sebagai katalog informasi, dan beberapa asset/dokumen tambahan masih berada di root repository walaupun tidak dipakai oleh aplikasi Laravel production.
+
+### Masalah
+
+Scope produk berisiko terbaca seperti toko online jika copy/CTA tidak dibatasi. Asset brand lama, komponen Blade default yang tidak digunakan, dan dokumen audit tambahan di root juga dapat membuat struktur proyek terlihat kurang rapi untuk dokumentasi PBL.
+
+### Perubahan
+
+Produk dikunci sebagai katalog informasi dengan stok aktual dan arahan pembelian langsung di lokasi. Field foto produk ditambahkan ke model/database, foto produk WebP dipakai dari asset optimized, dan produk tanpa foto tetap memakai fallback visual.
+
+Cleanup juga menghapus scaffold kosong, komponen Blade default yang tidak digunakan, asset brand lama yang tidak direferensikan, dan dokumen tambahan root yang sudah dipindahkan ke arsip konteks `platinumgym-figma`.
+
+### Dampak
+
+- Scope produk lebih jelas: tidak ada checkout, cart, invoice, atau transaksi produk online.
+- Public website memakai asset real yang lebih ringan dan stabil.
+- Root Laravel lebih fokus pada kode production dan dokumen modul PBL yang wajib.

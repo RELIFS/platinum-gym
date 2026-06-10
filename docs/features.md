@@ -1,6 +1,6 @@
 # Feature Documentation
 
-Status: Updated 2026-06-03. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
+Status: Updated 2026-06-09. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
 
 Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Platinum Gym Padang.
 
@@ -11,7 +11,7 @@ Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Pla
 | Public website | Sudah tersedia | Pengunjung |
 | Halaman layanan | Sudah tersedia | Pengunjung |
 | Halaman kelas dan filter jadwal | Sudah tersedia | Pengunjung/member |
-| Halaman produk dan pencarian | Sudah tersedia | Pengunjung/member |
+| Halaman produk, stok, dan pencarian | Sudah tersedia | Pengunjung/member |
 | Halaman galeri | Sudah tersedia | Pengunjung |
 | Halaman lokasi dan kontak | Sudah tersedia | Pengunjung |
 | Kalkulator BMI | Sudah tersedia | Pengunjung/member |
@@ -25,7 +25,7 @@ Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Pla
 | Profile | Sudah tersedia dasar dari Breeze | User login |
 | Role member/admin/owner | Sudah tersedia | Member, admin, owner |
 | Policy own-data awal | Sudah tersedia | Member |
-| Auth UI Platinum Gym | Sudah tersedia | Pengunjung/member |
+| Auth UI Platinum Gym | Sudah tersedia dan dipoles visual | Pengunjung/member |
 | Theme toggle | Sudah tersedia | Pengguna UI |
 | Dashboard role placeholder | Sudah tersedia dasar | Member, admin, owner |
 | Membership package | Direncanakan | Member, admin |
@@ -55,7 +55,7 @@ Fitur public website digunakan sebagai company profile digital untuk calon membe
 | `/tentang-kami` | `public.about` | Profil gym, keunggulan, dan coach |
 | `/layanan` | `public.services` | Paket membership, PT, dan Muaythai |
 | `/kelas` | `public.classes` | Jadwal kelas dengan filter hari dan jenis |
-| `/produk` | `public.products` | Katalog produk dengan filter dan pencarian |
+| `/produk` | `public.products` | Katalog produk dengan foto/fallback, harga, stok aktual, filter, pencarian, dan arahan lokasi |
 | `/galeri` | `public.gallery` | Galeri aktivitas dengan visual resmi yang tersedia |
 | `/lokasi` | `public.location` | Alamat, kontak, jam operasional, Google Maps iframe/fallback, dan Instagram |
 | `/bmi` | `public.bmi` | Kalkulator BMI client-side |
@@ -66,7 +66,7 @@ Fitur public website digunakan sebagai company profile digital untuk calon membe
 - `packages` untuk layanan dan harga paket.
 - `gym_classes` dan `class_schedules` untuk jadwal kelas.
 - `trainers` untuk coach.
-- `product_categories` dan `products` untuk katalog produk.
+- `product_categories` dan `products` untuk katalog produk, foto produk, harga, dan stok aktual.
 - `promos`, `testimonials`, dan `galleries` untuk konten public.
 
 ### Catatan Keamanan
@@ -84,7 +84,9 @@ Fitur public website digunakan sebagai company profile digital untuk calon membe
 - Mobile navigation memiliki scroll containment untuk device pendek.
 - Dynamic content pada paket, kelas, produk, galeri, testimoni, kontak, dan chatbot diberi wrapping guard agar tidak overflow.
 - Home hero mobile memakai visual gym/strength umum sebagai visual utama; Muaythai tetap menjadi visual pendukung pada collage desktop.
-- Detail audit responsive tersedia di `docs/public-responsive-audit.md`.
+- Halaman produk memakai CTA umum `Lihat Lokasi`; tidak ada CTA per produk, cart, checkout, pembayaran produk, invoice produk, atau transaksi produk online.
+- Halaman produk menampilkan foto produk WebP jika tersedia dan memakai fallback visual untuk produk tanpa foto.
+- Ringkasan audit responsive sudah dikonsolidasikan pada catatan UX fitur public website.
 
 ## Google OAuth Member
 
@@ -173,6 +175,19 @@ User membuka halaman login -> user memasukkan email dan password -> sistem valid
 ### Screenshot
 
 Screenshot halaman login akan ditambahkan setelah dokumentasi visual disiapkan.
+
+## Auth UI Platinum Gym
+
+### Tujuan
+
+Auth UI digunakan agar halaman login, register, forgot password, reset password, verify email, dan complete profile terasa konsisten dengan brand Platinum Gym Padang.
+
+### Perubahan Visual Aktif
+
+- Desktop memakai panel visual foto gym asli dengan overlay gelap agar brand terasa kuat tanpa mengganggu form.
+- Mobile tidak memuat foto besar pada area form agar halaman register tetap ringan dan tidak terlalu panjang.
+- Form auth memakai panel kontras dengan border, shadow, dan background light/dark yang tetap mudah dibaca.
+- Elemen interaktif tetap memakai label, focus ring, dan target klik yang aman untuk keyboard/touch.
 
 ## Logout
 
