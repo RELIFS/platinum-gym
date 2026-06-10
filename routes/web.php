@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MemberPortalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicWebsiteController;
 use App\Support\RoleRedirect;
@@ -27,7 +28,15 @@ Route::middleware(['auth', 'verified', 'role:member', 'member.profile.complete']
     ->prefix('member')
     ->name('member.')
     ->group(function () {
-        Route::view('/dashboard', 'member.dashboard')->name('dashboard');
+        Route::get('/dashboard', [MemberPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/profil', [MemberPortalController::class, 'profile'])->name('profile');
+        Route::get('/membership', [MemberPortalController::class, 'membership'])->name('membership');
+        Route::get('/booking-kelas', [MemberPortalController::class, 'booking'])->name('booking');
+        Route::get('/riwayat-booking', [MemberPortalController::class, 'bookings'])->name('bookings');
+        Route::get('/transaksi', [MemberPortalController::class, 'transactions'])->name('transactions');
+        Route::get('/qr', [MemberPortalController::class, 'qr'])->name('qr');
+        Route::get('/notifikasi', [MemberPortalController::class, 'notifications'])->name('notifications');
+        Route::get('/ai-assistant', [MemberPortalController::class, 'aiAssistant'])->name('ai-assistant');
     });
 
 Route::middleware(['auth', 'verified', 'role:admin'])

@@ -65,7 +65,7 @@
                         </svg>
                     </button>
                 </div>
-                <a x-bind:href="whatsappUrl" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex min-h-11 w-full touch-manipulation items-center justify-center break-words rounded-full border border-zinc-700 px-4 py-2 text-center text-xs font-bold text-zinc-300 transition hover:border-gold-500/60 hover:text-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/30">
+                <a href="{{ $chatbotConfig['whatsappUrl'] }}" x-bind:href="whatsappUrl" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex min-h-11 w-full touch-manipulation items-center justify-center break-words rounded-full border border-zinc-700 px-4 py-2 text-center text-xs font-bold text-zinc-300 transition hover:border-gold-500/60 hover:text-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/30">
                     Butuh admin? Lanjut via WhatsApp
                 </a>
             </div>

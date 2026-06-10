@@ -154,9 +154,12 @@ docs/
 
 ## Screenshot Proyek
 
-Screenshot aplikasi akan ditambahkan setelah halaman siap digunakan dan telah diverifikasi.
+Screenshot awal aplikasi sudah dibuat untuk halaman public yang sudah diverifikasi lokal. Bukti disimpan di workspace konteks private agar struktur root `docs/` tetap mengikuti modul PBL:
 
-Rencana screenshot minimal:
+- `platinumgym-figma/docs/archive/root-docs/screenshots/2026-06-09/public-home-desktop.png`
+- `platinumgym-figma/docs/archive/root-docs/screenshots/2026-06-09/public-products-mobile.png`
+
+Rencana screenshot tambahan:
 
 - Halaman beranda public.
 - Halaman layanan dan kelas.
@@ -174,7 +177,7 @@ Rencana screenshot minimal:
 | `docs/features.md` | Dokumentasi fitur aplikasi |
 | `docs/dependency.md` | Dokumentasi dependency backend dan frontend |
 | `docs/refactoring.md` | Catatan refactoring dan perbaikan struktur kode |
-| `docs/github-actions.md` | Rencana workflow CI/CD |
+| `docs/github-actions.md` | Dokumentasi workflow CI/CD |
 | `CHANGELOG.md` | Riwayat perubahan proyek |
 
 Catatan: folder `platinumgym-figma/` adalah workspace referensi lokal/private dan sudah masuk `.gitignore`, sehingga tidak ikut repository production Laravel.
