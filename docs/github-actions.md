@@ -1,12 +1,12 @@
 # GitHub Actions Documentation
 
-Status: Planned. Workflow CI akan ditambahkan setelah pipeline testing dan build distabilkan.
+Status: Implemented locally. Workflow CI sudah dibuat pada `.github/workflows/ci.yml`.
 
-Dokumen ini menjelaskan rancangan CI sederhana untuk proyek Laravel Platinum Gym Padang.
+Dokumen ini menjelaskan CI sederhana untuk proyek Laravel Platinum Gym Padang.
 
 ## Tujuan Workflow
 
-Workflow CI direncanakan untuk memastikan setiap perubahan kode tetap dapat di-install, di-build, dan diuji secara otomatis di GitHub.
+Workflow CI digunakan untuk memastikan setiap perubahan kode dapat di-install, di-build, dicek formatnya, dan diuji secara otomatis di GitHub.
 
 ## Lokasi File
 
@@ -14,24 +14,28 @@ Workflow CI direncanakan untuk memastikan setiap perubahan kode tetap dapat di-i
 .github/workflows/ci.yml
 ```
 
-File tersebut belum dibuat pada tahap ini. Implementasi dilakukan setelah kebutuhan pipeline disepakati.
+File tersebut sudah dibuat dan siap dijalankan setelah branch dipush ke GitHub.
 
-## Trigger Rencana
+## Trigger
 
-Workflow akan berjalan saat:
+Workflow berjalan saat:
 
-- Push ke branch utama pengembangan.
-- Pull request ke branch utama.
+- Push ke branch `rossi`, `luthfi`, atau `main`.
+- Pull request ke branch mana pun.
 
 Contoh trigger:
 
 ```yaml
 on:
   push:
+    branches:
+      - rossi
+      - luthfi
+      - main
   pull_request:
 ```
 
-## Tahapan Workflow Rencana
+## Tahapan Workflow
 
 1. Checkout source code.
 2. Setup PHP sesuai versi proyek.
@@ -40,10 +44,10 @@ on:
 5. Install NPM dependency.
 6. Copy `.env.example` menjadi `.env`.
 7. Generate application key.
-8. Setup database testing menggunakan SQLite.
-9. Jalankan migration.
+8. Validasi `composer.json`.
+9. Jalankan Laravel Pint dalam mode test.
 10. Build asset frontend.
-11. Jalankan automated test.
+11. Jalankan automated test dengan SQLite in-memory.
 
 ## Command Utama
 
@@ -52,7 +56,7 @@ composer install --no-interaction --prefer-dist --optimize-autoloader
 npm ci
 npm run build
 php artisan key:generate
-php artisan migrate --force
+vendor/bin/pint --test
 php artisan test --no-ansi
 ```
 
@@ -80,7 +84,7 @@ DB_DATABASE=:memory:
 
 ## Status Badge
 
-Status badge akan ditambahkan ke `README.md` setelah workflow dibuat.
+Status badge dapat ditambahkan ke `README.md` setelah workflow berhasil berjalan di GitHub.
 
 Contoh format badge:
 
@@ -98,4 +102,4 @@ Hasil workflow final akan didokumentasikan dengan:
 
 ## Catatan Saat Ini
 
-GitHub Actions belum dibuat pada tahap ini. Workflow akan ditambahkan setelah kebutuhan pipeline build dan testing disepakati.
+Workflow sudah tersedia di repository lokal. Bukti sukses final tetap perlu diambil dari tab Actions GitHub setelah branch dipush, karena status CI baru muncul di GitHub setelah event `push` atau `pull_request` berjalan.

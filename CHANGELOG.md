@@ -73,6 +73,8 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Menambahkan `PublicWebsiteTest` untuk route public, CTA, data seeder, filter, kontak, dan proteksi setting sensitif.
 - Menambahkan `PublicImagePerformanceTest` untuk memastikan asset public tetap berada dalam budget performa.
 - Menambahkan coverage test untuk scope produk katalog/stok/lokasi dan budget performa gambar produk.
+- Menambahkan workflow GitHub Actions CI lokal untuk Composer, Pint, Vite build, dan Pest test.
+- Menambahkan screenshot evidence public home desktop dan katalog produk mobile pada workspace konteks private.
 
 ### Refactor
 
@@ -97,11 +99,14 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Memperbaiki responsive public website pada mobile kecil, landscape, tablet, desktop, dan wide desktop.
 - Memperbaiki tap target, focus-visible state, mobile nav scroll containment, dynamic text wrapping, dan chatbot focus behavior.
 - Memadatkan hero beranda mobile agar tidak terlalu menonjolkan Muaythai dan tetap memakai visual gym/strength umum sebagai visual utama.
+- Memperbaiki fallback link WhatsApp chatbot agar tetap tersedia sebagai `href` statis saat JavaScript belum berjalan.
 
 ### Testing
 
-- `php artisan test --no-ansi` lulus dengan 79 test dan 536 assertion.
+- `php artisan test --no-ansi` lulus dengan 79 test dan 595 assertion.
 - `npm.cmd run build` berhasil membuat asset Vite production.
+- `vendor\bin\pint --test` lulus.
+- `composer validate --no-check-publish --no-ansi` valid.
 
 ### Planned
 
@@ -112,4 +117,4 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Check-in gym.
 - Laporan owner.
 - Penyempurnaan dokumentasi refactoring.
-- Implementasi dokumentasi dan workflow GitHub Actions.
+- Status badge dan screenshot sukses GitHub Actions setelah workflow berjalan di GitHub.
