@@ -1,6 +1,6 @@
 # Feature Documentation
 
-Status: Updated 2026-06-09. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
+Status: Updated 2026-06-12. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
 
 Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Platinum Gym Padang.
 
@@ -27,7 +27,8 @@ Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Pla
 | Policy own-data awal | Sudah tersedia | Member |
 | Auth UI Platinum Gym | Sudah tersedia dan dipoles visual | Pengunjung/member |
 | Theme toggle | Sudah tersedia | Pengguna UI |
-| Dashboard role placeholder | Sudah tersedia dasar | Member, admin, owner |
+| Member portal v1 | Sudah tersedia dan dipoles UI | Member |
+| Dashboard admin/owner placeholder | Sudah tersedia dasar | Admin, owner |
 | Membership package | Direncanakan | Member, admin |
 | Booking kelas | Direncanakan | Member, admin |
 | Pembayaran | Direncanakan | Member, admin |
@@ -326,8 +327,37 @@ User login -> sistem membaca role -> sistem redirect ke dashboard role -> route 
 ### Status
 
 - Role final: `member`, `admin`, `owner`.
-- Dashboard member/admin/owner saat ini masih placeholder untuk validasi auth dan role.
-- Fitur bisnis dashboard akan dibuat pada modul member portal, admin panel, dan owner report.
+- Member portal v1 sudah aktif untuk dashboard, profil, membership, jadwal kelas, riwayat booking, transaksi, QR status, notifikasi, dan chatbot global statis.
+- Dashboard admin dan owner saat ini masih placeholder untuk validasi auth dan role.
+- Fitur bisnis lanjutan seperti checkout, booking submit, QR check-in, admin panel, dan owner report tetap mengikuti modul masing-masing.
+
+## Member Portal v1
+
+### Tujuan
+
+Member portal digunakan agar member yang sudah login dapat mengecek informasi akun dan aktivitas layanan dari satu area operasional.
+
+### Route Aktif
+
+| Route | Fungsi |
+|---|---|
+| `/member/dashboard` | Ringkasan membership, paket sesi, transaksi, booking, QR, dan notifikasi |
+| `/member/profil` | Profil member dan akses ke akun login Breeze |
+| `/member/membership` | Status membership dan katalog paket layanan |
+| `/member/booking-kelas` | Entry jadwal kelas yang tersedia untuk member |
+| `/member/riwayat-booking` | Riwayat booking member |
+| `/member/transaksi` | Ringkasan transaksi dan status pembayaran member |
+| `/member/qr` | Status QR member tanpa menampilkan token mentah |
+| `/member/notifikasi` | Daftar notifikasi dan status baca |
+| `/member/complete-profile` | Pelengkapan profil member Google |
+
+### Catatan UI dan Scope
+
+- Sidebar dan mobile drawer hanya berisi navigasi, footer action, dan grouped menu `Utama`, `Aktivitas`, dan `Akun`.
+- Identitas member, kode member, status membership, dan invoice tidak ditampilkan di sidebar agar tidak redundan.
+- Chatbot member tersedia sebagai floating widget global statis di semua halaman member dan mengarah ke route internal.
+- Route/page `/member/ai-assistant` tidak aktif; backend AI tetap masuk modul lanjutan.
+- Checkout, booking submit, QR scannable, upload bukti bayar, invoice download, admin panel, dan laporan owner belum diaktifkan pada fase ini.
 
 ## Auth UI Platinum Gym
 
@@ -371,7 +401,6 @@ Catatan standar UI: toggle tema menggunakan action-style. Saat light mode aktif,
 
 Fitur berikut akan dijelaskan lebih detail setelah kebutuhan dan prioritas implementasi disepakati:
 
-- Dashboard member.
 - Dashboard admin.
 - Dashboard owner.
 - Package membership.
@@ -391,6 +420,8 @@ Refactor clean architecture pragmatis sudah dimulai sebelum fitur bisnis berikut
 app/Features/Auth/Actions
 app/Features/Auth/Http/Requests
 app/Features/PublicWebsite/Queries
+app/Features/MemberPortal/Queries
+app/Features/MemberPortal/ViewModels
 app/Features/Shared/Support
 resources/js/public-chatbot.js
 ```

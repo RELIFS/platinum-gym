@@ -15,8 +15,8 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 | Auth, role, permission, Google OAuth | Selesai fase foundation + polish visual auth |
 | Public website company profile | Selesai fase public + polish responsive, termasuk katalog produk stok aktual dan real image assets |
 | Clean architecture foundation | Selesai tahap awal berbasis `app/Features` |
-| Dashboard member/admin/owner | Placeholder untuk validasi auth dan role |
-| Payment, booking, QR, laporan, AI backend | Belum dikerjakan |
+| Member portal | Selesai v1 + polish UI, sidebar minimal, dan chatbot global statis |
+| Admin/owner dashboard, payment, booking submit, QR check-in, laporan, AI backend | Belum dikerjakan |
 
 ## Tujuan Proyek
 
@@ -61,6 +61,7 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 - Google Maps iframe embed tanpa API key pada halaman Lokasi.
 - Seeder kontak public, promo, testimoni, galeri, produk, dan foto produk optimized.
 - Tampilan autentikasi bertema Platinum Gym dengan panel visual foto gym pada desktop dan form panel responsive.
+- Portal member v1 untuk dashboard, profil, membership, jadwal kelas, riwayat booking, transaksi, QR status, notifikasi, dan chatbot global statis.
 - Toggle tema dark/light mengikuti preferensi perangkat dan pilihan pengguna.
 - Struktur feature-based awal untuk Auth, PublicWebsite, dan Shared support.
 - Testing fitur autentikasi menggunakan Pest.
@@ -68,7 +69,7 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 
 ### Fitur Rencana Pengembangan
 
-- Dashboard member, admin, dan owner.
+- Dashboard admin dan owner.
 - Manajemen paket membership.
 - Booking kelas.
 - Pembayaran membership dan layanan.
@@ -166,7 +167,6 @@ Rencana screenshot tambahan:
 - Halaman login.
 - Halaman registrasi member.
 - Halaman verifikasi email.
-- Dashboard member.
 - Dashboard admin atau owner.
 
 ## Documentation
