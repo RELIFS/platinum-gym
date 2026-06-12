@@ -27,7 +27,7 @@ class MemberPortalController extends Controller
 
     public function booking(Request $request, MemberDashboardQuery $query): View
     {
-        return $this->page($request, $query, 'booking-kelas', 'Booking Kelas', 'Jadwal kelas dan entry point booking digital member.');
+        return $this->page($request, $query, 'booking-kelas', 'Booking Kelas', 'Jadwal kelas aktif dan kuota kelas member Platinum Gym.');
     }
 
     public function bookings(Request $request, MemberDashboardQuery $query): View
@@ -37,22 +37,17 @@ class MemberPortalController extends Controller
 
     public function transactions(Request $request, MemberDashboardQuery $query): View
     {
-        return $this->page($request, $query, 'transaksi', 'Transaksi', 'Riwayat pembayaran, invoice, dan status verifikasi.');
+        return $this->page($request, $query, 'transaksi', 'Transaksi', 'Riwayat pembayaran dan status verifikasi.');
     }
 
     public function qr(Request $request, MemberDashboardQuery $query): View
     {
-        return $this->page($request, $query, 'qr', 'QR Member', 'Kartu member digital untuk check-in Platinum Gym.');
+        return $this->page($request, $query, 'qr', 'QR Member', 'Status kartu digital member untuk check-in Platinum Gym.');
     }
 
     public function notifications(Request $request, MemberDashboardQuery $query): View
     {
         return $this->page($request, $query, 'notifikasi', 'Notifikasi', 'Pemberitahuan membership, booking, dan pembayaran.');
-    }
-
-    public function aiAssistant(Request $request, MemberDashboardQuery $query): View
-    {
-        return $this->page($request, $query, 'ai-assistant', 'AI Assistant', 'Asisten member untuk pertanyaan layanan dan progres latihan.');
     }
 
     private function page(Request $request, MemberDashboardQuery $query, string $key, string $title, string $description): View

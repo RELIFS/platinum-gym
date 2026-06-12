@@ -36,7 +36,6 @@ Route::middleware(['auth', 'verified', 'role:member', 'member.profile.complete']
         Route::get('/transaksi', [MemberPortalController::class, 'transactions'])->name('transactions');
         Route::get('/qr', [MemberPortalController::class, 'qr'])->name('qr');
         Route::get('/notifikasi', [MemberPortalController::class, 'notifications'])->name('notifications');
-        Route::get('/ai-assistant', [MemberPortalController::class, 'aiAssistant'])->name('ai-assistant');
     });
 
 Route::middleware(['auth', 'verified', 'role:admin'])
