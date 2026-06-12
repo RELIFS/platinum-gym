@@ -33,9 +33,9 @@
                         <div class="mb-8 inline-flex items-center rounded-lg border border-gold-500/35 bg-zinc-950/45 px-4 py-2 text-sm font-semibold text-gold-400 shadow-2xl shadow-zinc-950/30 backdrop-blur-md">
                             Premium Fitness Center Padang
                         </div>
-                        <h1 class="mb-6 text-5xl font-extrabold leading-tight text-white xl:text-6xl">
+                        <div class="mb-6 text-5xl font-extrabold leading-tight text-white xl:text-6xl" aria-hidden="true">
                             PUSH YOUR<br><span class="text-gold-500">LIMITS.</span>
-                        </h1>
+                        </div>
                         <p class="max-w-md text-lg leading-8 text-zinc-300 xl:text-xl">
                             Masuk, kelola membership, dan lanjutkan progres latihan Anda bersama Platinum Gym Padang.
                         </p>
@@ -58,7 +58,7 @@
                 </div>
             </aside>
 
-            <main class="relative flex min-h-dvh w-full items-start justify-center overflow-x-hidden bg-zinc-50 px-5 pb-6 pt-20 dark:bg-zinc-950 sm:px-8 sm:pb-12 sm:pt-28 lg:w-[52%] lg:px-10 lg:pb-10 lg:pt-24 xl:w-1/2 xl:pt-20">
+            <main class="relative flex min-h-dvh w-full items-start justify-center overflow-x-hidden bg-zinc-50 px-5 pb-8 pt-[4.5rem] dark:bg-zinc-950 sm:px-8 sm:pb-12 sm:pt-28 lg:w-[52%] lg:px-10 lg:pb-10 lg:pt-24 xl:w-1/2 xl:pt-20">
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_16%_8%,rgba(254,180,37,0.12),transparent_30%),radial-gradient(circle_at_86%_18%,rgba(24,24,27,0.08),transparent_28%)] dark:bg-[radial-gradient(circle_at_16%_8%,rgba(254,180,37,0.14),transparent_30%),radial-gradient(circle_at_86%_18%,rgba(255,255,255,0.06),transparent_28%)]" aria-hidden="true"></div>
                 <div class="absolute inset-x-0 top-0 z-20 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
                     <a href="/" aria-label="Kembali ke Beranda" class="inline-flex h-10 w-10 min-w-0 max-w-full justify-self-start items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white/85 px-0 text-sm font-semibold text-zinc-700 shadow-sm backdrop-blur-sm transition hover:border-gold-500/60 hover:bg-white hover:text-gold-600 active:scale-95 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-gold-500 sm:h-11 sm:rounded-lg md:w-auto md:max-w-[17rem] md:px-4 lg:max-w-[17rem]">
