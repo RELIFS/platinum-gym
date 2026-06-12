@@ -16,7 +16,7 @@ test('login screen can be rendered', function () {
         ->assertDontSee('brand-logo-frame', false)
         ->assertSee('data-theme-toggle', false)
         ->assertSee('aria-label="Aktifkan mode gelap"', false)
-        ->assertDontSee('aria-pressed=', false);
+        ->assertSee('aria-pressed="false"', false);
 });
 
 test('users can authenticate using the login screen', function () {

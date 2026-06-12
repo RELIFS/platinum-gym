@@ -4,6 +4,7 @@ use App\Models\ClassEnrollment;
 use App\Models\ClassSchedule;
 use App\Models\GymClass;
 use App\Models\Member;
+use App\Models\MemberPackageSession;
 use App\Models\Membership;
 use App\Models\Package as ServicePackage;
 use App\Models\Payment;
@@ -48,8 +49,13 @@ test('member portal routes require authentication', function (string $path) {
     '/member/transaksi',
     '/member/qr',
     '/member/notifikasi',
-    '/member/ai-assistant',
 ]);
+
+test('member ai assistant page route is removed', function () {
+    [$user] = createPortalMember('PG-PORTAL-NO-AI-PAGE');
+
+    $this->actingAs($user)->get('/member/ai-assistant')->assertNotFound();
+});
 
 test('member portal routes require complete member profile', function () {
     $user = User::factory()->create();
@@ -82,7 +88,6 @@ test('complete member can access all member portal pages', function (string $pat
     ['/member/transaksi', 'Transaksi'],
     ['/member/qr', 'QR Member'],
     ['/member/notifikasi', 'Notifikasi'],
-    ['/member/ai-assistant', 'AI Assistant'],
 ]);
 
 test('dashboard renders real member data and empty operational states', function () {
@@ -93,9 +98,129 @@ test('dashboard renders real member data and empty operational states', function
         ->assertSee('Andi Portal')
         ->assertSee('PG-PORTAL-REAL')
         ->assertSee('Belum ada membership aktif')
-        ->assertSee('Belum ada booking mendatang')
+        ->assertSee('Belum ada jadwal terdaftar')
         ->assertSee('Belum ada transaksi')
-        ->assertSee('Siap diterbitkan');
+        ->assertSee('Belum diterbitkan')
+        ->assertSee('Chatbot Member')
+        ->assertSee('Ketik pertanyaan chatbot member', false)
+        ->assertDontSee('AI Assistant')
+        ->assertDontSee('Akun dan Bantuan');
+});
+
+test('member portal hides exhausted and expired package sessions', function () {
+    [$user, $member] = createPortalMember('PG-PORTAL-SESSIONS');
+
+    $package = ServicePackage::create([
+        'name' => 'PT Aktif Portal',
+        'slug' => 'pt-aktif-portal',
+        'package_kind' => 'session',
+        'type' => 'personal_training',
+        'price' => 400000,
+        'session_count' => 4,
+        'is_active' => true,
+    ]);
+
+    $emptyPackage = ServicePackage::create([
+        'name' => 'PT Habis Portal',
+        'slug' => 'pt-habis-portal',
+        'package_kind' => 'session',
+        'type' => 'personal_training',
+        'price' => 400000,
+        'session_count' => 4,
+        'is_active' => true,
+    ]);
+
+    $expiredPackage = ServicePackage::create([
+        'name' => 'PT Expired Portal',
+        'slug' => 'pt-expired-portal',
+        'package_kind' => 'session',
+        'type' => 'personal_training',
+        'price' => 400000,
+        'session_count' => 4,
+        'is_active' => true,
+    ]);
+
+    MemberPackageSession::create([
+        'member_id' => $member->id,
+        'package_id' => $package->id,
+        'code' => 'MPS-ACTIVE-0001',
+        'total_sessions' => 4,
+        'used_sessions' => 1,
+        'remaining_sessions' => 3,
+        'price' => 400000,
+        'started_at' => now()->subDay()->toDateString(),
+        'expired_at' => now()->addMonth()->toDateString(),
+        'status' => 'active',
+    ]);
+
+    MemberPackageSession::create([
+        'member_id' => $member->id,
+        'package_id' => $emptyPackage->id,
+        'code' => 'MPS-EMPTY-0001',
+        'total_sessions' => 4,
+        'used_sessions' => 4,
+        'remaining_sessions' => 0,
+        'price' => 400000,
+        'started_at' => now()->subMonth()->toDateString(),
+        'expired_at' => now()->addMonth()->toDateString(),
+        'status' => 'active',
+    ]);
+
+    MemberPackageSession::create([
+        'member_id' => $member->id,
+        'package_id' => $expiredPackage->id,
+        'code' => 'MPS-EXPIRED-0001',
+        'total_sessions' => 4,
+        'used_sessions' => 0,
+        'remaining_sessions' => 4,
+        'price' => 400000,
+        'started_at' => now()->subMonths(2)->toDateString(),
+        'expired_at' => now()->subDay()->toDateString(),
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($user)->get('/member/membership')
+        ->assertOk()
+        ->assertSee('PT Aktif Portal')
+        ->assertSee('3 dari 4 sesi tersisa')
+        ->assertDontSee('MPS-EMPTY-0001')
+        ->assertDontSee('MPS-EXPIRED-0001')
+        ->assertDontSee('PT Habis Portal')
+        ->assertDontSee('PT Expired Portal');
+});
+
+test('expired qr token is not shown as active', function () {
+    [$user, $member] = createPortalMember('PG-PORTAL-QR-EXPIRED');
+
+    QrToken::create([
+        'tokenable_type' => Member::class,
+        'tokenable_id' => $member->id,
+        'token' => Str::random(64),
+        'purpose' => 'member',
+        'expires_at' => now()->subMinute(),
+    ]);
+
+    $this->actingAs($user)->get('/member/dashboard')
+        ->assertOk()
+        ->assertSee('Kedaluwarsa')
+        ->assertDontSee('Status QR aktif');
+});
+
+test('revoked qr token is not shown as active', function () {
+    [$user, $member] = createPortalMember('PG-PORTAL-QR-REVOKED');
+
+    QrToken::create([
+        'tokenable_type' => Member::class,
+        'tokenable_id' => $member->id,
+        'token' => Str::random(64),
+        'purpose' => 'member',
+        'is_revoked' => true,
+    ]);
+
+    $this->actingAs($user)->get('/member/qr')
+        ->assertOk()
+        ->assertSee('Dicabut')
+        ->assertDontSee('Aktif</dd>', false);
 });
 
 test('dashboard renders membership payment booking and qr summaries', function () {
@@ -169,6 +294,18 @@ test('dashboard renders membership payment booking and qr summaries', function (
         ->assertSee('Gym Umum Test')
         ->assertSee('Zumba Portal')
         ->assertSee('PAY-PORTAL-0001')
-        ->assertSee('Token aktif')
+        ->assertSee('Status QR aktif')
         ->assertDontSee($token);
+});
+
+test('member chatbot config includes safe internal fallbacks for extra topics', function () {
+    [$user] = createPortalMember('PG-PORTAL-CHATBOT');
+
+    $this->actingAs($user)->get('/member/dashboard')
+        ->assertOk()
+        ->assertSee('Informasi personal trainer dan layanan latihan dapat dilihat di katalog layanan Platinum Gym Padang.')
+        ->assertSee('Alamat, maps, dan kontak Platinum Gym Padang tersedia di halaman lokasi.')
+        ->assertSee('Promo aktif ditampilkan di website jika sedang tersedia.')
+        ->assertSee('Buka Jadwal Kelas')
+        ->assertDontSee('flow booking');
 });
