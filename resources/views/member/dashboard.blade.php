@@ -6,7 +6,8 @@
     $activePackageSessions = $portal['activePackageSessions'];
     $payments = $portal['payments'];
     $upcomingEnrollments = $portal['upcomingEnrollments'];
-    $qrToken = $portal['qrToken'];
+    $qrTokenIsActive = (bool) ($portal['qrTokenIsActive'] ?? false);
+    $qrStatusLabel = $portal['qrStatusLabel'] ?? 'Belum diterbitkan';
     $stats = $portal['stats'];
     $activity = $portal['activity'];
     $statusLabel = match ((string) $member->status) {
@@ -18,10 +19,9 @@
     $quickActions = [
         ['label' => 'Profil', 'description' => 'Data akun dan identitas', 'route' => 'member.profile', 'icon' => 'user'],
         ['label' => 'Membership', 'description' => 'Status paket member', 'route' => 'member.membership', 'icon' => 'card'],
-        ['label' => 'Booking Kelas', 'description' => 'Jadwal kelas aktif', 'route' => 'member.booking', 'icon' => 'calendar'],
-        ['label' => 'Transaksi', 'description' => 'Pembayaran dan invoice', 'route' => 'member.transactions', 'icon' => 'receipt'],
+        ['label' => 'Jadwal Kelas', 'description' => 'Kelas aktif dan kuota', 'route' => 'member.booking', 'icon' => 'calendar'],
+        ['label' => 'Transaksi', 'description' => 'Riwayat pembayaran', 'route' => 'member.transactions', 'icon' => 'receipt'],
         ['label' => 'QR Member', 'description' => 'Kartu check-in digital', 'route' => 'member.qr', 'icon' => 'qr'],
-        ['label' => 'AI Assistant', 'description' => 'Bantuan layanan member', 'route' => 'member.ai-assistant', 'icon' => 'spark'],
     ];
 @endphp
 
@@ -29,11 +29,11 @@
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">
         <section class="member-card-strong relative isolate overflow-hidden">
             <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-500/70 to-transparent" aria-hidden="true"></div>
-            <div class="public-surface-grid absolute inset-0 opacity-10" aria-hidden="true"></div>
+            <div class="public-surface-grid absolute inset-0 opacity-[0.06]" aria-hidden="true"></div>
             <div class="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_15rem] lg:items-start">
                 <div class="min-w-0">
                     <p class="text-xs font-black uppercase tracking-[0.2em] text-gold-400">Member Pass</p>
-                    <h2 class="mt-3 break-words text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl">
+                    <h2 class="public-heading-balance mt-3 break-words text-2xl font-black leading-tight tracking-tight text-white sm:text-4xl">
                         Selamat datang, {{ $user->name }}
                     </h2>
                     <p class="mt-4 max-w-2xl text-sm font-medium leading-7 text-zinc-300">
@@ -42,15 +42,15 @@
 
                     <div class="mt-6 grid gap-3 sm:grid-cols-3">
                         <div class="rounded-lg border border-white/10 bg-white/[0.06] p-4">
-                            <p class="text-[0.68rem] font-black uppercase tracking-[0.16em] text-zinc-400">Kode Member</p>
+                            <p class="text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-400">Kode Member</p>
                             <p class="mt-2 break-words font-mono text-lg font-black text-white">{{ $member->member_code }}</p>
                         </div>
                         <div class="rounded-lg border border-white/10 bg-white/[0.06] p-4">
-                            <p class="text-[0.68rem] font-black uppercase tracking-[0.16em] text-zinc-400">Status</p>
+                            <p class="text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-400">Status</p>
                             <p class="mt-2 font-black text-emerald-300">{{ $statusLabel }}</p>
                         </div>
                         <div class="rounded-lg border border-white/10 bg-white/[0.06] p-4">
-                            <p class="text-[0.68rem] font-black uppercase tracking-[0.16em] text-zinc-400">Bergabung</p>
+                            <p class="text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-400">Bergabung</p>
                             <p class="mt-2 font-black text-white">{{ $member->joined_at?->translatedFormat('d M Y') ?? '-' }}</p>
                         </div>
                     </div>
@@ -60,8 +60,8 @@
                     <div class="grid aspect-square place-items-center rounded-md border border-zinc-200 bg-[linear-gradient(135deg,#fff,#f4f4f5)] p-5">
                         @include('member.partials.icon', ['name' => 'qr', 'class' => 'h-28 w-28 text-zinc-950'])
                     </div>
-                    <p class="mt-3 text-center text-xs font-black uppercase tracking-[0.18em] text-zinc-500">QR Member</p>
-                    <p class="mt-1 text-center text-sm font-black text-zinc-950">{{ $qrToken && ! $qrToken->is_revoked ? 'Token aktif' : 'Siap diterbitkan' }}</p>
+                    <p class="mt-3 text-center text-xs font-black uppercase tracking-[0.14em] text-zinc-500">QR Member</p>
+                    <p class="mt-1 text-center text-sm font-black text-zinc-950">{{ $qrTokenIsActive ? 'Status QR aktif' : $qrStatusLabel }}</p>
                 </div>
             </div>
         </section>
@@ -126,7 +126,7 @@
                         </span>
                         <div class="min-w-0">
                             <h3 class="font-black text-zinc-950 dark:text-white">Belum ada membership aktif</h3>
-                            <p class="mt-1 member-copy">Paket pembelian digital akan aktif saat modul transaksi siap. Anda tetap bisa melihat katalog paket.</p>
+                            <p class="mt-1 member-copy">Paket aktif akan tampil setelah pembelian dan verifikasi selesai. Katalog paket tetap bisa dilihat kapan saja.</p>
                             <a href="{{ route('member.membership') }}" class="member-button-primary mt-4">Lihat Membership</a>
                         </div>
                     </div>
@@ -163,7 +163,7 @@
                             <div class="min-w-0">
                                 <p class="truncate text-sm font-black text-zinc-950 dark:text-white">{{ $item['title'] }}</p>
                                 <p class="mt-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400">{{ $item['description'] }}</p>
-                                <p class="mt-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-zinc-400">{{ $item['date']?->translatedFormat('d M Y H:i') ?? $item['date'] }}</p>
+                                <p class="mt-2 text-xs font-bold uppercase tracking-[0.12em] text-zinc-400">{{ $item['date']?->translatedFormat('d M Y H:i') ?? $item['date'] }}</p>
                             </div>
                         </div>
                     </article>
@@ -182,8 +182,8 @@
         <section class="member-card">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <p class="member-eyebrow">Booking Kelas</p>
-                    <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Jadwal mendatang</h2>
+                <p class="member-eyebrow">Jadwal Kelas</p>
+                <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Jadwal mendatang</h2>
                 </div>
                 <a href="{{ route('member.booking') }}" class="member-button-secondary">Lihat Jadwal</a>
             </div>
@@ -203,10 +203,10 @@
                     </article>
                 @empty
                     <div class="member-soft-panel">
-                        <h3 class="font-black text-zinc-950 dark:text-white">Belum ada booking mendatang</h3>
-                        <p class="mt-1 member-copy">Booking digital akan tersedia saat modul kelas aktif. Jadwal publik tetap bisa dilihat sekarang.</p>
+                        <h3 class="font-black text-zinc-950 dark:text-white">Belum ada jadwal terdaftar</h3>
+                        <p class="mt-1 member-copy">Jadwal kelas yang sudah tercatat untuk akun Anda akan tampil di sini. Jadwal publik tetap bisa dilihat sekarang.</p>
                         <div class="mt-4 flex flex-col gap-2 sm:flex-row">
-                            <a href="{{ route('member.booking') }}" class="member-button-primary">Buka Booking Kelas</a>
+                            <a href="{{ route('member.booking') }}" class="member-button-primary">Buka Jadwal Kelas</a>
                             <a href="{{ route('public.classes') }}" class="member-button-secondary">Jadwal Publik</a>
                         </div>
                     </div>
@@ -241,7 +241,7 @@
                 @empty
                     <div class="member-soft-panel">
                         <h3 class="font-black text-zinc-950 dark:text-white">Belum ada transaksi</h3>
-                        <p class="mt-1 member-copy">Invoice dan pembayaran akan tampil setelah modul payment aktif.</p>
+                        <p class="mt-1 member-copy">Riwayat pembayaran akan tampil setelah transaksi membership atau layanan tercatat.</p>
                     </div>
                 @endforelse
             </div>

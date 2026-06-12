@@ -37,6 +37,11 @@ class MemberDashboardQuery
         $activePackageSessions = $member->packageSessions()
             ->with(['package', 'trainer'])
             ->where('status', 'active')
+            ->where('remaining_sessions', '>', 0)
+            ->where(function ($query) use ($today): void {
+                $query->whereNull('expired_at')
+                    ->orWhereDate('expired_at', '>=', $today);
+            })
             ->orderByDesc('remaining_sessions')
             ->limit(3)
             ->get();
@@ -113,6 +118,8 @@ class MemberDashboardQuery
             'recentEnrollments' => $recentEnrollments,
             'recentCheckIns' => $recentCheckIns,
             'qrToken' => $qrToken,
+            'qrTokenIsActive' => $this->qrTokenIsActive($qrToken),
+            'qrStatusLabel' => $this->qrStatusLabel($qrToken),
             'packages' => $packages,
             'classSchedules' => $classSchedules,
             'notifications' => $notifications,
@@ -136,7 +143,7 @@ class MemberDashboardQuery
             [
                 'label' => 'Membership',
                 'value' => $activeMembership?->package?->name ?? 'Belum aktif',
-                'description' => $activeMembership ? 'Aktif sampai '.$activeMembership->end_date?->translatedFormat('d M Y') : 'Pilih paket saat modul pembelian aktif.',
+                'description' => $activeMembership ? 'Aktif sampai '.$activeMembership->end_date?->translatedFormat('d M Y') : 'Paket aktif akan tampil setelah pembelian terverifikasi.',
             ],
             [
                 'label' => 'Booking',
@@ -146,7 +153,7 @@ class MemberDashboardQuery
             [
                 'label' => 'Pembayaran',
                 'value' => (string) $pendingPaymentCount,
-                'description' => 'Invoice atau pembayaran menunggu tindakan.',
+                'description' => 'Pembayaran menunggu tindakan.',
             ],
         ];
     }
@@ -159,6 +166,32 @@ class MemberDashboardQuery
             'suspended' => 'Ditangguhkan',
             default => str($status)->headline()->toString(),
         };
+    }
+
+    private function qrTokenIsActive(?QrToken $qrToken): bool
+    {
+        if (! $qrToken || $qrToken->is_revoked) {
+            return false;
+        }
+
+        return is_null($qrToken->expires_at) || $qrToken->expires_at->isFuture();
+    }
+
+    private function qrStatusLabel(?QrToken $qrToken): string
+    {
+        if ($this->qrTokenIsActive($qrToken)) {
+            return 'Aktif';
+        }
+
+        if ($qrToken?->is_revoked) {
+            return 'Dicabut';
+        }
+
+        if ($qrToken?->expires_at?->isPast()) {
+            return 'Kedaluwarsa';
+        }
+
+        return 'Belum diterbitkan';
     }
 
     /**
