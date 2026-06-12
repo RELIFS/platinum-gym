@@ -139,6 +139,22 @@ test('google callback creates new verified member user and redirects to complete
     expect(SocialAccount::where('provider_user_id', 'google-new')->where('user_id', $user->id)->exists())->toBeTrue();
 });
 
+test('complete profile screen can be rendered for google member onboarding', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'phone' => null,
+    ]);
+    $user->assignRole('member');
+
+    $this->actingAs($user)->get('/member/complete-profile')
+        ->assertOk()
+        ->assertSee('Lengkapi Profil')
+        ->assertSee('name="birth_date"', false)
+        ->assertSee('name="gender"', false)
+        ->assertSee('name="phone"', false)
+        ->assertSee('name="terms"', false);
+});
+
 test('complete profile creates member profile for google user', function () {
     $user = User::factory()->create([
         'email' => 'complete@example.com',

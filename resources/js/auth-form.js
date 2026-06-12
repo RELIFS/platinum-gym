@@ -21,6 +21,7 @@ function bindPasswordToggles() {
             const shouldShow = input.type === 'password';
             input.type = shouldShow ? 'text' : 'password';
             button.setAttribute('aria-label', shouldShow ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+            button.setAttribute('aria-pressed', shouldShow ? 'true' : 'false');
             button.querySelector('[data-eye-open]')?.classList.toggle('hidden', shouldShow);
             button.querySelector('[data-eye-closed]')?.classList.toggle('hidden', !shouldShow);
         });
@@ -40,6 +41,8 @@ function bindPasswordFeedback() {
         }
 
         input.dataset.authFeedbackBound = 'true';
+        feedback.setAttribute('role', 'status');
+        feedback.setAttribute('aria-live', 'polite');
 
         const updatePasswordFeedback = () => {
             const shouldShow = input.value.length > 0 && input.value.length < 8;
@@ -66,6 +69,8 @@ function bindPhoneFeedback() {
         }
 
         input.dataset.authFeedbackBound = 'true';
+        feedback.setAttribute('role', 'status');
+        feedback.setAttribute('aria-live', 'polite');
 
         const updatePhoneFeedback = () => {
             const normalized = input.value.replace(/\D+/g, '');

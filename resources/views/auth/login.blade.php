@@ -1,9 +1,9 @@
 <x-guest-layout>
     <div class="w-full">
         <div class="mb-8">
-            <h2 class="mb-3 text-3xl font-extrabold leading-tight text-zinc-950 dark:text-white">
+            <h1 class="mb-3 text-3xl font-extrabold leading-tight text-zinc-950 dark:text-white">
                 Selamat <span class="text-gold-500">Datang</span>
-            </h2>
+            </h1>
             <p class="auth-panel-copy">
                 Masuk untuk mengakses dashboard dan layanan member Platinum Gym Padang.
             </p>
@@ -21,7 +21,7 @@
 
             <div>
                 <label for="email" class="auth-label">Alamat Email</label>
-                <input id="email" class="auth-input" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="nama@email.com">
+                <input id="email" class="auth-input" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="nama@email.com" @error('email') aria-invalid="true" @enderror>
                 <x-input-error :messages="$errors->get('email')" class="auth-error" />
             </div>
 
@@ -33,8 +33,8 @@
                     @endif
                 </div>
                 <div class="relative">
-                    <input id="password" class="auth-input pr-12" type="password" name="password" required autocomplete="current-password" placeholder="Masukkan kata sandi">
-                    <button type="button" class="auth-password-toggle" data-password-toggle="password" aria-label="Tampilkan kata sandi">
+                    <input id="password" class="auth-input pr-12" type="password" name="password" required autocomplete="current-password" placeholder="Masukkan kata sandi" @error('password') aria-invalid="true" @enderror>
+                    <button type="button" class="auth-password-toggle" data-password-toggle="password" aria-label="Tampilkan kata sandi" aria-pressed="false">
                         <svg data-eye-open class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M2.75 12C4.85 7.85 8.05 5.75 12 5.75C15.95 5.75 19.15 7.85 21.25 12C19.15 16.15 15.95 18.25 12 18.25C8.05 18.25 4.85 16.15 2.75 12Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
                             <path d="M12 14.75C13.52 14.75 14.75 13.52 14.75 12C14.75 10.48 13.52 9.25 12 9.25C10.48 9.25 9.25 10.48 9.25 12C9.25 13.52 10.48 14.75 12 14.75Z" stroke="currentColor" stroke-width="1.8" />
