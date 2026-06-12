@@ -16,6 +16,7 @@
 /public/build
 /public/hot
 /public/storage
+/_skpl_render_out
 /storage/*.key
 /storage/pail
 /vendor
