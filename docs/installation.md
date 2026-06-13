@@ -139,6 +139,37 @@ Role yang disiapkan pada proyek:
 
 Saat registrasi member berhasil, sistem membuat user, membuat data member, memberikan role `member`, mengirim email verifikasi, lalu mengarahkan user ke halaman verifikasi email.
 
+Akun seeded untuk local/development setelah `php artisan migrate --seed`:
+
+| Role | Email | Password | Catatan |
+|---|---|---|---|
+| Admin | `admin@platinumgympadang.com` | `password` | Login lewat `/login`, lalu redirect ke `/admin` |
+| Owner | `owner@platinumgympadang.com` | `password` | Login lewat `/login`, lalu redirect ke `/owner` |
+
+Akun seeded hanya untuk local/development. Ganti password atau nonaktifkan akun tersebut sebelum production.
+
+## Akses Admin Lokal
+
+Jalankan migration dan seeder:
+
+```bash
+php artisan migrate --seed
+```
+
+Buka halaman login:
+
+```text
+/login
+```
+
+Masuk memakai akun admin seeded. Jika role valid, sistem mengarahkan user ke:
+
+```text
+/admin
+```
+
+Halaman khusus `/admin/login` belum dibuat pada v1 ini dan masuk roadmap production.
+
 ## Troubleshooting
 
 ### APP_KEY belum dibuat
@@ -232,5 +263,6 @@ Instalasi dianggap berhasil jika:
 - Halaman register dapat dibuka.
 - User member dapat registrasi.
 - Halaman pemberitahuan verifikasi email muncul setelah registrasi.
+- Admin local dapat login lewat `/login` dan masuk ke `/admin`.
 - Test berjalan tanpa gagal.
 - Asset frontend berhasil dibuild.

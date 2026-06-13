@@ -8,12 +8,15 @@ class PublicChatbotViewModel
     {
         $whatsappUrl = $settings['whatsapp_url'] ?? 'https://wa.me/6282174777761';
         $whatsappChatUrl = $whatsappUrl.(str_contains($whatsappUrl, '?') ? '&' : '?').http_build_query([
-            'text' => 'Halo Platinum Gym Padang, saya ingin konsultasi dari chatbot website.',
+            'text' => 'Halo Platinum Gym Padang, saya ingin konsultasi dari Gymmi di website.',
         ]);
 
         return [
+            'name' => 'Gymmi',
+            'botInitials' => 'GY',
+            'typingLabel' => 'Gymmi sedang mengetik',
             'whatsappUrl' => $whatsappChatUrl,
-            'initialMessage' => 'Halo! Saya chatbot Platinum Gym Padang. Saya bisa bantu info membership, jadwal kelas, personal trainer, promo, lokasi, dan jam buka.',
+            'initialMessage' => 'Halo! Saya Gymmi dari Platinum Gym Padang. Saya bisa bantu info membership, jadwal kelas, personal trainer, promo, lokasi, dan jam buka.',
             'quickReplies' => ['Info Membership', 'Jadwal Kelas', 'Harga Personal Trainer', 'Lokasi & Jam Buka'],
             'replies' => [
                 'membership' => 'Paket membership tersedia untuk umum dan mahasiswa. Mulai dari Gym Umum, Gym Mahasiswa, serta paket khusus sesuai promo aktif. Untuk daftar, gunakan tombol Daftar Member.',

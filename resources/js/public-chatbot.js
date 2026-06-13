@@ -71,16 +71,20 @@ export function platinumGymChatbot(config = {}) {
         send() {
             const text = this.input.trim();
 
-            if (!text) {
+            if (!text || this.typing) {
                 return;
             }
 
-            this.messages.push({ from: 'user', text });
+            this.messages.push({ from: 'user', text, quickReply: false });
             this.input = '';
             this.queueReply(text);
         },
         quickReply(text) {
-            this.messages.push({ from: 'user', text });
+            if (this.typing) {
+                return;
+            }
+
+            this.messages.push({ from: 'user', text, quickReply: true });
             this.queueReply(text);
         },
         queueReply(text) {
@@ -132,9 +136,13 @@ function initChatbotRoot(root) {
         return;
     }
 
-    renderMessage(messages, 'bot', normalizeBotReply(config.initialMessage ?? ''), root.dataset.chatbotVariant);
+    renderMessage(messages, 'bot', normalizeBotReply(config.initialMessage ?? ''), root.dataset.chatbotVariant, config);
     renderQuickReplies(quickReplies, config.quickReplies ?? [], (reply) => {
-        addUserMessage(reply);
+        if (typing) {
+            return;
+        }
+
+        addUserMessage(reply, true);
         queueReply(reply);
     });
 
@@ -142,6 +150,12 @@ function initChatbotRoot(root) {
         escalation.hidden = config.showEscalation === false;
         escalation.href = config.whatsappUrl ?? '#';
     }
+
+    const setTypingState = (nextTyping) => {
+        typing = nextTyping;
+        setQuickRepliesDisabled(quickReplies, typing);
+        syncSendState(input, send, typing);
+    };
 
     const setOpen = (nextOpen, returnFocus = true) => {
         open = nextOpen;
@@ -175,18 +189,18 @@ function initChatbotRoot(root) {
     const submit = () => {
         const text = input.value.trim();
 
-        if (!text) {
+        if (!text || typing) {
             return;
         }
 
-        addUserMessage(text);
+        addUserMessage(text, false);
         input.value = '';
-        syncSendState(input, send);
+        syncSendState(input, send, typing);
         queueReply(text);
     };
 
-    function addUserMessage(text) {
-        renderMessage(messages, 'user', { text }, root.dataset.chatbotVariant);
+    function addUserMessage(text, quickReply = false) {
+        renderMessage(messages, 'user', { text }, root.dataset.chatbotVariant, config, { quickReply });
         scrollToEnd(messagesEnd);
     }
 
@@ -195,15 +209,16 @@ function initChatbotRoot(root) {
             return;
         }
 
-        typing = true;
-        const typingEl = renderTyping(messages);
+        setTypingState(true);
+        const typingEl = renderTyping(messages, config);
         scrollToEnd(messagesEnd);
 
         window.setTimeout(() => {
             typingEl.remove();
-            renderMessage(messages, 'bot', normalizeBotReply(resolveChatbotReply(text, config)), root.dataset.chatbotVariant);
-            typing = false;
+            renderMessage(messages, 'bot', normalizeBotReply(resolveChatbotReply(text, config)), root.dataset.chatbotVariant, config);
+            setTypingState(false);
             scrollToEnd(messagesEnd);
+            input.focus({ preventScroll: true });
         }, 500);
     }
 
@@ -215,7 +230,7 @@ function initChatbotRoot(root) {
     overlay?.addEventListener('click', close);
     closeButtons.forEach((button) => button.addEventListener('click', close));
     send.addEventListener('click', submit);
-    input.addEventListener('input', () => syncSendState(input, send));
+    input.addEventListener('input', () => syncSendState(input, send, typing));
     input.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
             event.preventDefault();
@@ -243,7 +258,8 @@ function initChatbotRoot(root) {
         }
     });
 
-    syncSendState(input, send);
+    syncSendState(input, send, typing);
+    setQuickRepliesDisabled(quickReplies, false);
     setOpen(false, false);
 }
 
@@ -251,11 +267,15 @@ function resolveChatbotReply(text, config = {}) {
     const normalized = text.toLowerCase();
     const replies = config.replies ?? {};
 
-    if (text === 'Info Membership' || normalized.includes('member') || normalized.includes('paket') || normalized.includes('gym umum')) {
-        return replies.membership;
+    if (text === 'QR Member' || normalized.includes('qr') || normalized.includes('check-in') || normalized.includes('check in')) {
+        return replies.qr ?? replies.fallback;
     }
 
     if (text === 'Status Membership') {
+        return replies.membership;
+    }
+
+    if (text === 'Info Membership' || normalized.includes('member') || normalized.includes('paket') || normalized.includes('gym umum')) {
         return replies.membership;
     }
 
@@ -265,10 +285,6 @@ function resolveChatbotReply(text, config = {}) {
 
     if (text === 'Transaksi' || normalized.includes('transaksi') || normalized.includes('pembayaran') || normalized.includes('invoice')) {
         return replies.transactions ?? replies.fallback;
-    }
-
-    if (text === 'QR Member' || normalized.includes('qr') || normalized.includes('check-in') || normalized.includes('check in')) {
-        return replies.qr ?? replies.fallback;
     }
 
     if (text === 'Bantuan Akun' || normalized.includes('profil') || normalized.includes('akun') || normalized.includes('password') || normalized.includes('sandi')) {
@@ -299,57 +315,77 @@ function renderQuickReplies(container, replies, onClick) {
     replies.forEach((reply) => {
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'inline-flex min-h-11 min-w-0 max-w-full touch-manipulation items-center whitespace-normal break-words rounded-full border border-zinc-700 bg-zinc-900 px-3 py-2 text-left text-xs font-bold leading-4 text-zinc-300 transition hover:border-gold-500/60 hover:text-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/30';
+        button.dataset.chatbotQuickReply = 'true';
+        button.className = 'inline-flex min-h-10 min-w-0 max-w-full touch-manipulation items-center whitespace-normal break-words rounded-full border border-zinc-700 bg-zinc-900 px-3 py-2 text-left text-xs font-bold leading-4 text-zinc-300 transition hover:border-gold-500/60 hover:text-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/30 disabled:cursor-not-allowed disabled:opacity-45';
         button.textContent = reply;
-        button.addEventListener('click', () => onClick(reply));
+        button.addEventListener('click', () => {
+            if (button.disabled) {
+                return;
+            }
+
+            onClick(reply);
+        });
         container.append(button);
     });
 }
 
-function renderMessage(container, from, reply, variant = 'public') {
+function renderMessage(container, from, reply, variant = 'public', config = {}, options = {}) {
+    const isUser = from === 'user';
     const item = document.createElement('div');
-    item.className = `flex min-w-0 gap-2${from === 'user' ? ' flex-row-reverse' : ''}`;
-
-    const avatar = document.createElement('span');
-    avatar.className = `inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-black ${from === 'user' ? 'bg-gold-500 text-zinc-950' : 'bg-zinc-800 text-zinc-200'}`;
-    avatar.textContent = from === 'user' ? 'AN' : 'PG';
+    item.className = isUser ? 'flex min-w-0 justify-end' : 'flex min-w-0 items-start gap-2';
+    item.setAttribute('aria-label', isUser ? 'Pesan Anda' : 'Pesan Gymmi');
 
     const bubbleWrap = document.createElement('div');
-    bubbleWrap.className = variant === 'member' ? 'min-w-0 max-w-[82%]' : 'min-w-0 max-w-[80%]';
+    bubbleWrap.className = isUser
+        ? 'flex min-w-0 max-w-[82%] flex-col items-end'
+        : `${variant === 'member' ? 'max-w-[84%]' : 'max-w-[82%]'} flex min-w-0 flex-col items-start`;
 
     const bubble = document.createElement('p');
-    bubble.className = `break-words rounded-2xl px-3.5 py-2.5 text-sm leading-6 ${from === 'user' ? 'rounded-tr-none bg-gold-500 font-semibold text-zinc-950' : 'rounded-tl-none bg-zinc-800 text-zinc-200'}`;
+    bubble.className = messageBubbleClass(isUser, options.quickReply === true);
     bubble.textContent = reply.text ?? '';
     bubbleWrap.append(bubble);
 
     if (reply.actionUrl && reply.actionLabel) {
         const action = document.createElement('a');
         action.href = reply.actionUrl;
-        action.className = 'mt-2 inline-flex min-h-10 max-w-full items-center justify-center rounded-full border border-gold-500/40 px-3 py-2 text-xs font-black text-gold-400 transition hover:border-gold-500 hover:text-gold-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40';
+        action.className = 'mt-2 inline-flex min-h-10 max-w-full items-center justify-center whitespace-normal break-words rounded-lg border border-gold-500/40 px-3 py-2 text-center text-xs font-black leading-5 text-gold-400 transition hover:border-gold-500 hover:text-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40';
         action.textContent = reply.actionLabel;
         bubbleWrap.append(action);
     }
 
-    item.append(avatar, bubbleWrap);
+    if (isUser) {
+        item.append(bubbleWrap);
+    } else {
+        const avatar = document.createElement('span');
+        avatar.className = 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-xs font-black text-zinc-200';
+        avatar.textContent = config.botInitials ?? 'GY';
+        avatar.setAttribute('aria-hidden', 'true');
+        item.append(avatar, bubbleWrap);
+    }
+
     container.append(item);
 }
 
-function renderTyping(container) {
+function renderTyping(container, config = {}) {
     const item = document.createElement('div');
-    item.className = 'flex gap-2';
+    item.className = 'flex min-w-0 items-start gap-2';
+    item.setAttribute('aria-label', config.typingLabel ?? 'Gymmi sedang mengetik');
 
     const avatar = document.createElement('span');
     avatar.className = 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-xs font-black text-zinc-200';
-    avatar.textContent = 'PG';
+    avatar.textContent = config.botInitials ?? 'GY';
+    avatar.setAttribute('aria-hidden', 'true');
 
     const bubble = document.createElement('div');
-    bubble.className = 'flex items-center gap-1 rounded-2xl rounded-tl-none bg-zinc-800 px-4 py-3';
-    bubble.setAttribute('aria-label', 'Chatbot sedang mengetik');
+    bubble.className = 'flex items-center gap-1 rounded-2xl rounded-tl-sm bg-zinc-800 px-4 py-3';
+    bubble.setAttribute('role', 'status');
+    bubble.setAttribute('aria-label', config.typingLabel ?? 'Gymmi sedang mengetik');
 
     [0, 150, 300].forEach((delay) => {
         const dot = document.createElement('span');
         dot.className = 'h-2 w-2 animate-bounce rounded-full bg-zinc-400';
         dot.style.animationDelay = `${delay}ms`;
+        dot.setAttribute('aria-hidden', 'true');
         bubble.append(dot);
     });
 
@@ -359,8 +395,27 @@ function renderTyping(container) {
     return item;
 }
 
-function syncSendState(input, send) {
-    send.disabled = !input.value.trim();
+function messageBubbleClass(isUser, quickReply) {
+    if (quickReply) {
+        return 'max-w-full break-words rounded-full bg-gold-500 px-3 py-2 text-xs font-black leading-5 text-zinc-950 shadow-sm';
+    }
+
+    if (isUser) {
+        return 'max-w-full break-words rounded-2xl rounded-tr-sm bg-gold-500 px-3.5 py-2.5 text-sm font-semibold leading-6 text-zinc-950 shadow-sm';
+    }
+
+    return 'max-w-full break-words rounded-2xl rounded-tl-sm bg-zinc-800 px-3.5 py-2.5 text-sm leading-6 text-zinc-200';
+}
+
+function syncSendState(input, send, typing = false) {
+    send.disabled = typing || !input.value.trim();
+}
+
+function setQuickRepliesDisabled(container, disabled) {
+    container?.querySelectorAll('[data-chatbot-quick-reply]').forEach((button) => {
+        button.disabled = disabled;
+        button.setAttribute('aria-disabled', disabled.toString());
+    });
 }
 
 function scrollToEnd(target) {

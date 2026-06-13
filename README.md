@@ -15,8 +15,9 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 | Auth, role, permission, Google OAuth | Selesai fase foundation + polish visual auth |
 | Public website company profile | Selesai fase public + polish responsive, termasuk katalog produk stok aktual dan real image assets |
 | Clean architecture foundation | Selesai tahap awal berbasis `app/Features` |
-| Member portal | Selesai v1 + polish UI, sidebar minimal, dan chatbot global statis |
-| Admin/owner dashboard, payment, booking submit, QR check-in, laporan, AI backend | Belum dikerjakan |
+| Member portal | Selesai v1 + polish UI, sidebar minimal, dan chatbot global Gymmi statis |
+| Admin portal v1 | Selesai read-only v1 dengan 17 route `/admin`, workbench operasional, tabel data real, dan tanpa aksi CRUD palsu |
+| Owner dashboard, payment, booking submit, QR check-in, laporan, AI backend | Belum dikerjakan |
 
 ## Tujuan Proyek
 
@@ -57,11 +58,12 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 - Website public Blade untuk Beranda, Tentang Kami, Layanan, Kelas, Produk, Galeri, Lokasi, dan BMI.
 - Filter jadwal kelas berbasis query string.
 - Katalog produk dengan foto/fallback, harga, stok aktual dari database, filter, pencarian, dan arahan pembelian langsung di lokasi.
-- Chatbot public statis dengan quick replies dan eskalasi WhatsApp.
+- Gymmi, chatbot public statis dengan quick replies dan eskalasi WhatsApp.
 - Google Maps iframe embed tanpa API key pada halaman Lokasi.
 - Seeder kontak public, promo, testimoni, galeri, produk, dan foto produk optimized.
 - Tampilan autentikasi bertema Platinum Gym dengan panel visual foto gym pada desktop dan form panel responsive.
-- Portal member v1 untuk dashboard, profil, membership, jadwal kelas, riwayat booking, transaksi, QR status, notifikasi, dan chatbot global statis.
+- Portal member v1 untuk dashboard, profil, membership, jadwal kelas, riwayat booking, transaksi, QR status, notifikasi, dan chatbot global Gymmi statis.
+- Admin portal v1 read-only untuk dashboard, check-in, booking, notifikasi, anggota, paket, kelas, pembayaran, produk, galeri, testimoni, promo, trainer, laporan, audit log, pengaturan, dan profil admin.
 - Toggle tema dark/light mengikuti preferensi perangkat dan pilihan pengguna.
 - Struktur feature-based awal untuk Auth, PublicWebsite, dan Shared support.
 - Testing fitur autentikasi menggunakan Pest.
@@ -69,8 +71,8 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 
 ### Fitur Rencana Pengembangan
 
-- Dashboard admin dan owner.
-- Manajemen paket membership.
+- Dashboard owner.
+- Workflow CRUD admin penuh.
 - Booking kelas.
 - Pembayaran membership dan layanan.
 - Check-in gym.
@@ -115,6 +117,28 @@ Catatan Windows PowerShell: jika `npm` atau `npx` diblokir karena execution poli
 
 Dokumentasi instalasi lengkap tersedia di `docs/installation.md`.
 
+## Akses Admin Lokal
+
+Admin saat ini login melalui halaman umum:
+
+```text
+/login
+```
+
+Jika akun memiliki role `admin`, sistem mengarahkan user ke:
+
+```text
+/admin
+```
+
+Akun seeded untuk local/development:
+
+```text
+admin@platinumgympadang.com / password
+```
+
+Password seeded hanya untuk local/development. Ganti atau nonaktifkan akun tersebut sebelum production.
+
 ## Menjalankan Test
 
 ```bash
@@ -123,7 +147,7 @@ php artisan test --no-ansi
 
 Project menggunakan Pest PHP. Pest berjalan di atas ekosistem PHPUnit, sehingga tetap kompatibel dengan testing Laravel.
 
-Baseline validasi terakhir pada fase public/auth/product polish: `79 passed / 536 assertions` dan `npm.cmd run build` berhasil.
+Baseline validasi terakhir pada fase admin v1 + Gymmi: `144 passed / 835 assertions`, `vendor\bin\pint --test` lulus, dan `npm.cmd run build` berhasil.
 
 Catatan: konfigurasi `phpunit.xml` memakai SQLite in-memory untuk testing. Pastikan PHP CLI memiliki extension `pdo_sqlite` aktif sebelum menjalankan full test suite lokal.
 
@@ -167,7 +191,7 @@ Rencana screenshot tambahan:
 - Halaman login.
 - Halaman registrasi member.
 - Halaman verifikasi email.
-- Dashboard admin atau owner.
+- Dashboard admin v1 dan owner.
 
 ## Documentation
 

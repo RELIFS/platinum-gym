@@ -11,8 +11,11 @@ class MemberChatbotViewModel
     public static function make(array $portal = []): array
     {
         return [
+            'name' => 'Gymmi',
+            'botInitials' => 'GY',
+            'typingLabel' => 'Gymmi sedang mengetik',
             'showEscalation' => false,
-            'initialMessage' => 'Halo! Saya chatbot member Platinum Gym Padang. Saya bisa bantu arahkan ke status membership, jadwal kelas, transaksi, QR member, dan bantuan akun.',
+            'initialMessage' => 'Halo! Saya Gymmi dari portal member Platinum Gym Padang. Saya bisa bantu arahkan ke status membership, jadwal kelas, transaksi, QR member, dan bantuan akun.',
             'quickReplies' => ['Status Membership', 'Jadwal Kelas', 'Transaksi', 'QR Member', 'Bantuan Akun'],
             'replies' => [
                 'membership' => [
