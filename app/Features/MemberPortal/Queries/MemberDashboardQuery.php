@@ -46,6 +46,25 @@ class MemberDashboardQuery
             ->limit(3)
             ->get();
 
+        $activeSessionPackageIds = $member->packageSessions()
+            ->where('status', 'active')
+            ->where('remaining_sessions', '>', 0)
+            ->where(function ($query) use ($today): void {
+                $query->whereNull('expired_at')
+                    ->orWhereDate('expired_at', '>=', $today);
+            })
+            ->pluck('package_id');
+
+        $hiddenSessionPackageIds = $member->packageSessions()
+            ->where(function ($query) use ($today): void {
+                $query->where('remaining_sessions', '<=', 0)
+                    ->orWhereDate('expired_at', '<', $today)
+                    ->orWhereIn('status', ['expired', 'exhausted', 'cancelled', 'canceled']);
+            })
+            ->pluck('package_id')
+            ->diff($activeSessionPackageIds)
+            ->values();
+
         $paymentStatuses = ['pending', 'waiting_payment', 'waiting_confirmation', 'unpaid'];
 
         $pendingPaymentCount = $member->payments()
@@ -86,6 +105,7 @@ class MemberDashboardQuery
 
         $packages = Package::query()
             ->where('is_active', true)
+            ->when($hiddenSessionPackageIds->isNotEmpty(), fn ($query) => $query->whereNotIn('id', $hiddenSessionPackageIds))
             ->orderByRaw("case when package_kind = 'membership' then 0 else 1 end")
             ->orderBy('price')
             ->limit(8)
