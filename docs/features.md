@@ -1,6 +1,6 @@
 # Feature Documentation
 
-Status: Updated 2026-06-12. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
+Status: Updated 2026-06-13. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
 
 Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Platinum Gym Padang.
 
@@ -28,7 +28,8 @@ Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Pla
 | Auth UI Platinum Gym | Sudah tersedia dan dipoles visual | Pengunjung/member |
 | Theme toggle | Sudah tersedia | Pengguna UI |
 | Member portal v1 | Sudah tersedia dan dipoles UI | Member |
-| Dashboard admin/owner placeholder | Sudah tersedia dasar | Admin, owner |
+| Admin portal v1 | Sudah tersedia read-only v1 | Admin |
+| Dashboard owner placeholder | Sudah tersedia dasar | Owner |
 | Membership package | Direncanakan | Member, admin |
 | Booking kelas | Direncanakan | Member, admin |
 | Pembayaran | Direncanakan | Member, admin |
@@ -176,6 +177,63 @@ User membuka halaman login -> user memasukkan email dan password -> sistem valid
 ### Screenshot
 
 Screenshot halaman login akan ditambahkan setelah dokumentasi visual disiapkan.
+
+
+## Admin Portal v1
+
+### Tujuan
+
+Admin portal v1 digunakan sebagai area kerja awal untuk memantau data operasional Platinum Gym tanpa mengaktifkan CRUD penuh sebelum workflow bisnis siap.
+
+Admin saat ini login melalui `/login`. User dengan role `admin` diarahkan ke `/admin`; halaman khusus `/admin/login` baru masuk roadmap production agar entry point admin lebih jelas tanpa mengubah backend auth sekarang.
+
+### Route Aktif
+
+| Route | Fungsi |
+|---|---|
+| `/admin` | Dashboard ringkasan operasional |
+| `/admin/check-in` | Pantauan check-in gym |
+| `/admin/booking` | Pantauan booking kelas |
+| `/admin/notifikasi` | Kerangka notifikasi operasional |
+| `/admin/anggota` | Daftar member terbaru |
+| `/admin/paket` | Katalog paket layanan |
+| `/admin/kelas` | Jadwal kelas aktif |
+| `/admin/pembayaran` | Pembayaran terbaru dan status |
+| `/admin/produk` | Katalog produk dan stok |
+| `/admin/galeri` | Galeri website |
+| `/admin/testimoni` | Testimoni website |
+| `/admin/promo` | Promo website |
+| `/admin/trainer` | Data trainer |
+| `/admin/laporan` | Ringkasan laporan awal |
+| `/admin/audit-log` | Activity log terbaru |
+| `/admin/pengaturan` | Setting website dengan value sensitif tersamarkan |
+| `/admin/profil` | Profil admin login |
+
+### Catatan Scope
+
+- Admin v1 bersifat read-only agar tidak membuat aksi bisnis palsu.
+- Dashboard admin memakai workbench operasional dengan status strip, KPI ringkas, quick links, dan data terbaru dari database.
+- Halaman module memakai compact header, label `Read-only v1`, tabel read-only, local search, status filter bila ada, count, empty/no-result state, dan mobile card fallback.
+- Tidak ada tombol add/edit/delete palsu sampai workflow bisnis dan authorization tulis siap.
+- Semua route memakai middleware `auth`, `verified`, dan `role:admin`.
+- Nilai setting sensitif seperti API key, token, secret, OAuth, prompt, dan password dimask sebagai `Tersamarkan`.
+- Filament belum diinstall; CRUD penuh tetap fase berikutnya.
+
+## Gymmi Chatbot Public dan Member
+
+### Tujuan
+
+Gymmi membantu pengunjung dan member menemukan informasi dasar tanpa mengklaim backend AI sudah selesai.
+
+### Behavior Aktif
+
+- Public dan member memakai floating chatbot statis/intention-based.
+- Message log memakai `role="log"` dan `aria-live="polite"`.
+- Pesan user tampil di kanan tanpa avatar visual `AN`.
+- FAQ quick reply tampil sebagai chip kanan yang ringkas.
+- Pesan bot tampil di kiri dengan initial `GY` yang tidak ikut dibaca screen reader.
+- Saat Gymmi mengetik, send button dan quick replies dinonaktifkan agar pesan tidak dobel.
+- Backend AI, FAQ database, conversation log, Gemini/API, dan rate limit khusus AI tetap roadmap.
 
 ## Auth UI Platinum Gym
 
@@ -327,9 +385,9 @@ User login -> sistem membaca role -> sistem redirect ke dashboard role -> route 
 ### Status
 
 - Role final: `member`, `admin`, `owner`.
-- Member portal v1 sudah aktif untuk dashboard, profil, membership, jadwal kelas, riwayat booking, transaksi, QR status, notifikasi, dan chatbot global statis.
-- Dashboard admin dan owner saat ini masih placeholder untuk validasi auth dan role.
-- Fitur bisnis lanjutan seperti checkout, booking submit, QR check-in, admin panel, dan owner report tetap mengikuti modul masing-masing.
+- Member portal v1 sudah aktif untuk dashboard, profil, membership, jadwal kelas, riwayat booking, transaksi, QR status, notifikasi, dan chatbot global Gymmi statis.
+- Admin portal v1 sudah aktif sebagai read-only v1; owner dashboard masih placeholder untuk validasi auth dan role.
+- Fitur bisnis lanjutan seperti checkout, booking submit, QR check-in scanner, CRUD admin penuh, dan owner report tetap mengikuti modul masing-masing.
 
 ## Member Portal v1
 
@@ -355,29 +413,13 @@ Member portal digunakan agar member yang sudah login dapat mengecek informasi ak
 
 - Sidebar dan mobile drawer hanya berisi navigasi, footer action, dan grouped menu `Utama`, `Aktivitas`, dan `Akun`.
 - Identitas member, kode member, status membership, dan invoice tidak ditampilkan di sidebar agar tidak redundan.
-- Chatbot member tersedia sebagai floating widget global statis di semua halaman member dan mengarah ke route internal.
+- Gymmi tersedia sebagai floating widget global statis di semua halaman member dan mengarah ke route internal.
+- Gymmi member menampilkan action `QR Member` ke `/member/qr` dan tidak menampilkan token QR mentah.
 - Route/page `/member/ai-assistant` tidak aktif; backend AI tetap masuk modul lanjutan.
-- Checkout, booking submit, QR scannable, upload bukti bayar, invoice download, admin panel, dan laporan owner belum diaktifkan pada fase ini.
+- Checkout, booking submit, QR scannable, upload bukti bayar, invoice download, CRUD admin penuh, dan laporan owner belum diaktifkan pada fase ini.
 
-## Auth UI Platinum Gym
 
-### Tujuan
 
-Menyesuaikan tampilan halaman autentikasi dengan identitas brand Platinum Gym.
-
-### Aktor
-
-- Pengunjung.
-- Member.
-
-### Halaman Terkait
-
-- Login.
-- Register.
-- Verify email.
-- Forgot password.
-- Reset password.
-- Confirm password.
 
 ## Theme Toggle
 
@@ -401,13 +443,14 @@ Catatan standar UI: toggle tema menggunakan action-style. Saat light mode aktif,
 
 Fitur berikut akan dijelaskan lebih detail setelah kebutuhan dan prioritas implementasi disepakati:
 
-- Dashboard admin.
-- Dashboard owner.
+- `/admin/login` khusus admin untuk production entry point.
+- CRUD admin penuh dan dashboard admin lanjutan.
+- Dashboard owner dan owner report/export.
 - Package membership.
-- Booking kelas.
+- Booking submit.
 - Payment gateway.
-- Check-in gym.
-- Laporan owner.
+- QR scanner dan check-in gym.
+- Backend AI Gymmi dengan guardrail dan rate limit.
 - Manajemen konten company profile.
 
 ## Architecture Foundation
@@ -422,6 +465,7 @@ app/Features/Auth/Http/Requests
 app/Features/PublicWebsite/Queries
 app/Features/MemberPortal/Queries
 app/Features/MemberPortal/ViewModels
+app/Features/Admin/Queries
 app/Features/Shared/Support
 resources/js/public-chatbot.js
 ```
@@ -431,7 +475,7 @@ resources/js/public-chatbot.js
 - Controller hanya orchestration.
 - Workflow tulis data memakai Action.
 - Validasi penting memakai FormRequest.
-- Query/list/filter public memakai Query class.
+- Query/list/filter public, member, dan admin memakai Query class sesuai kebutuhan.
 - Eloquent model tetap berada di `app/Models`.
 - Tidak memakai repository generic sebelum ada kebutuhan nyata.
 

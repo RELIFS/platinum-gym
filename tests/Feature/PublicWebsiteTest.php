@@ -46,7 +46,7 @@ test('home shows brand and core calls to action', function () {
         ->assertSee('Platinum Gym Padang')
         ->assertSee('Daftar Member')
         ->assertSee('Lihat Layanan')
-        ->assertSee('Chatbot Platinum Gym')
+        ->assertSee('Gymmi')
         ->assertDontSee('Member Baru Lebih Hemat')
         ->assertDontSee('Trial Senam Sore')
         ->assertDontSee('Testimoni belum tersedia');
@@ -59,8 +59,13 @@ test('public header exposes clean logo, accessible theme action, and chatbot', f
         ->assertDontSee('brand-logo-frame', false)
         ->assertSee('data-theme-toggle', false)
         ->assertSee('aria-label="Aktifkan mode gelap"', false)
-        ->assertSee('aria-label="Buka chatbot Platinum Gym"', false)
-        ->assertSee('Ketik pertanyaan chatbot', false)
+        ->assertSee('aria-label="Buka Gymmi"', false)
+        ->assertSee('role="log"', false)
+        ->assertSee('aria-label="Percakapan Gymmi"', false)
+        ->assertSee('name="gymmi_public_message"', false)
+        ->assertSee('autocomplete="off"', false)
+        ->assertSee('spellcheck="true"', false)
+        ->assertSee('Ketik pertanyaan untuk Gymmi', false)
         ->assertDontSee('Chat Admin');
 });
 

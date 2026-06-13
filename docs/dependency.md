@@ -47,6 +47,15 @@ Status penggunaan dibagi menjadi:
 
 ## Dependency Frontend
 
+Tailwind content scan mencakup Blade dan JavaScript app:
+
+```text
+resources/views/**/*.blade.php
+resources/js/**/*.js
+```
+
+Scan `resources/js/**/*.js` diperlukan karena renderer Gymmi membuat sebagian class bubble/chat dari JavaScript.
+
 | Package | Fungsi | Alasan | Versi | Risiko | Status |
 |---|---|---|---|---|---|
 | `vite` | Build tool frontend | Build asset CSS dan JavaScript Laravel | `^7.0.7` | Perlu versi Node yang kompatibel | Sudah digunakan |
@@ -227,6 +236,8 @@ Referensi:
 | Where | Direncanakan pada dashboard admin dan dashboard owner. |
 | How | Developer membuat Resource untuk model penting, lalu mengatur form, tabel, filter, action, dan permission sesuai role. |
 
+Catatan status 2026-06-13: Filament tetap planned dan belum dipasang. Admin v1 saat ini memakai Blade, Tailwind, Alpine, `AdminPortalController`, dan `AdminDashboardQuery` tanpa dependency admin panel baru.
+
 Referensi:
 
 - https://filamentphp.com/docs
@@ -258,6 +269,8 @@ Referensi:
 | When | Digunakan saat modul audit log mulai diimplementasikan. |
 | Where | Direncanakan pada modul member, pembayaran, booking, paket layanan, produk, konten website, dan laporan aktivitas. |
 | How | Model penting diberi konfigurasi logging, sehingga perubahan data tercatat dengan informasi user, waktu, model, dan perubahan yang terjadi. |
+
+Catatan status 2026-06-13: package sudah tersedia. Halaman admin audit-log v1 bersifat read-only dan dapat membaca tabel log jika data ada; konfigurasi logging model penuh tetap fase lanjut.
 
 Referensi:
 

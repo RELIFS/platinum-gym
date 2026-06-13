@@ -1,6 +1,6 @@
 # Refactoring Documentation
 
-Status: Updated 2026-06-09. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
+Status: Updated 2026-06-13. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
 
 Dokumen ini mencatat perubahan struktur kode yang dilakukan untuk meningkatkan keterbacaan, maintainability, dan kesiapan evolusi sistem.
 
@@ -178,7 +178,7 @@ Test lebih mudah dibaca dan disesuaikan dengan behavior sistem.
 
 Refactoring berikut akan dievaluasi saat kompleksitas fitur bertambah:
 
-- Pemisahan dashboard berdasarkan role.
+- Penyempurnaan dashboard owner dan workflow tulis admin penuh saat scope CRUD dimulai.
 - Service untuk proses membership atau pembayaran jika controller mulai besar.
 - Policy atau middleware untuk pembatasan akses role.
 - Form Request untuk validasi fitur bisnis kompleks berikutnya.
@@ -395,3 +395,54 @@ Cleanup juga menghapus scaffold kosong, komponen Blade default yang tidak diguna
 - Scope produk lebih jelas: tidak ada checkout, cart, invoice, atau transaksi produk online.
 - Public website memakai asset real yang lebih ringan dan stabil.
 - Root Laravel lebih fokus pada kode production dan dokumen modul PBL yang wajib.
+
+## 12. Admin Portal Query/Layout Foundation
+
+### Sebelum
+
+`/admin` masih memakai placeholder dashboard sederhana dan belum memiliki menu modul awal.
+
+### Masalah
+
+Admin membutuhkan titik masuk operasional untuk membaca data member, pembayaran, booking, check-in, konten, produk, setting, dan audit log tanpa menunggu CRUD penuh.
+
+### Perubahan
+
+Admin v1 ditambahkan sebagai frontend static/read-only polish dengan pola yang sama seperti member portal:
+
+```text
+app/Http/Controllers/AdminPortalController.php
+app/Features/Admin/Queries/AdminDashboardQuery.php
+app/View/Components/AdminLayout.php
+resources/views/layouts/admin.blade.php
+resources/views/admin/dashboard.blade.php
+resources/views/admin/page.blade.php
+resources/views/admin/partials/data-table.blade.php
+resources/views/admin/partials/icon.blade.php
+```
+
+### Alasan
+
+Controller tetap tipis, query data terpusat, Blade fokus pada presentasi, dan fitur admin awal tidak membuat aksi tulis sebelum workflow bisnis siap. Read-only v1 mencegah admin melihat tombol mutasi palsu sebelum validasi, authorization, audit trail, dan workflow bisnisnya siap.
+
+### Dampak
+
+- Admin mendapat 17 route read-only dengan menu grouped.
+- Dashboard menjadi operational workbench dengan status strip, KPI ringkas, quick links, dan data terbaru.
+- Partial tabel admin reusable mendukung local search, status filter, count, empty/no-result state, dan mobile card fallback.
+- Data sensitif pada setting dimask di query layer.
+- Test `AdminPortalTest` menjaga auth guard, role guard, render route, data operasional, dan masking setting.
+
+## 13. Gymmi Chatbot Identity
+
+### Perubahan
+
+Chatbot public dan member diberi identitas produk `Gymmi` melalui ViewModel, Blade shell, dan renderer pusat di `resources/js/public-chatbot.js`. Initial bot berubah ke `GY`, user bubble kanan tidak lagi memakai avatar `AN`, FAQ quick reply menjadi chip kanan, action link bot wrap aman, dan export JS lama tetap dipertahankan untuk kompatibilitas.
+
+Tailwind scan mencakup `resources/js/**/*.js` karena beberapa class bubble Gymmi dibuat dari JavaScript.
+
+### Dampak
+
+- Public dan member memiliki nama chatbot yang konsisten.
+- Message log memakai label a11y yang lebih jelas dan typing guard mencegah double submit.
+- Test public/member diperbarui agar mengunci label dan aria baru.
