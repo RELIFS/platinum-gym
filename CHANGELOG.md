@@ -65,7 +65,7 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Menambahkan foto produk optimized WebP, field `image_path`/`image_alt`, stok aktual, dan copy pembelian langsung di lokasi pada katalog produk public.
 - Menambahkan visual auth desktop berbasis foto gym asli dengan form panel responsive untuk login/register dan halaman auth terkait.
 - Menambahkan kalkulator BMI client-side menggunakan Alpine tanpa penyimpanan data.
-- Menambahkan chatbot public statis dengan quick replies, typing state, fallback, dan eskalasi WhatsApp.
+- Menambahkan Gymmi public statis dengan quick replies, typing state, fallback, dan eskalasi WhatsApp.
 - Menambahkan Google Maps iframe embed tanpa API key melalui setting public `maps_embed_url`.
 - Menambahkan `PromoSeeder`, `TestimonialSeeder`, dan `GallerySeeder` untuk konten public.
 - Menambahkan kontak public final ke `SettingSeeder`.
@@ -75,6 +75,10 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Menambahkan coverage test untuk scope produk katalog/stok/lokasi dan budget performa gambar produk.
 - Menambahkan workflow GitHub Actions CI lokal untuk Composer, Pint, Vite build, dan Pest test.
 - Menambahkan screenshot evidence public home desktop dan katalog produk mobile pada workspace konteks private.
+- Menambahkan admin portal v1 read-only berbasis Blade/Tailwind untuk dashboard, check-in, booking, notifikasi, anggota, paket, kelas, pembayaran, produk, galeri, testimoni, promo, trainer, laporan, audit log, pengaturan, dan profil admin.
+- Menambahkan admin workbench dengan status strip, KPI ringkas, quick links, grouped sidebar, dan label `Read-only v1`.
+- Menambahkan tabel admin read-only dengan local search, status filter, count, empty/no-result state, dan mobile card fallback.
+- Menambahkan `AdminPortalController`, `AdminDashboardQuery`, `AdminLayout`, partial tabel admin, dan `AdminPortalTest`.
 
 ### Refactor
 
@@ -83,13 +87,14 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Memindahkan validasi register dan complete profile ke FormRequest.
 - Memindahkan query/list/filter public website ke Query class.
 - Memusatkan normalisasi nomor Indonesia pada `NormalizeIndonesianPhone`.
-- Memindahkan logic chatbot public ke `resources/js/public-chatbot.js`.
+- Memindahkan logic chatbot public/member ke `resources/js/public-chatbot.js` dan mempertahankan export lama untuk kompatibilitas.
 - Menambahkan komponen dashboard dan UI Blade reusable untuk app shell internal.
 
 ### Changed
 
 - Mengganti route `/` dari Laravel default welcome menjadi halaman beranda public Platinum Gym Padang.
 - Merebrand auth/app shell agar memakai direct official logo, theme toggle, dan layout Platinum Gym yang konsisten.
+- Mengubah identitas chatbot public dan member menjadi Gymmi.
 - Mengganti legal pages agar memakai public layout.
 - Menghapus view/test default Laravel yang tidak dipakai.
 - Menghapus scaffold kosong, komponen Blade default yang tidak dipakai, asset brand lama yang tidak direferensikan, dan dokumen tambahan root yang sudah dipindahkan ke arsip konteks.
@@ -100,17 +105,20 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Memperbaiki tap target, focus-visible state, mobile nav scroll containment, dynamic text wrapping, dan chatbot focus behavior.
 - Memadatkan hero beranda mobile agar tidak terlalu menonjolkan Muaythai dan tetap memakai visual gym/strength umum sebagai visual utama.
 - Memperbaiki fallback link WhatsApp chatbot agar tetap tersedia sebagai `href` statis saat JavaScript belum berjalan.
+- Memperbaiki katalog paket member agar paket sesi yang sudah habis/kedaluwarsa milik member tidak muncul kembali sebagai paket tersedia.
+- Memoles layout Gymmi agar user bubble berada di kanan tanpa avatar `AN`, bot memakai initial `GY`, FAQ tampil sebagai chip kanan, typing guard aktif, dan label a11y lebih jelas.
+- Memperbaiki action `QR Member` pada Gymmi member agar menuju `/member/qr`.
 
 ### Testing
 
-- `php artisan test --no-ansi` lulus dengan 79 test dan 595 assertion.
+- `php artisan test --no-ansi` lulus dengan 144 test dan 835 assertion.
 - `npm.cmd run build` berhasil membuat asset Vite production.
 - `vendor\bin\pint --test` lulus.
 - `composer validate --no-check-publish --no-ansi` valid.
 
 ### Planned
 
-- Dashboard berbeda untuk member, admin, dan owner.
+- Owner dashboard dan workflow CRUD admin penuh.
 - Manajemen paket membership.
 - Booking kelas.
 - Pembayaran layanan.
