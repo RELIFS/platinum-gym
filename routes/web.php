@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminPortalController;
 use App\Http\Controllers\MemberPortalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicWebsiteController;
@@ -42,7 +43,23 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::view('/', 'admin.dashboard')->name('dashboard');
+        Route::get('/', [AdminPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/check-in', [AdminPortalController::class, 'checkIn'])->name('check-in');
+        Route::get('/booking', [AdminPortalController::class, 'booking'])->name('booking');
+        Route::get('/notifikasi', [AdminPortalController::class, 'notifications'])->name('notifications');
+        Route::get('/anggota', [AdminPortalController::class, 'members'])->name('members');
+        Route::get('/paket', [AdminPortalController::class, 'packages'])->name('packages');
+        Route::get('/kelas', [AdminPortalController::class, 'classes'])->name('classes');
+        Route::get('/pembayaran', [AdminPortalController::class, 'payments'])->name('payments');
+        Route::get('/produk', [AdminPortalController::class, 'products'])->name('products');
+        Route::get('/galeri', [AdminPortalController::class, 'gallery'])->name('gallery');
+        Route::get('/testimoni', [AdminPortalController::class, 'testimonials'])->name('testimonials');
+        Route::get('/promo', [AdminPortalController::class, 'promos'])->name('promos');
+        Route::get('/trainer', [AdminPortalController::class, 'trainers'])->name('trainers');
+        Route::get('/laporan', [AdminPortalController::class, 'reports'])->name('reports');
+        Route::get('/audit-log', [AdminPortalController::class, 'auditLog'])->name('audit-log');
+        Route::get('/pengaturan', [AdminPortalController::class, 'settings'])->name('settings');
+        Route::get('/profil', [AdminPortalController::class, 'profile'])->name('profile');
     });
 
 Route::middleware(['auth', 'verified', 'role:owner'])
