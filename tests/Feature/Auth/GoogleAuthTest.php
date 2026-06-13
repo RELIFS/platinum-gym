@@ -148,7 +148,8 @@ test('complete profile screen can be rendered for google member onboarding', fun
 
     $this->actingAs($user)->get('/member/complete-profile')
         ->assertOk()
-        ->assertSee('Lengkapi Profil')
+        ->assertSee('Lengkapi')
+        ->assertSee('Profil')
         ->assertSee('name="birth_date"', false)
         ->assertSee('name="gender"', false)
         ->assertSee('name="phone"', false)

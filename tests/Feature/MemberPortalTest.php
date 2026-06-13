@@ -101,8 +101,13 @@ test('dashboard renders real member data and empty operational states', function
         ->assertSee('Belum ada jadwal terdaftar')
         ->assertSee('Belum ada transaksi')
         ->assertSee('Belum diterbitkan')
-        ->assertSee('Chatbot Member')
-        ->assertSee('Ketik pertanyaan chatbot member', false)
+        ->assertSee('Gymmi')
+        ->assertSee('role="log"', false)
+        ->assertSee('aria-label="Percakapan Gymmi"', false)
+        ->assertSee('name="gymmi_member_message"', false)
+        ->assertSee('autocomplete="off"', false)
+        ->assertSee('spellcheck="true"', false)
+        ->assertSee('Ketik pertanyaan untuk Gymmi', false)
         ->assertDontSee('AI Assistant')
         ->assertDontSee('Akun dan Bantuan');
 });
