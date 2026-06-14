@@ -5,6 +5,7 @@ on:
     branches:
       - rossi
       - luthfi
+      - temporarily_main
       - main
   pull_request:
 

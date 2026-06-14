@@ -12,11 +12,11 @@ class Payment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['payment_code', 'member_id', 'payable_type', 'payable_id', 'method', 'amount', 'status', 'paid_at', 'verified_by', 'verified_at', 'rejected_reason', 'midtrans_order_id', 'midtrans_transaction_id', 'midtrans_payment_type', 'midtrans_raw_response', 'note'];
+    protected $fillable = ['payment_code', 'member_id', 'payable_type', 'payable_id', 'method', 'amount', 'status', 'paid_at', 'verified_by', 'verified_at', 'rejected_reason', 'midtrans_order_id', 'midtrans_transaction_id', 'midtrans_payment_type', 'midtrans_snap_token', 'midtrans_redirect_url', 'midtrans_raw_response', 'expires_at', 'failure_reason', 'note'];
 
     protected function casts(): array
     {
-        return ['amount' => 'decimal:2', 'paid_at' => 'datetime', 'verified_at' => 'datetime', 'midtrans_raw_response' => 'array'];
+        return ['amount' => 'decimal:2', 'paid_at' => 'datetime', 'verified_at' => 'datetime', 'midtrans_raw_response' => 'array', 'expires_at' => 'datetime'];
     }
 
     public function member(): BelongsTo

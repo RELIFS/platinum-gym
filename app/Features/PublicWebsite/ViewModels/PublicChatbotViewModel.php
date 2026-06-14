@@ -15,6 +15,10 @@ class PublicChatbotViewModel
             'name' => 'Gymmi',
             'botInitials' => 'GY',
             'typingLabel' => 'Gymmi sedang mengetik',
+            'context' => 'public',
+            'endpoint' => route('gymmi.chat'),
+            'csrfToken' => csrf_token(),
+            'aiEnabled' => self::hasGeminiKeys(),
             'whatsappUrl' => $whatsappChatUrl,
             'initialMessage' => 'Halo! Saya Gymmi dari Platinum Gym Padang. Saya bisa bantu info membership, jadwal kelas, personal trainer, promo, lokasi, dan jam buka.',
             'quickReplies' => ['Info Membership', 'Jadwal Kelas', 'Harga Personal Trainer', 'Lokasi & Jam Buka'],
@@ -27,5 +31,11 @@ class PublicChatbotViewModel
                 'fallback' => 'Saya belum menemukan jawaban yang cocok. Coba pilih topik cepat di bawah, atau hubungi admin untuk bantuan lanjutan.',
             ],
         ];
+    }
+
+    private static function hasGeminiKeys(): bool
+    {
+        return (bool) config('services.gemini.enabled', true)
+            && (filled(config('services.gemini.api_key')) || filled(config('services.gemini.api_keys')));
     }
 }

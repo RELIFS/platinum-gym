@@ -61,7 +61,7 @@
             </article>
             <article class="public-card">
                 <h2 class="text-xl font-black text-zinc-950 dark:text-white">Booking</h2>
-                <p class="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Jadwal, coach, kuota, dan harga ditampilkan di website. Booking digital akan masuk ke dashboard member saat modul aktif.</p>
+                <p class="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Jadwal, coach, kuota, dan harga ditampilkan di website. Member dapat masuk untuk mengajukan booking digital sesuai kuota kelas.</p>
                 <a href="{{ route('login') }}" class="public-button-primary mt-6 w-full">Masuk untuk Booking</a>
             </article>
         </div>

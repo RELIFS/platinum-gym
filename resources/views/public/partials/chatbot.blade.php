@@ -7,8 +7,8 @@
 <div data-chatbot-root data-chatbot-config="platinumGymChatbotConfig" data-chatbot-variant="public">
     <div data-chatbot-overlay hidden class="fixed inset-0 z-40 bg-zinc-950/60 backdrop-blur-sm sm:hidden" aria-hidden="true"></div>
 
-    <div class="fixed bottom-3 right-3 z-50 flex w-fit max-w-[calc(100vw-1.5rem)] flex-col items-end sm:bottom-6 sm:right-6" style="padding-bottom: env(safe-area-inset-bottom);">
-        <section data-chatbot-panel hidden tabindex="-1" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="chatbot-title" class="mx-auto flex h-[min(620px,calc(100dvh-1.5rem))] w-[calc(100vw-1.5rem)] flex-col overflow-hidden overscroll-contain rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 sm:h-[min(560px,calc(100dvh-6rem))] sm:w-96">
+    <div class="fixed inset-x-3 bottom-3 z-50 flex flex-col items-end sm:bottom-6 sm:left-auto sm:right-6 sm:w-fit sm:max-w-[calc(100vw-3rem)]" style="padding-bottom: env(safe-area-inset-bottom);">
+        <section data-chatbot-panel hidden tabindex="-1" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="chatbot-title" class="mx-auto flex h-[min(620px,calc(100dvh-1.5rem))] w-full flex-col overflow-hidden overscroll-contain rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 sm:h-[min(560px,calc(100dvh-6rem))] sm:w-[25rem]">
             <header class="flex shrink-0 items-center justify-between gap-3 bg-gold-500 px-4 py-3 text-zinc-950">
                 <div class="flex min-w-0 items-center gap-3">
                     <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-950/10" aria-hidden="true">
@@ -20,7 +20,7 @@
                         <h2 id="chatbot-title" class="truncate text-sm font-black">Gymmi</h2>
                         <p class="flex items-center gap-1.5 text-xs font-semibold text-zinc-950/75">
                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-700" aria-hidden="true"></span>
-                            Online untuk info cepat
+                            Siap bantu info gym
                         </p>
                     </div>
                 </div>
@@ -52,13 +52,10 @@
         </section>
 
         <button type="button" data-chatbot-trigger class="group inline-flex h-12 w-12 touch-manipulation items-center justify-center gap-3 rounded-full bg-gold-500 p-0 text-zinc-950 shadow-[0_18px_50px_rgba(254,172,24,0.34)] ring-1 ring-zinc-950/10 transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-offset-zinc-950 sm:h-auto sm:min-h-14 sm:w-auto sm:px-4 sm:py-3" aria-label="Buka Gymmi">
-            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <svg class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M4 5.5C4 4.12 5.12 3 6.5 3H13.5C14.88 3 16 4.12 16 5.5V10.5C16 11.88 14.88 13 13.5 13H9L5.5 16V13H6.5C5.12 13 4 11.88 4 10.5V5.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
             </svg>
-            <span class="hidden leading-tight 2xl:block">
-                <span class="block text-[0.65rem] font-black uppercase tracking-[0.18em]">Gymmi</span>
-                <span class="block text-sm font-black">Tanya Gymmi</span>
-            </span>
+            <span class="hidden text-sm font-black leading-tight sm:block">Tanya Gymmi</span>
         </button>
     </div>
 </div>
