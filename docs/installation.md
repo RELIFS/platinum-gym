@@ -29,6 +29,8 @@ composer install
 
 Perintah ini membaca `composer.json` dan memasang package PHP yang terkunci pada `composer.lock`.
 
+Catatan dependency: `composer.json` memakai `config.platform.php=8.2.31` agar `composer.lock` tetap kompatibel dengan environment CI dan server PHP 8.2, walaupun developer lokal memakai PHP yang lebih baru.
+
 ## Install Dependency Frontend
 
 ```bash
