@@ -84,7 +84,7 @@ php artisan migrate --seed
 
 ## Konfigurasi Integrasi Opsional
 
-`.env.example` sudah menyediakan placeholder non-secret untuk Google OAuth, Midtrans, Gemini, mail, queue, dan session secure cookie. Isi hanya nilai yang dibutuhkan pada `.env` lokal atau production; jangan commit secret ke Git.
+`.env.example` sudah menyediakan placeholder non-secret untuk Google OAuth, Resend, Midtrans, Gemini, mail, queue, dan session secure cookie. Isi hanya nilai yang dibutuhkan pada `.env` lokal atau production; jangan commit secret ke Git.
 
 Untuk Google OAuth lokal, pastikan nilai berikut konsisten dengan Google Cloud Console:
 
@@ -92,6 +92,32 @@ Untuk Google OAuth lokal, pastikan nilai berikut konsisten dengan Google Cloud C
 APP_URL=http://127.0.0.1:8000
 GOOGLE_REDIRECT_URI="${APP_URL}/auth/google/callback"
 ```
+
+Untuk email Resend, isi nilai berikut pada `.env` lokal atau server:
+
+```env
+MAIL_MAILER=resend
+RESEND_API_KEY=
+MAIL_FROM_ADDRESS=
+MAIL_FROM_NAME="Platinum Gym Padang"
+```
+
+Untuk Midtrans Sandbox, isi nilai berikut pada `.env` lokal atau server:
+
+```env
+MIDTRANS_SERVER_KEY=
+MIDTRANS_CLIENT_KEY=
+MIDTRANS_IS_PRODUCTION=false
+```
+
+Untuk Gymmi Gemini, isi minimal satu API key Gemini pada `.env`:
+
+```env
+GEMINI_API_KEY=
+GEMINI_API_KEYS=
+```
+
+Nilai key tidak boleh ditulis di dokumentasi, commit, screenshot, atau output terminal yang dibagikan.
 
 ## Build Asset Frontend
 
@@ -168,7 +194,7 @@ Masuk memakai akun admin seeded. Jika role valid, sistem mengarahkan user ke:
 /admin
 ```
 
-Halaman khusus `/admin/login` belum dibuat pada v1 ini dan masuk roadmap production.
+Admin memakai halaman auth umum `/login`; tidak ada halaman login admin terpisah pada arsitektur aktif saat ini.
 
 ## Troubleshooting
 
@@ -263,6 +289,8 @@ Instalasi dianggap berhasil jika:
 - Halaman register dapat dibuka.
 - User member dapat registrasi.
 - Halaman pemberitahuan verifikasi email muncul setelah registrasi.
+- Member dapat membuka dashboard, membership, transaksi, booking, QR, dan notifikasi setelah login dan email verified.
 - Admin local dapat login lewat `/login` dan masuk ke `/admin`.
+- Admin dapat membuka dashboard, pembayaran, booking, check-in, produk, pengaturan, audit log, dan laporan.
 - Test berjalan tanpa gagal.
 - Asset frontend berhasil dibuild.

@@ -19,6 +19,7 @@ Status penggunaan dibagi menjadi:
 - Dependency development: package digunakan untuk testing, debugging, formatting, atau development.
 - Dependency frontend: package digunakan untuk build dan tampilan frontend.
 - Direncanakan: package belum terpasang atau belum digunakan, tetapi direncanakan untuk fitur berikutnya.
+- Tidak digunakan pada arsitektur aktif: package pernah dipertimbangkan, tetapi keputusan saat ini memakai implementasi custom Laravel/Blade.
 
 ## Dependency Backend Terpasang
 
@@ -29,7 +30,10 @@ Status penggunaan dibagi menjadi:
 | `laravel/tinker` | Interaksi aplikasi melalui REPL | Membantu debugging dan eksplorasi model saat development | `^2.10.1` | Tidak untuk workflow production user | Dependency development |
 | `spatie/laravel-permission` | Role dan permission | Mengelola role `member`, `admin`, dan `owner` secara rapi | `*` | Salah konfigurasi role dapat membuka akses tidak sesuai | Sudah digunakan |
 | `spatie/laravel-medialibrary` | Upload dan manajemen media | Disiapkan untuk foto profil, galeri, bukti pembayaran, dan konten website | `*` | Butuh pengaturan storage, validasi file, dan pembatasan ukuran upload | Sudah dipasang, belum diimplementasikan penuh |
-| `spatie/laravel-activitylog` | Audit log aktivitas sistem | Disiapkan untuk mencatat perubahan data penting dan aktivitas admin | `*` | Log dapat membesar jika tidak dibatasi atau dibersihkan | Sudah dipasang, belum diimplementasikan penuh |
+| `spatie/laravel-activitylog` | Audit log aktivitas sistem | Mencatat dan membaca perubahan data penting serta aktivitas admin | `*` | Log dapat membesar jika tidak dibatasi atau dibersihkan | Sudah digunakan |
+| `resend/resend-php` | Transport email Resend | Dipakai untuk pengiriman email aplikasi melalui `MAIL_MAILER=resend` | `^1.3` | Perlu domain/from address valid dan API key aman di `.env` | Sudah digunakan |
+| `midtrans/midtrans-php` | Integrasi payment gateway Midtrans | Mendukung pembayaran membership, paket sesi, kelas berbayar, dan webhook Sandbox | `^2.3` | Signature/webhook dan server key wajib aman | Sudah digunakan |
+| `simplesoftwareio/simple-qrcode` | QR Code generator Laravel | Menyediakan dependency Bacon QR untuk QR member/check-in | `^4.2` | QR token tidak boleh dirender sebagai teks mentah | Sudah digunakan |
 
 ## Dependency Development dan Testing
 
@@ -73,13 +77,21 @@ Scan `resources/js/**/*.js` diperlukan karena renderer Gymmi membuat sebagian cl
 
 | Package | Fungsi | Modul Rencana | Alasan | Status |
 |---|---|---|---|---|
-| `simplesoftwareio/simple-qrcode` | Generate QR Code | QR member dan check-in gym | Mempercepat validasi member saat check-in | Direncanakan |
 | `maatwebsite/excel` | Import/export Excel dan CSV | Import member lama dan export laporan | Memudahkan pengolahan laporan admin/owner | Direncanakan |
 | `barryvdh/laravel-dompdf` | Generate PDF dari Blade | Invoice dan laporan cetak | PDF mudah dicetak dan diarsipkan | Direncanakan |
-| `google-gemini-php/laravel` | Integrasi Gemini AI | AI assistant layanan gym | Membantu user mendapat informasi layanan | Direncanakan |
-| `midtrans/midtrans-php` | Payment gateway | Pembayaran membership dan layanan | Mendukung pembayaran online/QRIS sandbox | Direncanakan |
-| `filament/filament` | Admin panel Laravel | Dashboard admin dan owner | Mempercepat CRUD dan resource management | Direncanakan |
-| `livewire/livewire` | Komponen interaktif Laravel | Portal member, booking, dan dashboard | Membuat UI dinamis tanpa JavaScript kompleks | Direncanakan |
+
+## Integrasi Eksternal Tanpa Package Tambahan
+
+| Integrasi | Fungsi | Modul | Alasan | Status |
+|---|---|---|---|---|
+| Google Gemini API REST | AI assistant Gymmi | Public/member chatbot | Laravel HTTP client cukup untuk timeout, retry, fallback, dan test tanpa menambah package Composer | Sudah digunakan |
+
+## Dependency Yang Tidak Dipakai Pada Arsitektur Aktif
+
+| Package | Fungsi | Keputusan | Alasan |
+|---|---|---|---|
+| `filament/filament` | Admin panel Laravel | Tidak dipasang | Admin production memakai custom Blade/Tailwind/Alpine agar UI, flow, permission, dan NFR mengikuti kebutuhan Platinum Gym. |
+| `livewire/livewire` | Komponen interaktif Laravel | Tidak dipasang | Interaksi saat ini cukup memakai Blade, controller, FormRequest, Action, dan Alpine ringan. |
 
 ## Analisis 5W+1H Dependency Utama
 
@@ -147,22 +159,38 @@ Referensi:
 - https://spatie.be/docs/laravel-medialibrary
 - https://github.com/spatie/laravel-medialibrary
 
-## 5. Simple QRCode
+## 5. Resend
 
 | 5W+1H | Penjelasan |
 |---|---|
-| What | `simplesoftwareio/simple-qrcode` adalah package Laravel untuk membuat QR Code. |
-| Why | Package ini direncanakan karena sistem membutuhkan QR member untuk proses check-in gym. |
+| What | `resend/resend-php` adalah library PHP untuk mengirim email melalui Resend. |
+| Why | Package ini dipakai agar email verifikasi, reset password, dan notifikasi operasional bisa dikirim lewat provider email yang punya free tier. |
+| Who | Digunakan oleh sistem untuk mengirim email kepada member dan admin sesuai flow aplikasi. |
+| When | Digunakan saat mailer aplikasi memakai `MAIL_MAILER=resend` dan `RESEND_API_KEY` tersedia di `.env`. |
+| Where | Digunakan pada konfigurasi mail Laravel dan notifikasi/email transaksional. |
+| How | Laravel mailer memakai transport `resend`; secret hanya dibaca dari `.env`, bukan dari source code. |
+
+Referensi:
+
+- https://resend.com/docs
+- https://github.com/resend/resend-php
+
+## 6. Simple QRCode
+
+| 5W+1H | Penjelasan |
+|---|---|
+| What | `simplesoftwareio/simple-qrcode` adalah package Laravel untuk membuat QR Code dan membawa dependency Bacon QR. |
+| Why | Package ini dipasang karena sistem membutuhkan QR member untuk proses check-in gym. |
 | Who | Digunakan oleh member untuk menampilkan QR dan admin untuk memverifikasi check-in. |
-| When | Digunakan saat fitur QR member dan check-in mulai dibuat. |
-| Where | Direncanakan pada dashboard member, modul QR member, dan modul check-in admin. |
-| How | Sistem membuat QR berdasarkan kode member atau token check-in, lalu admin memindai atau memvalidasi kode tersebut. |
+| When | Digunakan saat QR member aktif setelah membership aktif dan admin melakukan check-in. |
+| Where | Digunakan pada halaman QR member dan modul check-in admin. |
+| How | Sistem membuat QR visual dari token check-in; token tidak ditampilkan sebagai teks mentah di UI member. |
 
 Referensi:
 
 - https://github.com/SimpleSoftwareIO/simple-qrcode
 
-## 6. Maatwebsite Laravel Excel
+## 7. Maatwebsite Laravel Excel
 
 | 5W+1H | Penjelasan |
 |---|---|
@@ -178,7 +206,7 @@ Referensi:
 - https://docs.laravel-excel.com
 - https://github.com/SpartnerNL/Laravel-Excel
 
-## 7. barryvdh/laravel-dompdf
+## 8. barryvdh/laravel-dompdf
 
 | 5W+1H | Penjelasan |
 |---|---|
@@ -193,31 +221,30 @@ Referensi:
 
 - https://github.com/barryvdh/laravel-dompdf
 
-## 8. google-gemini-php/laravel
+## 9. Google Gemini API REST
 
 | 5W+1H | Penjelasan |
 |---|---|
-| What | `google-gemini-php/laravel` adalah package untuk menghubungkan Laravel dengan API Gemini dari Google. |
-| Why | Package ini direncanakan untuk fitur AI Assistant informasi layanan gym. |
-| Who | Digunakan oleh pengunjung, member, dan admin jika membutuhkan bantuan informasi. |
-| When | Digunakan saat fitur AI Assistant dikembangkan. |
-| Where | Direncanakan pada halaman public dan member area. |
-| How | Sistem mengirim prompt berisi pertanyaan dan konteks data Platinum Gym ke Gemini, lalu menampilkan jawaban ke user. |
+| What | Google Gemini API REST digunakan langsung melalui Laravel HTTP client untuk fitur Gymmi. |
+| Why | Direct HTTP client cukup untuk kebutuhan generateContent, timeout, retry, fallback, dan test tanpa menambah package Composer. |
+| Who | Digunakan oleh pengunjung dan member saat bertanya lewat Gymmi. Admin automation belum dibuat. |
+| When | Digunakan saat user mengirim pesan dari widget Gymmi public atau member. |
+| Where | Endpoint `POST /gymmi/chat`, frontend `resources/js/public-chatbot.js`, dan partial public/member chatbot. |
+| How | Sistem membangun konteks aman, memilih salah satu key Gemini dari `.env`, memanggil `generateContent`, menyimpan conversation log, dan memakai fallback lokal jika provider gagal. |
 
 Referensi:
 
-- https://github.com/google-gemini-php/laravel
 - https://ai.google.dev/gemini-api/docs
 
-## 9. midtrans/midtrans-php
+## 10. midtrans/midtrans-php
 
 | 5W+1H | Penjelasan |
 |---|---|
 | What | `midtrans/midtrans-php` adalah package resmi Midtrans untuk integrasi payment gateway pada PHP/Laravel. |
-| Why | Package ini direncanakan agar sistem dapat menerima pembayaran online, terutama QRIS Sandbox pada tahap pengembangan. |
+| Why | Package ini dipakai agar sistem dapat menerima pembayaran online melalui Midtrans Sandbox. |
 | Who | Digunakan oleh member saat membayar membership atau layanan, dan admin untuk monitoring transaksi. |
-| When | Digunakan saat fitur pembayaran online dibuat. |
-| Where | Direncanakan pada modul membership, booking, transaksi, pembayaran, dan webhook. |
+| When | Digunakan pada checkout membership, paket sesi, kelas berbayar, dan webhook pembayaran. |
+| Where | Digunakan pada modul membership, booking, transaksi, pembayaran admin, dan webhook. |
 | How | Sistem membuat transaksi, mengirim data ke Midtrans, menerima payment URL/token, lalu menerima status pembayaran melalui webhook. |
 
 Referensi:
@@ -225,52 +252,52 @@ Referensi:
 - https://docs.midtrans.com
 - https://github.com/Midtrans/midtrans-php
 
-## 10. Filament
+## 11. Filament
 
 | 5W+1H | Penjelasan |
 |---|---|
 | What | Filament adalah admin panel framework untuk Laravel yang menyediakan CRUD, form, table, filter, dashboard, dan resource management. |
-| Why | Filament direncanakan agar dashboard admin dan owner lebih cepat dibuat dan tetap berbasis Laravel. |
-| Who | Digunakan oleh admin dan owner. |
-| When | Digunakan saat membangun admin panel dan owner panel. |
-| Where | Direncanakan pada dashboard admin dan dashboard owner. |
-| How | Developer membuat Resource untuk model penting, lalu mengatur form, tabel, filter, action, dan permission sesuai role. |
+| Why | Filament pernah dipertimbangkan untuk mempercepat CRUD, tetapi bukan pilihan arsitektur aktif proyek ini. |
+| Who | Tidak digunakan oleh user production saat ini. Developer cukup memakai admin custom Blade yang sudah ada. |
+| When | Baru dievaluasi ulang jika kebutuhan admin/owner berubah besar dan manfaatnya melebihi biaya migrasi UI. |
+| Where | Tidak dipasang pada repository production saat ini. |
+| How | Admin production sekarang dibangun dengan controller, FormRequest, Action, Query/ViewModel, Blade, Tailwind, dan Alpine. |
 
-Catatan status 2026-06-13: Filament tetap planned dan belum dipasang. Admin v1 saat ini memakai Blade, Tailwind, Alpine, `AdminPortalController`, dan `AdminDashboardQuery` tanpa dependency admin panel baru.
+Catatan status 2026-06-14: Filament tidak dipasang. Admin production memakai custom Blade/Tailwind/Alpine agar desain, permission, dan performa tetap sesuai kebutuhan Platinum Gym.
 
 Referensi:
 
 - https://filamentphp.com/docs
 - https://github.com/filamentphp/filament
 
-## 11. Livewire
+## 12. Livewire
 
 | 5W+1H | Penjelasan |
 |---|---|
 | What | Livewire adalah framework full-stack untuk Laravel yang membuat komponen interaktif tanpa JavaScript kompleks. |
-| Why | Livewire direncanakan untuk portal member yang interaktif tetapi tetap memakai Laravel dan Blade. |
-| Who | Digunakan oleh member dan developer. |
-| When | Digunakan saat fitur seperti booking, profil, transaksi, notifikasi, dan QR member membutuhkan interaksi langsung. |
-| Where | Direncanakan pada member portal dan dashboard. |
-| How | Developer membuat class komponen Livewire dan view Blade untuk mengelola state, validasi, event, dan update tampilan. |
+| Why | Livewire pernah dipertimbangkan, tetapi interaksi member/admin saat ini sudah cukup dengan Blade, request klasik, dan Alpine ringan. |
+| Who | Tidak digunakan oleh user production saat ini. |
+| When | Baru dievaluasi ulang jika ada kebutuhan real-time atau form interaktif kompleks yang tidak ergonomis dengan pola saat ini. |
+| Where | Tidak dipasang pada repository production saat ini. |
+| How | Flow member/admin sekarang memakai controller, FormRequest, Action, redirect/flash message, dan komponen Blade. |
 
 Referensi:
 
 - https://livewire.laravel.com/docs
 - https://github.com/livewire/livewire
 
-## 12. Spatie Laravel Activitylog
+## 13. Spatie Laravel Activitylog
 
 | 5W+1H | Penjelasan |
 |---|---|
 | What | Spatie Laravel Activitylog adalah package untuk mencatat aktivitas pengguna dan perubahan data pada aplikasi Laravel. |
 | Why | Package ini disiapkan agar sistem memiliki riwayat aktivitas penting seperti perubahan data member, verifikasi pembayaran, perubahan paket, dan pengelolaan konten. |
 | Who | Digunakan secara internal oleh sistem; admin dan owner dapat melihat log jika fitur ditampilkan. |
-| When | Digunakan saat modul audit log mulai diimplementasikan. |
-| Where | Direncanakan pada modul member, pembayaran, booking, paket layanan, produk, konten website, dan laporan aktivitas. |
+| When | Digunakan pada halaman admin audit log dan proses operasional yang mencatat aktivitas penting. |
+| Where | Digunakan pada audit log admin dan disiapkan untuk perluasan pencatatan perubahan member, pembayaran, booking, paket layanan, produk, konten website, dan laporan aktivitas. |
 | How | Model penting diberi konfigurasi logging, sehingga perubahan data tercatat dengan informasi user, waktu, model, dan perubahan yang terjadi. |
 
-Catatan status 2026-06-13: package sudah tersedia. Halaman admin audit-log v1 bersifat read-only dan dapat membaca tabel log jika data ada; konfigurasi logging model penuh tetap fase lanjut.
+Catatan status 2026-06-14: package sudah tersedia. Halaman admin audit-log membaca data log dengan filter; perluasan logging detail per model tetap dilakukan bertahap sesuai kebutuhan operasional.
 
 Referensi:
 
