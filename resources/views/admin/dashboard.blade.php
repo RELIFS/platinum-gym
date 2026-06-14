@@ -14,12 +14,9 @@
     <section class="admin-page-header">
         <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div class="min-w-0 max-w-3xl">
-                <div class="flex flex-wrap items-center gap-2">
-                    <p class="admin-eyebrow">Admin Area</p>
-                    <span class="admin-readonly-pill">Read-only v1</span>
-                </div>
-                <h2 class="admin-title mt-3">Workbench operasional</h2>
-                <p class="mt-3 admin-copy">Pantau member, pembayaran, booking kelas, check-in, konten website, dan katalog layanan dari data database tanpa aksi mutasi.</p>
+                <p class="admin-eyebrow">Dashboard</p>
+                <h2 class="admin-title mt-3">Pusat kerja operasional</h2>
+                <p class="mt-3 admin-copy">Kelola member, pembayaran, booking kelas, check-in, konten website, dan katalog layanan dari data operasional Platinum Gym.</p>
             </div>
 
             <dl class="grid min-w-0 gap-3 sm:grid-cols-3 lg:w-[28rem]">
@@ -65,7 +62,7 @@
         <section class="admin-card">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <p class="admin-eyebrow">Akses Cepat</p>
+                    <p class="admin-eyebrow">Navigasi</p>
                     <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Menu kerja</h2>
                 </div>
             </div>
@@ -86,7 +83,7 @@
             <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p class="admin-eyebrow">Modul</p>
-                    <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Ringkasan fitur</h2>
+                    <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Ringkasan kerja</h2>
                 </div>
                 <a href="{{ route('admin.reports') }}" class="admin-button-secondary">Laporan</a>
             </div>

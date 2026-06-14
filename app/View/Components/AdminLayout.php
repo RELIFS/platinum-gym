@@ -14,7 +14,7 @@ class AdminLayout extends Component
     public function __construct(
         public array $portal = [],
         public array $navigation = [],
-        public string $title = 'Admin Area',
+        public string $title = 'Admin',
     ) {}
 
     public function render(): View

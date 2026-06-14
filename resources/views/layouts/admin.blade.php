@@ -52,10 +52,6 @@
                 </div>
 
                 <div class="border-t border-zinc-200 p-4 dark:border-white/10">
-                    <div class="mb-3 grid grid-cols-2 gap-2">
-                        <a href="{{ route('public.home') }}" class="admin-button-secondary">Website</a>
-                        <a href="{{ route('profile.edit') }}" class="admin-button-secondary">Akun Login</a>
-                    </div>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="admin-button-primary w-full">Keluar</button>
@@ -92,13 +88,10 @@
                 </div>
 
                 <div class="border-t border-white/10 p-4">
-                    <div class="grid gap-2">
-                        <a href="{{ route('public.home') }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/10 px-4 text-sm font-bold text-zinc-200">Website</a>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-gold-500 px-4 text-sm font-black text-zinc-950">Keluar</button>
-                        </form>
-                    </div>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-gold-500 px-4 text-sm font-black text-zinc-950">Keluar</button>
+                    </form>
                 </div>
             </aside>
 
@@ -109,14 +102,11 @@
                             <button type="button" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-zinc-950 text-white shadow-[0_12px_28px_rgba(24,24,27,0.22)] transition hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:bg-gold-500 dark:text-zinc-950 lg:hidden" x-on:click="openAdminMenu()" x-bind:aria-expanded="adminMenuOpen.toString()" aria-controls="admin-mobile-navigation" aria-label="Buka navigasi admin">
                                 @include('admin.partials.icon', ['name' => 'menu', 'class' => 'h-5 w-5'])
                             </button>
-                            <div class="min-w-0">
-                                <p class="text-[0.72rem] font-black uppercase tracking-[0.14em] text-gold-600 dark:text-gold-400">Admin Area</p>
-                                <h1 class="max-w-[12rem] break-words text-base font-black leading-tight text-zinc-950 dark:text-white sm:max-w-none sm:text-xl">{{ $title }}</h1>
-                            </div>
+                            <h1 class="min-w-0 max-w-[14rem] break-words text-base font-black leading-tight text-zinc-950 dark:text-white sm:max-w-none sm:text-xl">{{ $title }}</h1>
                         </div>
 
                         <div class="flex items-center gap-2 sm:gap-3">
-                            <a href="{{ route('admin.payments') }}" class="hidden rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-black text-amber-700 transition hover:border-amber-500/50 hover:bg-amber-500/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 dark:text-amber-300 sm:inline-flex">{{ $pendingPaymentCount }} pending</a>
+                            <a href="{{ route('admin.payments') }}" class="hidden rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-black text-amber-700 transition hover:border-amber-500/50 hover:bg-amber-500/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 dark:text-amber-300 sm:inline-flex">{{ $pendingPaymentCount }} menunggu</a>
                             <span class="hidden max-w-[12rem] truncate text-sm font-bold text-zinc-600 dark:text-zinc-300 md:inline">{{ $admin?->name }}</span>
                             <x-theme-toggle class="h-11 w-11" />
                         </div>
@@ -126,6 +116,18 @@
                 <main id="admin-main" tabindex="-1" class="relative min-h-[calc(100dvh-4rem)] overflow-hidden lg:min-h-[calc(100dvh-5rem)]">
                     <div class="public-surface-grid absolute inset-0 opacity-20 dark:opacity-10" aria-hidden="true"></div>
                     <div class="relative mx-auto w-full max-w-7xl px-4 pb-16 pt-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+                        @if (session('status'))
+                            <div class="mb-5 rounded-lg border border-gold-500/30 bg-gold-500/10 px-4 py-3 text-sm font-bold text-zinc-800 dark:text-gold-200" role="status">
+                                {{ session('status') }}
+                            </div>
+                        @endif
+
+                        @if ($errors->any())
+                            <div class="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-200" role="alert">
+                                {{ $errors->first() }}
+                            </div>
+                        @endif
+
                         {{ $slot }}
                     </div>
                 </main>
