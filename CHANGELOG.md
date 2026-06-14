@@ -119,7 +119,7 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 
 ### Testing
 
-- `php artisan test --no-ansi` lulus dengan 162 test dan 941 assertion.
+- `php artisan test --no-ansi` lulus dengan 165 test dan 999 assertion.
 - Browser QA admin lulus untuk `/admin`, `/admin/pembayaran`, `/admin/produk`, `/admin/resource/products/tambah`, `/admin/booking`, `/admin/check-in`, `/admin/pengaturan`, dan `/admin/laporan` pada viewport 360px, 390px, 768px, 1366px, dan 1440px tanpa console error atau horizontal overflow.
 - `npm.cmd run build` berhasil membuat asset Vite production.
 - `vendor\bin\pint --test` lulus.

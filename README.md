@@ -147,7 +147,7 @@ php artisan test --no-ansi
 
 Project menggunakan Pest PHP. Pest berjalan di atas ekosistem PHPUnit, sehingga tetap kompatibel dengan testing Laravel.
 
-Baseline validasi terakhir pada fase admin production custom Blade polish: `162 passed / 941 assertions`, `vendor\bin\pint --test` lulus, `composer validate --no-check-publish --no-ansi` valid, dan `npm.cmd run build` berhasil.
+Baseline validasi terakhir pada fase production member/admin: `165 passed / 999 assertions`, `vendor\bin\pint --test` lulus, `composer validate --no-check-publish --no-ansi` valid, dan `npm.cmd run build` berhasil.
 
 Catatan: konfigurasi `phpunit.xml` memakai SQLite in-memory untuk testing. Pastikan PHP CLI memiliki extension `pdo_sqlite` aktif sebelum menjalankan full test suite lokal.
 
