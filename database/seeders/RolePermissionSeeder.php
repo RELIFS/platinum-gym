@@ -25,6 +25,7 @@ class RolePermissionSeeder extends Seeder
             'manage_trainers',
             'manage_products',
             'manage_content',
+            'manage_settings',
             'view_operational_reports',
             'export_operational_reports',
         ],
