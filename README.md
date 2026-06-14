@@ -179,10 +179,7 @@ docs/
 
 ## Screenshot Proyek
 
-Screenshot awal aplikasi sudah dibuat untuk halaman public yang sudah diverifikasi lokal. Bukti disimpan di workspace konteks private agar struktur root `docs/` tetap mengikuti modul PBL:
-
-- `platinumgym-figma/docs/archive/root-docs/screenshots/2026-06-09/public-home-desktop.png`
-- `platinumgym-figma/docs/archive/root-docs/screenshots/2026-06-09/public-products-mobile.png`
+Screenshot awal aplikasi sudah dibuat untuk halaman public yang sudah diverifikasi lokal. Bukti QA disimpan di luar repository production Laravel agar struktur root `docs/` tetap mengikuti modul PBL.
 
 Rencana screenshot tambahan:
 
@@ -203,8 +200,6 @@ Rencana screenshot tambahan:
 | `docs/refactoring.md` | Catatan refactoring dan perbaikan struktur kode |
 | `docs/github-actions.md` | Dokumentasi workflow CI/CD |
 | `CHANGELOG.md` | Riwayat perubahan proyek |
-
-Catatan: folder `platinumgym-figma/` adalah workspace referensi lokal/private dan sudah masuk `.gitignore`, sehingga tidak ikut repository production Laravel.
 
 ## Tim Pengembang
 
