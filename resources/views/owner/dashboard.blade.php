@@ -18,7 +18,7 @@
         </div>
 
         <div class="mt-6">
-            <x-dashboard.card title="Laporan" description="Laporan read-only akan menjadi pusat monitoring owner.">
+            <x-dashboard.card title="Laporan" description="Laporan owner menjadi pusat monitoring performa gym.">
                 <x-dashboard.empty-state
                     title="Belum ada laporan tersedia"
                     description="Laporan keuangan, performa member, dan okupansi kelas akan tampil setelah modul report aktif."
@@ -27,4 +27,3 @@
         </div>
     </x-dashboard.page>
 </x-app-layout>
-

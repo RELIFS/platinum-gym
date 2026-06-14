@@ -155,9 +155,9 @@
 
                         <div class="flex items-center gap-2 sm:gap-3">
                             @if ($activeMembership)
-                                <span class="hidden rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-700 dark:text-emerald-300 sm:inline-flex">Membership Aktif</span>
+                                <span class="member-status-pill member-status-success hidden sm:inline-flex">Membership Aktif</span>
                             @else
-                                <span class="hidden rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-black text-amber-700 dark:text-amber-300 sm:inline-flex">Belum Ada Paket</span>
+                                <span class="member-status-pill member-status-warning hidden sm:inline-flex">Paket Belum Aktif</span>
                             @endif
                             <a href="{{ route('member.notifications') }}" class="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-500/60 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300 dark:hover:text-gold-400" aria-label="Buka notifikasi member">
                                 @include('member.partials.icon', ['name' => 'bell', 'class' => 'h-5 w-5'])
@@ -173,6 +173,18 @@
                 <main id="member-main" tabindex="-1" class="relative min-h-[calc(100dvh-4rem)] overflow-hidden lg:min-h-[calc(100dvh-5rem)]">
                     <div class="public-surface-grid absolute inset-0 opacity-20 dark:opacity-10" aria-hidden="true"></div>
                     <div class="relative mx-auto w-full max-w-7xl px-4 pb-28 pt-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+                        @if (session('status'))
+                            <div class="mb-5 rounded-lg border border-gold-500/30 bg-gold-500/10 px-4 py-3 text-sm font-bold text-zinc-800 dark:text-gold-200" role="status" aria-live="polite">
+                                {{ session('status') }}
+                            </div>
+                        @endif
+
+                        @if ($errors->any())
+                            <div class="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-200" role="alert" aria-live="assertive">
+                                {{ $errors->first() }}
+                            </div>
+                        @endif
+
                         {{ $slot }}
                     </div>
                 </main>

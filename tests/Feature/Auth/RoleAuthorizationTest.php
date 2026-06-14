@@ -103,8 +103,8 @@ test('role permission seeder is idempotent', function () {
     $this->seed(RolePermissionSeeder::class);
 
     expect(Role::count())->toBe(3)
-        ->and(Permission::count())->toBe(27)
-        ->and(Role::findByName('admin')->permissions)->toHaveCount(13)
+        ->and(Permission::count())->toBe(28)
+        ->and(Role::findByName('admin')->permissions)->toHaveCount(14)
         ->and(Role::findByName('owner')->permissions)->toHaveCount(3)
         ->and(Role::findByName('member')->permissions)->toHaveCount(11);
 });

@@ -11,7 +11,7 @@ class AdminPortalController extends Controller
     public function dashboard(Request $request, AdminDashboardQuery $query): View
     {
         return view('admin.dashboard', [
-            'portal' => $query->forUser($request->user()),
+            'portal' => $query->forUser($request->user(), $this->filters($request)),
             'navigation' => $query->navigation(),
         ]);
     }
@@ -103,9 +103,14 @@ class AdminPortalController extends Controller
         abort_unless(isset($definitions[$key]), 404);
 
         return view('admin.page', [
-            'portal' => $query->forUser($request->user()),
+            'portal' => $query->forUser($request->user(), $this->filters($request), $definitions[$key]['moduleKey']),
             'navigation' => $query->navigation(),
             'page' => $definitions[$key],
         ]);
+    }
+
+    private function filters(Request $request): array
+    {
+        return $request->only(['q', 'status', 'date_from', 'date_to', 'event', 'causer_id', 'page']);
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Carbon;
 
 class ClassEnrollment extends Model
 {
@@ -17,6 +18,11 @@ class ClassEnrollment extends Model
     protected function casts(): array
     {
         return ['session_date' => 'date', 'cancelled_at' => 'datetime'];
+    }
+
+    public function setSessionDateAttribute(mixed $value): void
+    {
+        $this->attributes['session_date'] = Carbon::parse($value)->toDateString();
     }
 
     public function schedule(): BelongsTo

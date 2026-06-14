@@ -9,6 +9,7 @@ use App\Models\Membership;
 use App\Models\Package as ServicePackage;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\QrToken;
 use App\Models\Setting;
 use App\Models\Trainer;
 use App\Models\User;
@@ -78,14 +79,16 @@ test('non admin roles cannot access admin portal', function (string $role) {
     $this->actingAs($user)->get('/admin')->assertForbidden();
 })->with(['member', 'owner']);
 
-test('admin can access all admin v1 pages', function (string $path, string $title) {
+test('admin can access all admin pages', function (string $path, string $title) {
     $admin = createAdminPortalUser();
 
     $this->actingAs($admin)->get($path)
         ->assertOk()
         ->assertSee($title)
-        ->assertSee('Admin Area')
-        ->assertSee('Read-only v1')
+        ->assertSee('Keluar')
+        ->assertDontSee('Admin Area')
+        ->assertDontSee('CRUD Operasional')
+        ->assertDontSee('Preview publik')
         ->assertDontSee("You're logged in!");
 })->with([
     ['/admin', 'Dashboard Admin'],
@@ -195,7 +198,6 @@ test('admin dashboard and modules render operational data', function () {
         ->assertSee('Member Aktif')
         ->assertSee('Pembayaran Pending')
         ->assertSee('PAY-ADMIN-0001')
-        ->assertSee('data-admin-table-search', false)
         ->assertSee('Zumba Admin')
         ->assertSee('Check-in Hari Ini');
 
@@ -205,8 +207,8 @@ test('admin dashboard and modules render operational data', function () {
         ->assertSee('Rp 450.000')
         ->assertSee('Aktif')
         ->assertSee('data-admin-table-search', false)
-        ->assertDontSee('Tambah')
-        ->assertDontSee('Edit')
+        ->assertSee('Tambah Produk')
+        ->assertSee('Edit')
         ->assertDontSee('Hapus');
 });
 
@@ -234,4 +236,347 @@ test('admin settings page masks sensitive values', function () {
         ->assertDontSee('secret-test-value')
         ->assertSee('site_tagline')
         ->assertSee('Gym premium di Padang');
+});
+
+test('admin can approve and reject payments', function () {
+    $admin = createAdminPortalUser();
+    [, $member] = createAdminPortalMember('PG-ADMIN-PAYMENT-ACTION');
+
+    $package = ServicePackage::create([
+        'name' => 'Gym Payment Action Test',
+        'slug' => 'gym-payment-action-test',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 250000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    $membership = Membership::create([
+        'member_id' => $member->id,
+        'package_id' => $package->id,
+        'code' => 'MBR-ADMIN-ACTION-0001',
+        'start_date' => now()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 250000,
+        'status' => 'pending_payment',
+    ]);
+
+    $payment = Payment::create([
+        'payment_code' => 'PAY-ADMIN-ACTION-0001',
+        'member_id' => $member->id,
+        'payable_type' => Membership::class,
+        'payable_id' => $membership->id,
+        'method' => 'cash',
+        'amount' => 250000,
+        'status' => 'waiting_confirmation',
+    ]);
+
+    $this->actingAs($admin)->post(route('admin.payments.approve', $payment))->assertRedirect();
+    expect($payment->refresh()->status)->toBe('paid')
+        ->and($membership->refresh()->status)->toBe('active');
+
+    $rejectedMembership = Membership::create([
+        'member_id' => $member->id,
+        'package_id' => $package->id,
+        'code' => 'MBR-ADMIN-REJECT-0001',
+        'start_date' => now()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 250000,
+        'status' => 'pending_payment',
+    ]);
+
+    $rejectedPayment = Payment::create([
+        'payment_code' => 'PAY-ADMIN-REJECT-0001',
+        'member_id' => $member->id,
+        'payable_type' => Membership::class,
+        'payable_id' => $rejectedMembership->id,
+        'method' => 'cash',
+        'amount' => 250000,
+        'status' => 'waiting_confirmation',
+    ]);
+
+    $this->actingAs($admin)->post(route('admin.payments.reject', $rejectedPayment), [
+        'reason' => 'Bukti pembayaran tidak sesuai.',
+    ])->assertRedirect();
+
+    expect($rejectedPayment->refresh()->status)->toBe('rejected')
+        ->and($rejectedMembership->refresh()->status)->toBe('cancelled');
+});
+
+test('admin can record cash payment and activate membership', function () {
+    $admin = createAdminPortalUser();
+    [, $member] = createAdminPortalMember('PG-ADMIN-CASH');
+
+    $package = ServicePackage::create([
+        'name' => 'Cash Membership Test',
+        'slug' => 'cash-membership-test',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 300000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($admin)->post(route('admin.payments.cash'), [
+        'member_id' => $member->id,
+        'package_id' => $package->id,
+        'note' => 'Pembayaran cash test.',
+    ])->assertRedirect();
+
+    $payment = Payment::query()->where('member_id', $member->id)->where('method', 'cash')->firstOrFail();
+
+    expect($payment->status)->toBe('paid')
+        ->and($payment->amount)->toBe('300000.00')
+        ->and(Membership::query()->where('member_id', $member->id)->where('status', 'active')->exists())->toBeTrue();
+});
+
+test('admin can update whitelisted public settings without exposing secrets', function () {
+    $admin = createAdminPortalUser();
+
+    Setting::create([
+        'key' => 'qr_secret',
+        'value' => 'do-not-render-this-secret',
+        'type' => 'text',
+        'group' => 'security',
+    ]);
+
+    $this->actingAs($admin)->patch(route('admin.settings.update'), [
+        'site_name' => 'Platinum Gym Padang Baru',
+        'address' => 'Jl. Test Admin No. 1 Padang',
+        'phone_number' => '082174777761',
+        'phone_display' => '+62 821-7477-7761',
+        'whatsapp_number' => '6282174777761',
+        'public_email' => 'info@platinumgympadang.com',
+        'instagram_handle' => '@platinumgym.padang_new',
+        'instagram_url' => 'https://www.instagram.com/platinumgym.padang_new',
+        'maps_url' => 'https://www.google.com/maps',
+        'maps_search_url' => 'https://www.google.com/maps/search/?api=1&query=Platinum%20Gym',
+        'maps_shared_url' => 'https://maps.app.goo.gl/test',
+        'maps_embed_url' => 'https://www.google.com/maps/embed?pb=test',
+        'operational_hours_weekday' => '06:00-22:00',
+        'operational_hours_weekend' => '06:00-20:00',
+        'invoice_prefix' => 'PGP',
+        'invoice_footer' => 'Terima kasih.',
+    ])->assertRedirect();
+
+    $this->assertDatabaseHas('settings', [
+        'key' => 'site_name',
+        'value' => 'Platinum Gym Padang Baru',
+    ]);
+
+    $this->actingAs($admin)->get(route('admin.settings'))
+        ->assertOk()
+        ->assertSee('Platinum Gym Padang Baru')
+        ->assertDontSee('do-not-render-this-secret');
+
+    $this->actingAs($admin)->get(route('admin.settings', ['q' => 'qr_secret']))
+        ->assertOk()
+        ->assertSee('qr_secret')
+        ->assertSee('Tersamarkan')
+        ->assertDontSee('do-not-render-this-secret');
+});
+
+test('admin can filter reports and export csv', function () {
+    $admin = createAdminPortalUser();
+
+    $this->actingAs($admin)->get(route('admin.reports', [
+        'date_from' => now()->startOfMonth()->toDateString(),
+        'date_to' => now()->toDateString(),
+    ]))
+        ->assertOk()
+        ->assertSee('Periode operasional')
+        ->assertSee('Export CSV');
+
+    $response = $this->actingAs($admin)->get(route('admin.reports.export', [
+        'date_from' => now()->startOfMonth()->toDateString(),
+        'date_to' => now()->toDateString(),
+    ]));
+
+    $response->assertOk()
+        ->assertHeader('content-type', 'text/csv; charset=UTF-8');
+
+    expect($response->streamedContent())->toContain('Metrik');
+});
+
+test('admin can scan active member qr for check in', function () {
+    $admin = createAdminPortalUser();
+    [, $member] = createAdminPortalMember('PG-ADMIN-CHECKIN');
+
+    $package = ServicePackage::create([
+        'name' => 'Gym Check In Test',
+        'slug' => 'gym-check-in-test',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 250000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    $membership = Membership::create([
+        'member_id' => $member->id,
+        'package_id' => $package->id,
+        'code' => 'MBR-CHECKIN-0001',
+        'start_date' => now()->subDay()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 250000,
+        'status' => 'active',
+    ]);
+
+    $qrToken = QrToken::create([
+        'tokenable_type' => Member::class,
+        'tokenable_id' => $member->id,
+        'token' => str_repeat('a', 64),
+        'purpose' => 'member',
+        'expires_at' => now()->addMonth(),
+    ]);
+
+    $this->actingAs($admin)->post(route('admin.check-in.scan'), [
+        'token' => $qrToken->token,
+    ])->assertRedirect();
+
+    $this->assertDatabaseHas('gym_check_ins', [
+        'member_id' => $member->id,
+        'membership_id' => $membership->id,
+        'method' => 'qr',
+        'scanned_by' => $admin->id,
+    ]);
+});
+
+test('admin can toggle product active status', function () {
+    $admin = createAdminPortalUser();
+
+    $product = Product::create([
+        'name' => 'Toggle Product Test',
+        'slug' => 'toggle-product-test',
+        'price' => 100000,
+        'stock' => 10,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($admin)->patch(route('admin.resources.toggle', ['resource' => 'products', 'id' => $product->id]))->assertRedirect();
+
+    expect($product->refresh()->is_active)->toBeFalse();
+});
+
+test('admin can create and update product resource', function () {
+    $admin = createAdminPortalUser();
+
+    $this->actingAs($admin)->get(route('admin.resources.create', 'products'))
+        ->assertOk()
+        ->assertSee('Tambah Produk')
+        ->assertSee('Nama Produk');
+
+    $this->actingAs($admin)->post(route('admin.resources.store', 'products'), [
+        'name' => 'Admin CRUD Product',
+        'price' => 125000,
+        'stock' => 7,
+        'description' => 'Produk dibuat dari admin custom Blade.',
+        'is_active' => 1,
+    ])->assertRedirect(route('admin.products'));
+
+    $product = Product::query()->where('slug', 'admin-crud-product')->firstOrFail();
+    expect($product->price)->toBe('125000.00')
+        ->and($product->stock)->toBe(7)
+        ->and($product->is_active)->toBeTrue();
+
+    $this->actingAs($admin)->patch(route('admin.resources.update', ['resource' => 'products', 'id' => $product->id]), [
+        'name' => 'Admin CRUD Product Updated',
+        'slug' => 'admin-crud-product',
+        'price' => 150000,
+        'stock' => 9,
+        'is_active' => 1,
+    ])->assertRedirect(route('admin.products'));
+
+    expect($product->refresh()->name)->toBe('Admin CRUD Product Updated')
+        ->and($product->price)->toBe('150000.00')
+        ->and($product->stock)->toBe(9);
+});
+
+test('admin product table uses server side pagination', function () {
+    $admin = createAdminPortalUser();
+
+    foreach (range(1, 14) as $index) {
+        Product::create([
+            'name' => 'Paged Product '.str_pad((string) $index, 2, '0', STR_PAD_LEFT),
+            'slug' => 'paged-product-'.str_pad((string) $index, 2, '0', STR_PAD_LEFT),
+            'price' => 100000 + $index,
+            'stock' => $index,
+            'is_active' => true,
+        ]);
+    }
+
+    $this->actingAs($admin)->get(route('admin.products'))
+        ->assertOk()
+        ->assertSee('Menampilkan 1-12 dari 14 data')
+        ->assertSee('Berikutnya')
+        ->assertSee('Paged Product 01')
+        ->assertDontSee('Paged Product 13');
+
+    $this->actingAs($admin)->get(route('admin.products', ['page' => 2]))
+        ->assertOk()
+        ->assertSee('Menampilkan 13-14 dari 14 data')
+        ->assertSee('Paged Product 13')
+        ->assertDontSee('Paged Product 01');
+});
+
+test('admin product search is applied before pagination and preserves query string', function () {
+    $admin = createAdminPortalUser();
+
+    Product::create([
+        'name' => 'Outside Search Product',
+        'slug' => 'outside-search-product',
+        'price' => 90000,
+        'stock' => 5,
+        'is_active' => true,
+    ]);
+
+    foreach (range(1, 13) as $index) {
+        Product::create([
+            'name' => 'Needle Product '.str_pad((string) $index, 2, '0', STR_PAD_LEFT),
+            'slug' => 'needle-product-'.str_pad((string) $index, 2, '0', STR_PAD_LEFT),
+            'price' => 125000 + $index,
+            'stock' => $index,
+            'is_active' => true,
+        ]);
+    }
+
+    $this->actingAs($admin)->get(route('admin.products', ['q' => 'Needle']))
+        ->assertOk()
+        ->assertSee('Menampilkan 1-12 dari 13 data')
+        ->assertSee('value="Needle"', false)
+        ->assertSee('q=Needle', false)
+        ->assertSee('Needle Product 01')
+        ->assertDontSee('Outside Search Product');
+
+    $this->actingAs($admin)->get(route('admin.products', ['q' => 'Needle', 'page' => 2]))
+        ->assertOk()
+        ->assertSee('Needle Product 13')
+        ->assertDontSee('Outside Search Product');
+});
+
+test('admin product status filter is server side', function () {
+    $admin = createAdminPortalUser();
+
+    Product::create([
+        'name' => 'Visible Product Filter',
+        'slug' => 'visible-product-filter',
+        'price' => 100000,
+        'stock' => 4,
+        'is_active' => true,
+    ]);
+
+    Product::create([
+        'name' => 'Hidden Product Filter',
+        'slug' => 'hidden-product-filter',
+        'price' => 100000,
+        'stock' => 4,
+        'is_active' => false,
+    ]);
+
+    $this->actingAs($admin)->get(route('admin.products', ['status' => 'inactive']))
+        ->assertOk()
+        ->assertSee('Hidden Product Filter')
+        ->assertSee('Nonaktif')
+        ->assertDontSee('Visible Product Filter');
 });

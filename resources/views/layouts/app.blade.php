@@ -6,7 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="theme-color" content="#fafafa">
 
-        @include('partials.head-brand', ['title' => 'Dashboard | Platinum Gym Padang'])
+        @include('partials.head-brand', ['title' => $title])
 
         @include('partials.theme-script')
 

@@ -87,15 +87,14 @@ export function platinumGymChatbot(config = {}) {
             this.messages.push({ from: 'user', text, quickReply: true });
             this.queueReply(text);
         },
-        queueReply(text) {
+        async queueReply(text) {
             this.typing = true;
             this.$nextTick(() => this.scrollToEnd());
 
-            window.setTimeout(() => {
-                this.messages.push({ from: 'bot', ...normalizeBotReply(this.resolveReply(text)) });
-                this.typing = false;
-                this.$nextTick(() => this.scrollToEnd());
-            }, 500);
+            const reply = await resolveAssistantReply(text, config, this.messages);
+            this.messages.push({ from: 'bot', ...normalizeBotReply(reply) });
+            this.typing = false;
+            this.$nextTick(() => this.scrollToEnd());
         },
         resolveReply(text) {
             return resolveChatbotReply(text, config);
@@ -204,7 +203,7 @@ function initChatbotRoot(root) {
         scrollToEnd(messagesEnd);
     }
 
-    function queueReply(text) {
+    async function queueReply(text) {
         if (typing) {
             return;
         }
@@ -213,13 +212,13 @@ function initChatbotRoot(root) {
         const typingEl = renderTyping(messages, config);
         scrollToEnd(messagesEnd);
 
-        window.setTimeout(() => {
-            typingEl.remove();
-            renderMessage(messages, 'bot', normalizeBotReply(resolveChatbotReply(text, config)), root.dataset.chatbotVariant, config);
-            setTypingState(false);
-            scrollToEnd(messagesEnd);
-            input.focus({ preventScroll: true });
-        }, 500);
+        const reply = await resolveAssistantReply(text, config, collectHistory(messages));
+
+        typingEl.remove();
+        renderMessage(messages, 'bot', normalizeBotReply(reply), root.dataset.chatbotVariant, config);
+        setTypingState(false);
+        scrollToEnd(messagesEnd);
+        input.focus({ preventScroll: true });
     }
 
     trigger.addEventListener('click', () => {
@@ -261,6 +260,65 @@ function initChatbotRoot(root) {
     syncSendState(input, send, typing);
     setQuickRepliesDisabled(quickReplies, false);
     setOpen(false, false);
+}
+
+async function resolveAssistantReply(text, config = {}, history = []) {
+    const localReply = normalizeBotReply(resolveChatbotReply(text, config));
+
+    if (!config.aiEnabled || !config.endpoint) {
+        return localReply;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 15000);
+
+    try {
+        const response = await fetch(config.endpoint, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': config.csrfToken ?? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
+            },
+            body: JSON.stringify({
+                message: text,
+                context: config.context ?? 'public',
+                history,
+            }),
+            signal: controller.signal,
+        });
+
+        if (!response.ok) {
+            return localReply;
+        }
+
+        const payload = await response.json();
+        const aiText = payload?.reply?.text;
+
+        if (!aiText) {
+            return localReply;
+        }
+
+        return {
+            text: aiText,
+            actionLabel: localReply.actionLabel,
+            actionUrl: localReply.actionUrl,
+        };
+    } catch (_error) {
+        return localReply;
+    } finally {
+        window.clearTimeout(timeout);
+    }
+}
+
+function collectHistory(container) {
+    return Array.from(container.querySelectorAll('[data-chatbot-message]'))
+        .slice(-8)
+        .map((item) => ({
+            from: item.dataset.chatbotFrom,
+            text: item.textContent.trim(),
+        }))
+        .filter((item) => item.text.length > 0);
 }
 
 function resolveChatbotReply(text, config = {}) {
@@ -334,6 +392,8 @@ function renderMessage(container, from, reply, variant = 'public', config = {}, 
     const item = document.createElement('div');
     item.className = isUser ? 'flex min-w-0 justify-end' : 'flex min-w-0 items-start gap-2';
     item.setAttribute('aria-label', isUser ? 'Pesan Anda' : 'Pesan Gymmi');
+    item.dataset.chatbotMessage = 'true';
+    item.dataset.chatbotFrom = isUser ? 'user' : 'bot';
 
     const bubbleWrap = document.createElement('div');
     bubbleWrap.className = isUser

@@ -20,7 +20,7 @@ File tersebut sudah dibuat dan siap dijalankan setelah branch dipush ke GitHub.
 
 Workflow berjalan saat:
 
-- Push ke branch `rossi`, `luthfi`, atau `main`.
+- Push ke branch `rossi`, `luthfi`, `temporarily_main`, atau `main`.
 - Pull request ke branch mana pun.
 
 Contoh trigger:
@@ -31,6 +31,7 @@ on:
     branches:
       - rossi
       - luthfi
+      - temporarily_main
       - main
   pull_request:
 ```

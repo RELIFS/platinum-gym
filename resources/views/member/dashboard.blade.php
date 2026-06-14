@@ -21,7 +21,7 @@
         ['label' => 'Membership', 'description' => 'Status paket member', 'route' => 'member.membership', 'icon' => 'card'],
         ['label' => 'Jadwal Kelas', 'description' => 'Kelas aktif dan kuota', 'route' => 'member.booking', 'icon' => 'calendar'],
         ['label' => 'Transaksi', 'description' => 'Riwayat pembayaran', 'route' => 'member.transactions', 'icon' => 'receipt'],
-        ['label' => 'QR Member', 'description' => 'Kartu check-in digital', 'route' => 'member.qr', 'icon' => 'qr'],
+        ['label' => 'QR Member', 'description' => 'Status kartu digital', 'route' => 'member.qr', 'icon' => 'qr'],
     ];
 @endphp
 
@@ -37,7 +37,7 @@
                         Selamat datang, {{ $user->name }}
                     </h2>
                     <p class="mt-4 max-w-2xl text-sm font-medium leading-7 text-zinc-300">
-                        Status, membership, booking, dan transaksi Anda dalam satu area member Platinum Gym Padang.
+                        Status akun, membership, jadwal kelas, dan transaksi Anda tersusun dalam satu area member Platinum Gym Padang.
                     </p>
 
                     <div class="mt-6 grid gap-3 sm:grid-cols-3">
@@ -61,7 +61,7 @@
                         @include('member.partials.icon', ['name' => 'qr', 'class' => 'h-28 w-28 text-zinc-950'])
                     </div>
                     <p class="mt-3 text-center text-xs font-black uppercase tracking-[0.14em] text-zinc-500">QR Member</p>
-                    <p class="mt-1 text-center text-sm font-black text-zinc-950">{{ $qrTokenIsActive ? 'Status QR aktif' : $qrStatusLabel }}</p>
+                    <p class="mt-1 text-center text-sm font-black text-zinc-950">{{ $qrTokenIsActive ? 'QR siap dipantau' : $qrStatusLabel }}</p>
                 </div>
             </div>
         </section>
@@ -115,7 +115,7 @@
                                 Berlaku {{ $activeMembership->start_date?->translatedFormat('d M Y') }} sampai {{ $activeMembership->end_date?->translatedFormat('d M Y') }}.
                             </p>
                         </div>
-                        <span class="member-status-pill bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">Aktif</span>
+                        <span class="member-status-pill member-status-success">Aktif</span>
                     </div>
                 </div>
             @else
@@ -126,7 +126,7 @@
                         </span>
                         <div class="min-w-0">
                             <h3 class="font-black text-zinc-950 dark:text-white">Belum ada membership aktif</h3>
-                            <p class="mt-1 member-copy">Paket aktif akan tampil setelah pembelian dan verifikasi selesai. Katalog paket tetap bisa dilihat kapan saja.</p>
+                            <p class="mt-1 member-copy">Paket aktif akan tampil setelah transaksi tercatat dan diverifikasi oleh petugas. Katalog paket tetap bisa dilihat kapan saja.</p>
                             <a href="{{ route('member.membership') }}" class="member-button-primary mt-4">Lihat Membership</a>
                         </div>
                     </div>
@@ -152,7 +152,7 @@
                     <p class="member-eyebrow">Aktivitas</p>
                     <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Terbaru</h2>
                 </div>
-                <span class="member-status-pill bg-zinc-100 text-zinc-600 dark:bg-white/[0.07] dark:text-zinc-300">{{ $activity->count() }}</span>
+                            <span class="member-status-pill member-status-neutral">{{ $activity->count() }}</span>
             </div>
 
             <div class="mt-5 space-y-3">
@@ -170,8 +170,8 @@
                 @empty
                     <div class="member-soft-panel text-center">
                         @include('member.partials.icon', ['name' => 'empty', 'class' => 'mx-auto h-10 w-10 text-zinc-400'])
-                        <p class="mt-3 font-black text-zinc-950 dark:text-white">Belum ada aktivitas</p>
-                        <p class="mt-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">Riwayat akan muncul setelah transaksi, booking, atau check-in tercatat.</p>
+                        <p class="mt-3 font-black text-zinc-950 dark:text-white">Aktivitas belum tercatat</p>
+                        <p class="mt-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">Riwayat member akan muncul setelah transaksi, booking, atau check-in tercatat di sistem.</p>
                     </div>
                 @endforelse
             </div>
@@ -190,6 +190,20 @@
 
             <div class="mt-5 grid gap-3">
                 @forelse ($upcomingEnrollments as $enrollment)
+                    @php
+                        $enrollmentStatusLabel = match ((string) $enrollment->status) {
+                            'booked', 'active', 'confirmed' => 'Terdaftar',
+                            'pending_payment' => 'Menunggu Bayar',
+                            'cancelled', 'canceled' => 'Dibatalkan',
+                            default => str((string) $enrollment->status)->headline()->toString(),
+                        };
+                        $enrollmentStatusClass = match ((string) $enrollment->status) {
+                            'booked', 'active', 'confirmed' => 'member-status-success',
+                            'pending_payment' => 'member-status-warning',
+                            'cancelled', 'canceled' => 'member-status-danger',
+                            default => 'member-status-neutral',
+                        };
+                    @endphp
                     <article class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45">
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div class="min-w-0">
@@ -198,13 +212,13 @@
                                     {{ $enrollment->session_date?->translatedFormat('l, d M Y') }} - {{ substr((string) $enrollment->schedule?->start_time, 0, 5) }}
                                 </p>
                             </div>
-                            <span class="member-status-pill bg-gold-500/15 text-gold-700 dark:text-gold-300">{{ str((string) $enrollment->status)->headline() }}</span>
+                            <span class="member-status-pill {{ $enrollmentStatusClass }}">{{ $enrollmentStatusLabel }}</span>
                         </div>
                     </article>
                 @empty
                     <div class="member-soft-panel">
                         <h3 class="font-black text-zinc-950 dark:text-white">Belum ada jadwal terdaftar</h3>
-                        <p class="mt-1 member-copy">Jadwal kelas yang sudah tercatat untuk akun Anda akan tampil di sini. Jadwal publik tetap bisa dilihat sekarang.</p>
+                        <p class="mt-1 member-copy">Jadwal kelas yang terdaftar untuk akun Anda akan tampil di sini. Jadwal publik tetap bisa dilihat sekarang.</p>
                         <div class="mt-4 flex flex-col gap-2 sm:flex-row">
                             <a href="{{ route('member.booking') }}" class="member-button-primary">Buka Jadwal Kelas</a>
                             <a href="{{ route('public.classes') }}" class="member-button-secondary">Jadwal Publik</a>
@@ -225,6 +239,24 @@
 
             <div class="mt-5 space-y-3">
                 @forelse ($payments->take(4) as $payment)
+                    @php
+                        $paymentStatusLabel = match ((string) $payment->status) {
+                            'waiting_payment', 'pending', 'unpaid' => 'Menunggu Bayar',
+                            'waiting_confirmation' => 'Menunggu Konfirmasi',
+                            'paid' => 'Lunas',
+                            'rejected' => 'Ditolak',
+                            'failed' => 'Gagal',
+                            'expired' => 'Kedaluwarsa',
+                            'cancelled', 'canceled' => 'Dibatalkan',
+                            default => str((string) $payment->status)->headline()->toString(),
+                        };
+                        $paymentStatusClass = match ((string) $payment->status) {
+                            'paid' => 'member-status-success',
+                            'waiting_payment', 'pending', 'unpaid', 'waiting_confirmation' => 'member-status-warning',
+                            'rejected', 'failed', 'expired', 'cancelled', 'canceled' => 'member-status-danger',
+                            default => 'member-status-neutral',
+                        };
+                    @endphp
                     <article class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
@@ -235,13 +267,13 @@
                         </div>
                         <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-200 pt-3 dark:border-white/10">
                             <span class="text-xs font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">{{ str((string) $payment->method)->headline() }}</span>
-                            <span class="member-status-pill bg-zinc-100 text-zinc-700 dark:bg-white/[0.07] dark:text-zinc-300">{{ str((string) $payment->status)->headline() }}</span>
+                            <span class="member-status-pill {{ $paymentStatusClass }}">{{ $paymentStatusLabel }}</span>
                         </div>
                     </article>
                 @empty
                     <div class="member-soft-panel">
                         <h3 class="font-black text-zinc-950 dark:text-white">Belum ada transaksi</h3>
-                        <p class="mt-1 member-copy">Riwayat pembayaran akan tampil setelah transaksi membership atau layanan tercatat.</p>
+                        <p class="mt-1 member-copy">Riwayat pembayaran membership, paket sesi, atau kelas akan tampil setelah transaksi tercatat.</p>
                     </div>
                 @endforelse
             </div>
