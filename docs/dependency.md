@@ -12,6 +12,8 @@ Dokumen ini menjelaskan dependency proyek Platinum Gym Padang berdasarkan kondis
 
 Dependency dikelola menggunakan Composer untuk package PHP/Laravel dan NPM untuk package frontend. Dependency yang sudah terpasang dicatat pada `composer.json`, `composer.lock`, `package.json`, dan `package-lock.json`.
 
+Composer dikunci dengan `config.platform.php=8.2.31` agar proses `composer update` dari mesin developer PHP 8.4 tidak menarik package yang tidak bisa dipasang di CI/server PHP 8.2. Dengan begitu, `composer install` tetap stabil di lokal, CI, dan deployment target PHP 8.2+.
+
 Status penggunaan dibagi menjadi:
 
 - Sudah digunakan: package sudah terpasang dan sudah dipakai pada fitur aplikasi.
