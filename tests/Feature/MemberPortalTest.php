@@ -411,6 +411,8 @@ test('member chatbot config includes safe internal fallbacks for extra topics', 
 });
 
 test('member can checkout membership with midtrans sandbox token', function () {
+    config(['services.midtrans.server_key' => 'server-test-key']);
+
     Http::fake([
         'app.sandbox.midtrans.com/*' => Http::response([
             'token' => 'snap-token-test',
@@ -433,6 +435,8 @@ test('member can checkout membership with midtrans sandbox token', function () {
     $response = $this->actingAs($user)->post(route('member.membership.checkout', $package));
 
     $payment = Payment::query()->where('member_id', $member->id)->latest()->first();
+
+    expect($payment)->not->toBeNull();
 
     $response->assertRedirect(route('member.transactions.show', $payment));
     expect($payment->status)->toBe('waiting_payment')
