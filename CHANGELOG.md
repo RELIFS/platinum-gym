@@ -127,6 +127,10 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 
 ### Planned
 
+- Change Request #1 (#18): Rekap jumlah member aktif per trainer dan status trainer tersedia/penuh.
+- Planned Added: fitur rekap member aktif per trainer pada area admin/laporan.
+- Planned Changed: halaman admin terkait trainer/laporan akan menampilkan status kapasitas trainer.
+- Impacted Modules: Admin Report, Trainer, Member Package Session, Route admin, Dokumentasi.
 - Owner dashboard dan laporan owner/export.
 - Invoice PDF/download.
 - Upload bukti pembayaran manual bila dibutuhkan.
