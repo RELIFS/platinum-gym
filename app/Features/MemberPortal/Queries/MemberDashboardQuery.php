@@ -8,6 +8,7 @@ use App\Models\Member;
 use App\Models\Package;
 use App\Models\QrToken;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
 class MemberDashboardQuery
@@ -113,13 +114,17 @@ class MemberDashboardQuery
 
         $classSchedules = ClassSchedule::query()
             ->with(['gymClass', 'trainer'])
-            ->withCount(['enrollments as booked_count' => fn ($query) => $query->whereIn('status', ['booked', 'active', 'confirmed'])])
+            ->withCount(['enrollments as booked_count' => fn ($query) => $query->whereIn('status', ['booked', 'active', 'confirmed', 'pending_payment'])])
             ->where('is_active', true)
             ->whereHas('gymClass', fn ($query) => $query->where('is_active', true))
             ->orderBy('day_of_week')
             ->orderBy('start_time')
             ->limit(8)
-            ->get();
+            ->get()
+            ->each(fn (ClassSchedule $schedule) => $schedule->setAttribute(
+                'next_session_date',
+                $this->nextSessionDate((int) $schedule->day_of_week)->toDateString(),
+            ));
 
         $notifications = $user->notifications()
             ->latest('created_at')
@@ -149,6 +154,17 @@ class MemberDashboardQuery
         ];
     }
 
+    private function nextSessionDate(int $dayOfWeek): CarbonImmutable
+    {
+        $date = CarbonImmutable::today();
+
+        while ($date->dayOfWeekIso !== $dayOfWeek) {
+            $date = $date->addDay();
+        }
+
+        return $date;
+    }
+
     /**
      * @return array<int, array<string, string>>
      */
@@ -173,7 +189,7 @@ class MemberDashboardQuery
             [
                 'label' => 'Pembayaran',
                 'value' => (string) $pendingPaymentCount,
-                'description' => 'Pembayaran menunggu tindakan.',
+                'description' => 'Pembayaran yang perlu dicek.',
             ],
         ];
     }
