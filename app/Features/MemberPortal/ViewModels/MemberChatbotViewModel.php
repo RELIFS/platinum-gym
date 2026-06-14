@@ -14,8 +14,12 @@ class MemberChatbotViewModel
             'name' => 'Gymmi',
             'botInitials' => 'GY',
             'typingLabel' => 'Gymmi sedang mengetik',
+            'context' => 'member',
+            'endpoint' => route('gymmi.chat'),
+            'csrfToken' => csrf_token(),
+            'aiEnabled' => self::hasGeminiKeys(),
             'showEscalation' => false,
-            'initialMessage' => 'Halo! Saya Gymmi dari portal member Platinum Gym Padang. Saya bisa bantu arahkan ke status membership, jadwal kelas, transaksi, QR member, dan bantuan akun.',
+            'initialMessage' => 'Halo! Saya Gymmi dari portal member Platinum Gym Padang. Saya bisa bantu status membership, jadwal kelas, transaksi, QR member, dan bantuan akun.',
             'quickReplies' => ['Status Membership', 'Jadwal Kelas', 'Transaksi', 'QR Member', 'Bantuan Akun'],
             'replies' => [
                 'membership' => [
@@ -24,17 +28,17 @@ class MemberChatbotViewModel
                     'actionUrl' => route('member.membership'),
                 ],
                 'schedule' => [
-                    'text' => 'Jadwal kelas aktif tersedia di halaman Booking Kelas. Untuk saat ini, jadwal digunakan sebagai panduan sebelum datang atau dibantu petugas di lokasi.',
+                    'text' => 'Jadwal kelas aktif tersedia di halaman Booking Kelas. Jika memenuhi syarat paket, booking dapat dilakukan langsung dari halaman tersebut.',
                     'actionLabel' => 'Buka Jadwal Kelas',
                     'actionUrl' => route('member.booking'),
                 ],
                 'transactions' => [
-                    'text' => 'Riwayat pembayaran dan status transaksi layanan dapat dilihat di halaman Transaksi.',
+                    'text' => 'Riwayat pembayaran, status transaksi, dan tombol lanjut bayar tersedia di halaman Transaksi.',
                     'actionLabel' => 'Buka Transaksi',
                     'actionUrl' => route('member.transactions'),
                 ],
                 'qr' => [
-                    'text' => 'Status QR member tersedia di halaman QR Member. Kode check-in ditampilkan hanya saat fitur check-in digital sudah dibuka, dan token mentah tidak pernah ditampilkan.',
+                    'text' => 'Status QR member tersedia di halaman QR Member. QR aktif dapat ditunjukkan ke admin untuk check-in, dan token mentah tidak ditampilkan.',
                     'actionLabel' => 'Buka QR Member',
                     'actionUrl' => route('member.qr'),
                 ],
@@ -65,5 +69,11 @@ class MemberChatbotViewModel
                 ],
             ],
         ];
+    }
+
+    private static function hasGeminiKeys(): bool
+    {
+        return (bool) config('services.gemini.enabled', true)
+            && (filled(config('services.gemini.api_key')) || filled(config('services.gemini.api_keys')));
     }
 }
