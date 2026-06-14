@@ -387,7 +387,7 @@ Scope produk berisiko terbaca seperti toko online jika copy/CTA tidak dibatasi. 
 
 Produk dikunci sebagai katalog informasi dengan stok aktual dan arahan pembelian langsung di lokasi. Field foto produk ditambahkan ke model/database, foto produk WebP dipakai dari asset optimized, dan produk tanpa foto tetap memakai fallback visual.
 
-Cleanup juga menghapus scaffold kosong, komponen Blade default yang tidak digunakan, asset brand lama yang tidak direferensikan, dan dokumen tambahan root yang sudah dipindahkan ke arsip konteks `platinumgym-figma`.
+Cleanup juga menghapus scaffold kosong, komponen Blade default yang tidak digunakan, asset brand lama yang tidak direferensikan, dan dokumen tambahan root yang sudah dipindahkan ke arsip pendukung di luar repository production Laravel.
 
 ### Dampak
 
