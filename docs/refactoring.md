@@ -1,6 +1,6 @@
 # Refactoring Documentation
 
-Status: Updated 2026-06-13. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
+Status: Updated 2026-06-14. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
 
 Dokumen ini mencatat perubahan struktur kode yang dilakukan untuk meningkatkan keterbacaan, maintainability, dan kesiapan evolusi sistem.
 
@@ -178,12 +178,11 @@ Test lebih mudah dibaca dan disesuaikan dengan behavior sistem.
 
 Refactoring berikut akan dievaluasi saat kompleksitas fitur bertambah:
 
-- Penyempurnaan dashboard owner dan workflow tulis admin penuh saat scope CRUD dimulai.
-- Service untuk proses membership atau pembayaran jika controller mulai besar.
-- Policy atau middleware untuk pembatasan akses role.
-- Form Request untuk validasi fitur bisnis kompleks berikutnya.
-- Komponen Blade reusable tambahan untuk form, status badge, tabel, dan layout dashboard bisnis.
-- Cleanup route jika jumlah modul bertambah.
+- Penyempurnaan dashboard owner dan laporan/export saat scope owner dimulai.
+- Penyempurnaan action pembayaran, booking, dan check-in jika aturan bisnis bertambah.
+- Export queue untuk laporan besar.
+- Invoice PDF/download dan upload bukti pembayaran jika dibutuhkan.
+- Cleanup route dan komponen bila scope owner atau modul baru bertambah.
 
 ## 6. Feature-Based Clean Architecture Foundation
 
@@ -404,34 +403,40 @@ Cleanup juga menghapus scaffold kosong, komponen Blade default yang tidak diguna
 
 ### Masalah
 
-Admin membutuhkan titik masuk operasional untuk membaca data member, pembayaran, booking, check-in, konten, produk, setting, dan audit log tanpa menunggu CRUD penuh.
+Admin membutuhkan titik masuk operasional untuk membaca dan mengubah data member, pembayaran, booking, check-in, konten, produk, setting, dan audit log tanpa bergantung pada Filament.
 
 ### Perubahan
 
-Admin v1 ditambahkan sebagai frontend static/read-only polish dengan pola yang sama seperti member portal:
+Admin portal ditingkatkan dari area pantau menjadi area operasional Blade dengan pola action/query yang sama seperti member portal:
 
 ```text
 app/Http/Controllers/AdminPortalController.php
+app/Http/Controllers/Admin/*
+app/Features/Admin/Actions/*
 app/Features/Admin/Queries/AdminDashboardQuery.php
+app/Features/Admin/Support/AdminResourceRegistry.php
+app/Features/Admin/Support/AdminEditableSettingRegistry.php
 app/View/Components/AdminLayout.php
 resources/views/layouts/admin.blade.php
 resources/views/admin/dashboard.blade.php
 resources/views/admin/page.blade.php
+resources/views/admin/pages/operations.blade.php
 resources/views/admin/partials/data-table.blade.php
 resources/views/admin/partials/icon.blade.php
+resources/views/admin/resources/form.blade.php
 ```
 
 ### Alasan
 
-Controller tetap tipis, query data terpusat, Blade fokus pada presentasi, dan fitur admin awal tidak membuat aksi tulis sebelum workflow bisnis siap. Read-only v1 mencegah admin melihat tombol mutasi palsu sebelum validasi, authorization, audit trail, dan workflow bisnisnya siap.
+Controller tetap tipis, query data terpusat, Blade fokus pada presentasi, dan aksi tulis ditempatkan pada FormRequest/Action/Controller kecil dengan permission check.
 
 ### Dampak
 
-- Admin mendapat 17 route read-only dengan menu grouped.
-- Dashboard menjadi operational workbench dengan status strip, KPI ringkas, quick links, dan data terbaru.
-- Partial tabel admin reusable mendukung local search, status filter, count, empty/no-result state, dan mobile card fallback.
-- Data sensitif pada setting dimask di query layer.
-- Test `AdminPortalTest` menjaga auth guard, role guard, render route, data operasional, dan masking setting.
+- Admin mendapat route operasional untuk CRUD master data, pembayaran cash/approve/reject, booking, check-in, settings whitelist, audit filter, report CSV, dan toggle status data/konten.
+- Dashboard menjadi pusat kerja operasional dengan status strip, KPI ringkas, quick links, dan data terbaru.
+- Partial tabel admin reusable mendukung server-side search, status filter, pagination, count, empty/no-result state, caption/aria polish, mobile card fallback, dan row actions aman.
+- Data sensitif pada setting disamarkan di query layer, sedangkan update setting hanya membuka whitelist kontak/maps/jam operasional/invoice publik.
+- Test `AdminPortalTest` menjaga auth guard, role guard, render route, data operasional, masking setting, approval/cash pembayaran, check-in QR/manual, report export, resource CRUD, dan toggle status.
 
 ## 13. Gymmi Chatbot Identity
 
@@ -446,3 +451,82 @@ Tailwind scan mencakup `resources/js/**/*.js` karena beberapa class bubble Gymmi
 - Public dan member memiliki nama chatbot yang konsisten.
 - Message log memakai label a11y yang lebih jelas dan typing guard mencegah double submit.
 - Test public/member diperbarui agar mengunci label dan aria baru.
+
+## 14. Production Member/Admin Operational Flow
+
+### Perubahan
+
+Member dan admin tidak lagi berhenti pada tampilan monitoring. Workflow operasional dipisahkan ke controller kecil, FormRequest, dan Action class:
+
+```text
+app/Features/Payments/Actions
+app/Features/Payments/Contracts
+app/Features/Payments/Gateways
+app/Features/Bookings/Actions
+app/Features/CheckIns/Actions
+app/Http/Controllers/Member
+app/Http/Controllers/Admin
+app/Http/Controllers/Webhook
+app/Http/Requests/Member
+app/Http/Requests/Admin
+app/Notifications/MemberOperationalNotification.php
+app/Support/QrSvgRenderer.php
+```
+
+### Alasan
+
+Checkout, webhook payment, booking, QR check-in, dan approval admin menyentuh banyak tabel sehingga perlu transaction, validasi request, permission check, dan boundary integrasi yang jelas.
+
+### Dampak
+
+- Member dapat checkout membership/paket sesi, booking kelas, melihat transaksi/detail invoice, membayar lewat Midtrans Sandbox, melihat QR, dan mengelola notifikasi.
+- Admin dapat create/update master data, mencatat pembayaran cash, approve/reject pembayaran, create/confirm/cancel booking, scan/input QR/manual check-in, update setting publik whitelist, export laporan CSV, dan toggle status/tayang data operasional.
+- Midtrans Sandbox dan Resend dikonfigurasi lewat `.env`; secret tidak masuk source code.
+- Produk tetap katalog informasi, bukan checkout produk.
+## 15. Gymmi Gemini Backend
+
+### Perubahan
+
+Gymmi public dan member tidak lagi hanya static/intention-based. Backend baru memakai endpoint `POST /gymmi/chat`, `GymmiChatRequest`, `GymmiChatController`, action `AskGymmiAction`, context builder, port `GymmiAssistantClient`, adapter `GeminiGymmiClient`, dan Laravel HTTP client untuk Google Gemini `generateContent`.
+
+### Alasan
+
+Gymmi membutuhkan jawaban natural tetapi tetap aman. Service boundary menjaga API key tetap di `.env`, prompt hanya memakai konteks yang boleh diketahui, request diberi rate limit, dan kegagalan provider tetap memakai fallback lokal agar UX tidak rusak.
+
+### Dampak
+
+- Public dan member chatbot memakai Gemini saat key/quota tersedia.
+- Semua pesan tetap punya fallback lokal.
+- Conversation log disimpan ke `ai_conversations` dan `ai_messages`.
+- Member context hanya memakai user login dan data member miliknya sendiri.
+- Trigger member/public seragam dengan ikon chat dan label `Tanya Gymmi`, tanpa badge merah.
+
+## 16. Admin Server-Side Pagination
+
+### Sebelum
+
+Tabel admin awalnya memakai pembatasan data di query dan pencarian lokal pada data yang sudah tampil.
+
+### Masalah
+
+Saat data bertambah, pencarian hanya berlaku pada data halaman saat itu dan sebagian data tidak terlihat dari tabel admin.
+
+### Perubahan
+
+Query modul admin dipusatkan pada `AdminDashboardQuery` dengan server-side pagination 12 data per halaman, search, status filter, date filter untuk audit/report, dan query string persistence.
+
+Komponen tabel berikut menerima paginator Laravel dan merender navigasi halaman yang responsive:
+
+```text
+resources/views/admin/partials/data-table.blade.php
+```
+
+### Alasan
+
+Admin membutuhkan workbench yang tetap cepat, dapat dicari lintas seluruh data, dan tidak membebani browser saat dataset bertambah.
+
+### Dampak
+
+- Halaman seperti produk, anggota, pembayaran, kelas, booking, check-in, galeri, testimoni, promo, trainer, audit log, dan pengaturan dapat memuat data bertahap.
+- Search dan filter bekerja dari query database, bukan hanya data yang sedang terlihat.
+- Mobile card fallback dan tabel desktop tetap memakai komponen yang sama.

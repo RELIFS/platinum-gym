@@ -65,7 +65,7 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Menambahkan foto produk optimized WebP, field `image_path`/`image_alt`, stok aktual, dan copy pembelian langsung di lokasi pada katalog produk public.
 - Menambahkan visual auth desktop berbasis foto gym asli dengan form panel responsive untuk login/register dan halaman auth terkait.
 - Menambahkan kalkulator BMI client-side menggunakan Alpine tanpa penyimpanan data.
-- Menambahkan Gymmi public statis dengan quick replies, typing state, fallback, dan eskalasi WhatsApp.
+- Menambahkan Gymmi public/member dengan endpoint Gemini, fallback lokal, quick replies, typing state, logging conversation, dan guardrail data.
 - Menambahkan Google Maps iframe embed tanpa API key melalui setting public `maps_embed_url`.
 - Menambahkan `PromoSeeder`, `TestimonialSeeder`, dan `GallerySeeder` untuk konten public.
 - Menambahkan kontak public final ke `SettingSeeder`.
@@ -75,10 +75,15 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Menambahkan coverage test untuk scope produk katalog/stok/lokasi dan budget performa gambar produk.
 - Menambahkan workflow GitHub Actions CI lokal untuk Composer, Pint, Vite build, dan Pest test.
 - Menambahkan screenshot evidence public home desktop dan katalog produk mobile pada workspace konteks private.
-- Menambahkan admin portal v1 read-only berbasis Blade/Tailwind untuk dashboard, check-in, booking, notifikasi, anggota, paket, kelas, pembayaran, produk, galeri, testimoni, promo, trainer, laporan, audit log, pengaturan, dan profil admin.
-- Menambahkan admin workbench dengan status strip, KPI ringkas, quick links, grouped sidebar, dan label `Read-only v1`.
-- Menambahkan tabel admin read-only dengan local search, status filter, count, empty/no-result state, dan mobile card fallback.
+- Menambahkan member portal operasional untuk edit profil, checkout membership/paket sesi, booking/cancel kelas, transaksi/detail/pay Midtrans, QR visual, notifikasi read/read-all, dan Gymmi global.
+- Menambahkan admin portal operasional berbasis Blade/Tailwind untuk dashboard, check-in, booking, notifikasi, anggota, paket, kelas, pembayaran, produk, galeri, testimoni, promo, trainer, laporan, audit log, pengaturan, dan profil admin.
+- Menambahkan admin workbench dengan status strip, KPI ringkas, quick links, grouped sidebar, payment approve/reject, booking confirm/cancel, QR check-in, toggle status/tayang, masked settings, dan tabel data real dengan search/filter/mobile cards.
 - Menambahkan `AdminPortalController`, `AdminDashboardQuery`, `AdminLayout`, partial tabel admin, dan `AdminPortalTest`.
+- Menambahkan custom Blade resource CRUD untuk anggota, paket, kelas, jadwal kelas, kategori produk, produk, galeri, testimoni, promo, dan trainer.
+- Menambahkan payment cash admin, booking create admin, check-in manual, settings whitelist, audit filter, report CSV export, dan partial `admin.pages.operations`.
+- Menambahkan `MemberProfileController`, `UpdateMemberProfileRequest`, dan `UpdateMemberProfileAction` untuk update profil member dari `/member/profil`.
+- Menambahkan server-side pagination, search, dan filter status pada tabel modul admin yang datanya dapat bertambah.
+- Menambahkan workflow pembayaran Midtrans Sandbox, invoice, webhook idempotent, QR member, check-in admin, dan notifikasi operasional member.
 
 ### Refactor
 
@@ -108,21 +113,23 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Memperbaiki katalog paket member agar paket sesi yang sudah habis/kedaluwarsa milik member tidak muncul kembali sebagai paket tersedia.
 - Memoles layout Gymmi agar user bubble berada di kanan tanpa avatar `AN`, bot memakai initial `GY`, FAQ tampil sebagai chip kanan, typing guard aktif, dan label a11y lebih jelas.
 - Memperbaiki action `QR Member` pada Gymmi member agar menuju `/member/qr`.
+- Memoles `/profile` menjadi halaman `Keamanan Akun` untuk email login, password, dan penghapusan akun.
+- Memperbesar target checkbox mahasiswa di form profil member menjadi 24px untuk aksesibilitas.
+- Merapikan copy dan layout admin agar fokus pada pekerjaan inti tanpa label internal seperti mode/demo.
 
 ### Testing
 
-- `php artisan test --no-ansi` lulus dengan 144 test dan 835 assertion.
+- `php artisan test --no-ansi` lulus dengan 162 test dan 941 assertion.
+- Browser QA admin lulus untuk `/admin`, `/admin/pembayaran`, `/admin/produk`, `/admin/resource/products/tambah`, `/admin/booking`, `/admin/check-in`, `/admin/pengaturan`, dan `/admin/laporan` pada viewport 360px, 390px, 768px, 1366px, dan 1440px tanpa console error atau horizontal overflow.
 - `npm.cmd run build` berhasil membuat asset Vite production.
 - `vendor\bin\pint --test` lulus.
 - `composer validate --no-check-publish --no-ansi` valid.
 
 ### Planned
 
-- Owner dashboard dan workflow CRUD admin penuh.
-- Manajemen paket membership.
-- Booking kelas.
-- Pembayaran layanan.
-- Check-in gym.
-- Laporan owner.
+- Owner dashboard dan laporan owner/export.
+- Invoice PDF/download.
+- Upload bukti pembayaran manual bila dibutuhkan.
+- Refund/correction workflow pembayaran dan export queue saat data laporan membesar.
 - Penyempurnaan dokumentasi refactoring.
 - Status badge dan screenshot sukses GitHub Actions setelah workflow berjalan di GitHub.

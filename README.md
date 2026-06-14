@@ -4,7 +4,7 @@ Website Company Profile dan Sistem Informasi Layanan Platinum Gym Padang berbasi
 
 ## Deskripsi Proyek
 
-Platinum Gym Padang adalah aplikasi web untuk membantu pengelolaan informasi layanan gym, registrasi member, autentikasi pengguna, dan dasar pengembangan sistem operasional gym.
+Platinum Gym Padang adalah aplikasi web untuk membantu pengelolaan informasi layanan gym, registrasi member, pembayaran, booking kelas, check-in, dan pekerjaan operasional admin.
 
 Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dikembangkan, dan digunakan sebagai dasar kolaborasi tim.
 
@@ -12,19 +12,20 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 
 | Area | Status |
 |---|---|
-| Auth, role, permission, Google OAuth | Selesai fase foundation + polish visual auth |
-| Public website company profile | Selesai fase public + polish responsive, termasuk katalog produk stok aktual dan real image assets |
-| Clean architecture foundation | Selesai tahap awal berbasis `app/Features` |
-| Member portal | Selesai v1 + polish UI, sidebar minimal, dan chatbot global Gymmi statis |
-| Admin portal v1 | Selesai read-only v1 dengan 17 route `/admin`, workbench operasional, tabel data real, dan tanpa aksi CRUD palsu |
-| Owner dashboard, payment, booking submit, QR check-in, laporan, AI backend | Belum dikerjakan |
+| Auth, role, permission, Google OAuth | Operasional dengan UI auth Platinum Gym, email verification, Google onboarding, dan role redirect |
+| Public website company profile | Operasional dengan halaman informasi, katalog produk stok aktual, real image assets, dan Gymmi public |
+| Clean architecture foundation | Aktif berbasis `app/Features`, Action, Query, FormRequest, ViewModel, dan component Blade |
+| Member portal | Operasional: profil editable, checkout membership/paket sesi, booking/cancel, transaksi, QR, notifikasi, sidebar minimal, dan Gymmi global |
+| Admin portal | Production custom Blade dengan 32 route `/admin`, CRUD master data, payment cash/approve/reject, booking create/confirm/cancel, QR/manual check-in, settings whitelist, audit filter, report CSV, dan masked secrets |
+| Payment, email, QR, Gymmi AI | Operasional memakai Midtrans Sandbox, Resend, QR visual/check-in, dan Gemini dengan fallback lokal |
+| Owner report/export, invoice PDF, upload bukti bayar, refund/correction workflow | Rencana pengembangan berikutnya |
 
 ## Tujuan Proyek
 
 - Menyediakan company profile digital untuk Platinum Gym Padang.
-- Menyediakan fondasi autentikasi untuk member, admin, dan owner.
+- Menyediakan autentikasi dan otorisasi untuk member, admin, dan owner.
 - Menyediakan halaman public untuk layanan, jadwal kelas, produk, galeri, lokasi, dan BMI.
-- Menyiapkan struktur aplikasi untuk fitur membership, booking, pembayaran, check-in, dan laporan.
+- Menyediakan flow membership, booking, pembayaran, notifikasi, check-in, CRUD master data, dan laporan operasional admin.
 - Mendokumentasikan proses konstruksi dan evolusi perangkat lunak secara bertahap.
 
 ## Masalah Yang Diselesaikan
@@ -54,31 +55,27 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 - Proteksi dashboard menggunakan middleware `auth` dan `verified`.
 - Role `member`, `admin`, dan `owner` menggunakan Spatie Laravel Permission.
 - Redirect dashboard berdasarkan role.
-- Policy dasar untuk membatasi akses data milik member sendiri.
+- Policy dan guard untuk membatasi akses data milik member sendiri.
 - Website public Blade untuk Beranda, Tentang Kami, Layanan, Kelas, Produk, Galeri, Lokasi, dan BMI.
 - Filter jadwal kelas berbasis query string.
 - Katalog produk dengan foto/fallback, harga, stok aktual dari database, filter, pencarian, dan arahan pembelian langsung di lokasi.
-- Gymmi, chatbot public statis dengan quick replies dan eskalasi WhatsApp.
+- Gymmi public/member dengan endpoint Gemini, fallback lokal, quick replies, dan guardrail data.
 - Google Maps iframe embed tanpa API key pada halaman Lokasi.
 - Seeder kontak public, promo, testimoni, galeri, produk, dan foto produk optimized.
 - Tampilan autentikasi bertema Platinum Gym dengan panel visual foto gym pada desktop dan form panel responsive.
-- Portal member v1 untuk dashboard, profil, membership, jadwal kelas, riwayat booking, transaksi, QR status, notifikasi, dan chatbot global Gymmi statis.
-- Admin portal v1 read-only untuk dashboard, check-in, booking, notifikasi, anggota, paket, kelas, pembayaran, produk, galeri, testimoni, promo, trainer, laporan, audit log, pengaturan, dan profil admin.
+- Portal member untuk dashboard, edit profil member, keamanan akun, checkout membership/paket sesi, booking/cancel kelas, riwayat booking, transaksi/detail/pay, QR visual, notifikasi, dan chatbot global Gymmi.
+- Admin portal custom Blade untuk dashboard, CRUD anggota/paket/kelas/jadwal/produk/konten/trainer, payment cash/approve/reject, booking create/confirm/cancel, check-in QR/manual, notifikasi, laporan CSV, audit log filter, pengaturan whitelist, tabel server-side pagination, dan profil admin.
 - Toggle tema dark/light mengikuti preferensi perangkat dan pilihan pengguna.
-- Struktur feature-based awal untuk Auth, PublicWebsite, dan Shared support.
-- Testing fitur autentikasi menggunakan Pest.
-- Testing fitur public website menggunakan Pest.
+- Struktur feature-based untuk Auth, PublicWebsite, MemberPortal, Admin, Payments, Bookings, CheckIns, Gymmi, dan Shared support.
+- Testing fitur autentikasi, public website, member portal, admin portal, pembayaran, booking, check-in, authorization, dan Gymmi menggunakan Pest.
 
 ### Fitur Rencana Pengembangan
 
-- Dashboard owner.
-- Workflow CRUD admin penuh.
-- Booking kelas.
-- Pembayaran membership dan layanan.
-- Check-in gym.
-- Laporan owner.
+- Dashboard owner dan laporan owner.
+- Invoice PDF/download dan upload bukti pembayaran manual bila diperlukan.
+- Refund/correction workflow untuk pembayaran operasional.
+- Export queue untuk dataset besar jika laporan mulai berat.
 - Upload media konten website.
-- Audit log aktivitas sistem.
 
 ## Tech Stack
 
@@ -90,6 +87,9 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 - Spatie Laravel MediaLibrary
 - Spatie Laravel Activitylog
 - Laravel Socialite
+- Resend
+- Midtrans Sandbox
+- Simple QRCode
 - Pest PHP
 - Blade
 - Tailwind CSS
@@ -147,7 +147,7 @@ php artisan test --no-ansi
 
 Project menggunakan Pest PHP. Pest berjalan di atas ekosistem PHPUnit, sehingga tetap kompatibel dengan testing Laravel.
 
-Baseline validasi terakhir pada fase admin v1 + Gymmi: `144 passed / 835 assertions`, `vendor\bin\pint --test` lulus, dan `npm.cmd run build` berhasil.
+Baseline validasi terakhir pada fase admin production custom Blade polish: `162 passed / 941 assertions`, `vendor\bin\pint --test` lulus, `composer validate --no-check-publish --no-ansi` valid, dan `npm.cmd run build` berhasil.
 
 Catatan: konfigurasi `phpunit.xml` memakai SQLite in-memory untuk testing. Pastikan PHP CLI memiliki extension `pdo_sqlite` aktif sebelum menjalankan full test suite lokal.
 
@@ -191,7 +191,7 @@ Rencana screenshot tambahan:
 - Halaman login.
 - Halaman registrasi member.
 - Halaman verifikasi email.
-- Dashboard admin v1 dan owner.
+- Dashboard member/admin dan owner.
 
 ## Documentation
 
