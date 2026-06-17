@@ -12,6 +12,7 @@ use App\Models\QrToken;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -80,7 +81,10 @@ test('complete member can access all member portal pages', function (string $pat
     $this->actingAs($user)->get($path)
         ->assertOk()
         ->assertSee($text)
-        ->assertSee('Member Area');
+        ->assertDontSee('Member Area')
+        ->assertDontSee('Akun Login')
+        ->assertDontSee('>Website<', false)
+        ->assertDontSee('Midtrans Sandbox');
 })->with([
     ['/member/dashboard', 'Dashboard Member'],
     ['/member/profil', 'Profil Member'],
@@ -243,6 +247,343 @@ test('member portal hides exhausted and expired package sessions', function () {
         ->assertDontSee('PT Expired Portal');
 });
 
+test('member transactions use server side pagination search and status filter', function () {
+    [$user, $member] = createPortalMember('PG-PORTAL-PAGINATED-PAYMENTS');
+
+    $otherUser = User::factory()->create(['email' => 'other.payment@example.com', 'phone' => '081299999901']);
+    $otherUser->assignRole('member');
+    $otherMember = Member::create([
+        'user_id' => $otherUser->id,
+        'member_code' => 'PG-PORTAL-OTHER-PAYMENTS',
+        'gender' => 'male',
+        'birth_date' => '1999-01-01',
+        'joined_at' => now()->subMonth()->toDateString(),
+        'status' => 'active',
+    ]);
+
+    $package = ServicePackage::create([
+        'name' => 'Membership Payment Pagination',
+        'slug' => 'membership-payment-pagination',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 250000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    $membership = Membership::create([
+        'member_id' => $member->id,
+        'package_id' => $package->id,
+        'code' => 'MBR-PAGINATED-PAYMENTS',
+        'start_date' => now()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 250000,
+        'status' => 'active',
+    ]);
+
+    $otherMembership = Membership::create([
+        'member_id' => $otherMember->id,
+        'package_id' => $package->id,
+        'code' => 'MBR-OTHER-PAYMENTS',
+        'start_date' => now()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 250000,
+        'status' => 'active',
+    ]);
+
+    foreach (range(1, 12) as $index) {
+        $payment = Payment::create([
+            'payment_code' => 'PAY-PAGE-'.str_pad((string) $index, 2, '0', STR_PAD_LEFT),
+            'member_id' => $member->id,
+            'payable_type' => Membership::class,
+            'payable_id' => $membership->id,
+            'method' => 'midtrans',
+            'amount' => 100000 + $index,
+            'status' => 'paid',
+        ]);
+        $payment->forceFill(['created_at' => now()->subMinutes($index), 'updated_at' => now()->subMinutes($index)])->save();
+    }
+
+    $waitingPayment = Payment::create([
+        'payment_code' => 'PAY-WAIT-01',
+        'member_id' => $member->id,
+        'payable_type' => Membership::class,
+        'payable_id' => $membership->id,
+        'method' => 'midtrans',
+        'amount' => 150000,
+        'status' => 'waiting_payment',
+        'midtrans_redirect_url' => 'https://sandbox.midtrans.test/pay-wait',
+    ]);
+    $waitingPayment->forceFill(['created_at' => now(), 'updated_at' => now()])->save();
+
+    Payment::create([
+        'payment_code' => 'PAY-OTHER-PRIVATE',
+        'member_id' => $otherMember->id,
+        'payable_type' => Membership::class,
+        'payable_id' => $otherMembership->id,
+        'method' => 'midtrans',
+        'amount' => 999000,
+        'status' => 'paid',
+    ]);
+
+    $this->actingAs($user)->get('/member/transaksi')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-8 dari 13 data')
+        ->assertSee('PAY-WAIT-01')
+        ->assertSee('PAY-PAGE-07')
+        ->assertDontSee('PAY-PAGE-09')
+        ->assertDontSee('PAY-OTHER-PRIVATE');
+
+    $this->actingAs($user)->get('/member/transaksi?page=2')
+        ->assertOk()
+        ->assertSee('Menampilkan 9-13 dari 13 data')
+        ->assertSee('PAY-PAGE-09')
+        ->assertDontSee('PAY-WAIT-01');
+
+    $this->actingAs($user)->get('/member/transaksi?status=paid')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-8 dari 12 data')
+        ->assertSee('status=paid', false)
+        ->assertDontSee('PAY-WAIT-01');
+
+    $this->actingAs($user)->get('/member/transaksi?q=PAY-PAGE-12')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-1 dari 1 data')
+        ->assertSee('PAY-PAGE-12')
+        ->assertDontSee('PAY-PAGE-01');
+});
+
+test('member package catalog uses server side pagination and filters', function () {
+    [$user] = createPortalMember('PG-PORTAL-PAGINATED-PACKAGES');
+
+    foreach (range(1, 7) as $index) {
+        ServicePackage::create([
+            'name' => 'Paket Member '.str_pad((string) $index, 2, '0', STR_PAD_LEFT),
+            'slug' => 'paket-member-page-'.$index,
+            'package_kind' => 'membership',
+            'type' => 'gym',
+            'price' => 200000 + $index,
+            'duration_days' => 30,
+            'is_active' => true,
+        ]);
+    }
+
+    ServicePackage::create([
+        'name' => 'PT Filter Member',
+        'slug' => 'pt-filter-member',
+        'package_kind' => 'personal_trainer',
+        'type' => 'pt',
+        'price' => 500000,
+        'session_count' => 5,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)->get('/member/membership')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-6 dari 8 data')
+        ->assertSee('Paket Member 01')
+        ->assertDontSee('Paket Member 07');
+
+    $this->actingAs($user)->get('/member/membership?page=2')
+        ->assertOk()
+        ->assertSee('Menampilkan 7-8 dari 8 data')
+        ->assertSee('Paket Member 07')
+        ->assertSee('PT Filter Member');
+
+    $this->actingAs($user)->get('/member/membership?kind=membership')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-6 dari 7 data')
+        ->assertSee('kind=membership', false)
+        ->assertDontSee('PT Filter Member');
+
+    $this->actingAs($user)->get('/member/membership?q=Paket%20Member%2007')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-1 dari 1 data')
+        ->assertSee('Paket Member 07')
+        ->assertSee('Checkout Membership');
+});
+
+test('member class schedule uses server side pagination and filters', function () {
+    [$user] = createPortalMember('PG-PORTAL-PAGINATED-SCHEDULES');
+
+    foreach (range(1, 10) as $index) {
+        $accessType = $index >= 9 ? 'paid' : 'included';
+        $gymClass = GymClass::create([
+            'name' => 'Jadwal Member '.str_pad((string) $index, 2, '0', STR_PAD_LEFT),
+            'slug' => 'jadwal-member-page-'.$index,
+            'class_type' => 'senam',
+            'access_type' => $accessType,
+            'required_package_type' => 'senam',
+            'capacity' => 20,
+            'member_price' => $accessType === 'paid' ? 50000 : 0,
+            'is_active' => true,
+        ]);
+
+        ClassSchedule::create([
+            'gym_class_id' => $gymClass->id,
+            'day_of_week' => 1,
+            'start_time' => '08:'.str_pad((string) $index, 2, '0', STR_PAD_LEFT).':00',
+            'end_time' => '09:'.str_pad((string) $index, 2, '0', STR_PAD_LEFT).':00',
+            'capacity' => 20,
+            'is_active' => true,
+        ]);
+    }
+
+    $this->actingAs($user)->get('/member/booking-kelas')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-9 dari 10 data')
+        ->assertSee('Jadwal Member 01')
+        ->assertDontSee('Jadwal Member 10');
+
+    $this->actingAs($user)->get('/member/booking-kelas?page=2')
+        ->assertOk()
+        ->assertSee('Menampilkan 10-10 dari 10 data')
+        ->assertSee('Jadwal Member 10');
+
+    $this->actingAs($user)->get('/member/booking-kelas?access=paid')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-2 dari 2 data')
+        ->assertSee('Jadwal Member 09')
+        ->assertSee('Jadwal Member 10')
+        ->assertDontSee('Jadwal Member 01');
+
+    $this->actingAs($user)->get('/member/booking-kelas?q=Jadwal%20Member%2010')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-1 dari 1 data')
+        ->assertSee('Jadwal Member 10')
+        ->assertSee('Booking Kelas');
+});
+
+test('member booking history uses server side pagination and own data filters', function () {
+    [$user, $member] = createPortalMember('PG-PORTAL-PAGINATED-BOOKINGS');
+
+    $gymClass = GymClass::create([
+        'name' => 'History Class Member',
+        'slug' => 'history-class-member',
+        'class_type' => 'senam',
+        'access_type' => 'included',
+        'required_package_type' => 'senam',
+        'capacity' => 20,
+        'is_active' => true,
+    ]);
+
+    $schedule = ClassSchedule::create([
+        'gym_class_id' => $gymClass->id,
+        'day_of_week' => 1,
+        'start_time' => '17:00:00',
+        'end_time' => '18:00:00',
+        'capacity' => 20,
+        'is_active' => true,
+    ]);
+
+    foreach (range(1, 9) as $index) {
+        ClassEnrollment::create([
+            'schedule_id' => $schedule->id,
+            'member_id' => $member->id,
+            'session_date' => now()->addDays($index)->toDateString(),
+            'status' => $index === 9 ? 'cancelled' : 'booked',
+        ]);
+    }
+
+    $otherUser = User::factory()->create(['email' => 'other.booking@example.com', 'phone' => '081299999902']);
+    $otherUser->assignRole('member');
+    $otherMember = Member::create([
+        'user_id' => $otherUser->id,
+        'member_code' => 'PG-PORTAL-OTHER-BOOKING',
+        'gender' => 'female',
+        'birth_date' => '1998-01-01',
+        'joined_at' => now()->subMonth()->toDateString(),
+        'status' => 'active',
+    ]);
+    ClassEnrollment::create([
+        'schedule_id' => $schedule->id,
+        'member_id' => $otherMember->id,
+        'session_date' => now()->addDays(20)->toDateString(),
+        'status' => 'booked',
+    ]);
+
+    $this->actingAs($user)->get('/member/riwayat-booking')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-8 dari 9 data')
+        ->assertSee('History Class Member')
+        ->assertDontSee('PG-PORTAL-OTHER-BOOKING');
+
+    $this->actingAs($user)->get('/member/riwayat-booking?status=cancelled')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-1 dari 1 data')
+        ->assertSee('Dibatalkan');
+
+    $this->actingAs($user)->get('/member/riwayat-booking?q=History%20Class')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-8 dari 9 data')
+        ->assertSee('q=History%20Class', false);
+});
+
+test('member notifications use server side pagination and read filters', function () {
+    [$user] = createPortalMember('PG-PORTAL-PAGINATED-NOTIFICATIONS');
+
+    foreach (range(1, 8) as $index) {
+        DatabaseNotification::query()->create([
+            'id' => (string) Str::uuid(),
+            'type' => 'MemberPaginationNotification',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $user->id,
+            'data' => ['title' => 'Notif Baru '.str_pad((string) $index, 2, '0', STR_PAD_LEFT), 'body' => 'Notifikasi baru member.'],
+            'read_at' => null,
+            'created_at' => now()->subMinutes($index),
+            'updated_at' => now()->subMinutes($index),
+        ]);
+    }
+
+    DatabaseNotification::query()->create([
+        'id' => (string) Str::uuid(),
+        'type' => 'MemberPaginationNotification',
+        'notifiable_type' => User::class,
+        'notifiable_id' => $user->id,
+        'data' => ['title' => 'Notif Dibaca 09', 'body' => 'Notifikasi sudah dibaca.'],
+        'read_at' => now(),
+        'created_at' => now()->subMinutes(9),
+        'updated_at' => now()->subMinutes(9),
+    ]);
+
+    $otherUser = User::factory()->create(['email' => 'other.notification@example.com', 'phone' => '081299999903']);
+    $otherUser->assignRole('member');
+    DatabaseNotification::query()->create([
+        'id' => (string) Str::uuid(),
+        'type' => 'MemberPaginationNotification',
+        'notifiable_type' => User::class,
+        'notifiable_id' => $otherUser->id,
+        'data' => ['title' => 'Notif Member Lain', 'body' => 'Tidak boleh tampil.'],
+        'read_at' => null,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $this->actingAs($user)->get('/member/notifikasi')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-8 dari 9 data')
+        ->assertSee('Tandai Semua Dibaca')
+        ->assertSee('Notif Baru 01')
+        ->assertDontSee('Notif Dibaca 09')
+        ->assertDontSee('Notif Member Lain');
+
+    $this->actingAs($user)->get('/member/notifikasi?page=2')
+        ->assertOk()
+        ->assertSee('Menampilkan 9-9 dari 9 data')
+        ->assertSee('Notif Dibaca 09');
+
+    $this->actingAs($user)->get('/member/notifikasi?status=dibaca')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-1 dari 1 data')
+        ->assertSee('Notif Dibaca 09')
+        ->assertDontSee('Notif Baru 01');
+
+    $this->actingAs($user)->get('/member/notifikasi?status=baru')
+        ->assertOk()
+        ->assertSee('Menampilkan 1-8 dari 8 data')
+        ->assertSee('Notif Baru 08')
+        ->assertDontSee('Notif Dibaca 09');
+});
 test('expired qr token is not shown as active', function () {
     [$user, $member] = createPortalMember('PG-PORTAL-QR-EXPIRED');
 
@@ -348,7 +689,7 @@ test('dashboard renders membership payment booking and qr summaries', function (
         ->assertSee('Gym Umum Test')
         ->assertSee('Zumba Portal')
         ->assertSee('PAY-PORTAL-0001')
-        ->assertSee('QR siap dipantau')
+        ->assertSee('QR aktif')
         ->assertDontSee($token);
 });
 
