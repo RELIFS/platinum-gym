@@ -85,7 +85,47 @@
         @break
 
     @case('empty')
-        <svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 7.5h12M6 12h12M6 16.5h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+        <svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 8 8-4 8 4v8l-8 4-8-4V8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="m4 8 8 4 8-4M12 12v8" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M9 3.5 15 6.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1 3" /></svg>
+        @break
+
+    @case('search')
+        <svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.75 17.5a6.75 6.75 0 1 0 0-13.5 6.75 6.75 0 0 0 0 13.5ZM15.5 15.5 20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        @break
+
+    @case('download')
+        <svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v10m0 0 3.5-3.5M12 14l-3.5-3.5M5 17.5v1A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        @break
+
+    @case('check')
+        <svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        @break
+
+    @case('x')
+        <svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+        @break
+
+    @case('warning')
+        <svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4.5 20.5 19h-17L12 4.5ZM12 10v4M12 16.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        @break
+
+    @case('eye')
+        <svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.75 12C4.85 7.85 8.05 5.75 12 5.75c3.95 0 7.15 2.1 9.25 6.25-2.1 4.15-5.3 6.25-9.25 6.25-3.95 0-7.15-2.1-9.25-6.25Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M12 14.75a2.75 2.75 0 1 0 0-5.5 2.75 2.75 0 0 0 0 5.5Z" stroke="currentColor" stroke-width="1.8" /></svg>
+        @break
+
+    @case('eye-off')
+        <svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 3.5 20.5 20.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /><path d="M9.4 6.18C10.23 6 11.1 5.9 12 5.9c3.95 0 7.15 2.1 9.25 6.25a13 13 0 0 1-2.32 3.2M6.6 7.7C4.98 8.74 3.66 10.2 2.75 12c2.1 4.15 5.3 6.25 9.25 6.25 1.05 0 2.05-.15 3-.45" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /><path d="M9.9 9.9a2.75 2.75 0 0 0 3.86 3.86" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+        @break
+
+    @case('package')
+        <svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 8.5 4.5v9L12 21l-8.5-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9M7.75 5.25l8.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        @break
+
+    @case('clipboard-list')
+        <svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 4.75h6a1 1 0 0 1 1 1V7H8V5.75a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M8 5.75H6.5A1.5 1.5 0 0 0 5 7.25v11.5A1.5 1.5 0 0 0 6.5 20.25h11A1.5 1.5 0 0 0 19 18.75V7.25a1.5 1.5 0 0 0-1.5-1.5H16" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M8.5 11h7M8.5 14h7M8.5 17h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+        @break
+
+    @case('history')
+        <svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.25-5.36" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /><path d="M4.5 4.5V8H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /><path d="M12 8v4.5l3 1.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
         @break
 
     @default
