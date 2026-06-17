@@ -59,8 +59,8 @@ Route::middleware(['auth', 'verified', 'role:member', 'member.profile.complete']
         Route::post('/transaksi/{payment}/bayar', [MemberCheckoutController::class, 'pay'])->name('transactions.pay');
         Route::get('/qr', [MemberPortalController::class, 'qr'])->name('qr');
         Route::get('/notifikasi', [MemberPortalController::class, 'notifications'])->name('notifications');
-        Route::post('/notifikasi/{notification}/baca', [MemberNotificationController::class, 'read'])->name('notifications.read');
         Route::post('/notifikasi/baca-semua', [MemberNotificationController::class, 'readAll'])->name('notifications.read-all');
+        Route::post('/notifikasi/{notification}/baca', [MemberNotificationController::class, 'read'])->name('notifications.read');
     });
 
 Route::middleware(['auth', 'verified', 'role:admin'])

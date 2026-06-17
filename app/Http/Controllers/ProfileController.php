@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Features\Admin\Queries\AdminDashboardQuery;
+use App\Features\MemberPortal\Queries\MemberDashboardQuery;
 use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,8 +18,29 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $user = $request->user();
+
+        if ($user->hasAnyRole(['admin', 'owner'])) {
+            $query = app(AdminDashboardQuery::class);
+
+            return view('admin.pages.account-security', [
+                'user' => $user,
+                'portal' => $query->forUser($user),
+                'navigation' => $query->navigation(),
+            ]);
+        }
+
+        if ($user->hasRole('member') && $user->member) {
+            $query = app(MemberDashboardQuery::class);
+
+            return view('member.pages.account-security', [
+                'user' => $user,
+                'portal' => $query->forUser($user),
+            ]);
+        }
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
         ]);
     }
 
