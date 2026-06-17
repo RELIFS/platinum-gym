@@ -116,7 +116,10 @@
                                 <p class="truncate font-black text-zinc-950 dark:text-white">{{ $member->user?->name ?? '-' }}</p>
                                 <p class="mt-1 font-mono text-xs font-bold text-zinc-500 dark:text-zinc-400">{{ $member->member_code }}</p>
                             </div>
-                            <span class="admin-status-pill bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">{{ str((string) $member->status)->headline() }}</span>
+                            @php
+                                $memberBadge = \App\Features\Admin\ViewModels\AdminStatusViewModel::member($member->status);
+                            @endphp
+                            <span class="admin-status-pill {{ $memberBadge['class'] }}">{{ $memberBadge['label'] }}</span>
                         </div>
                     </article>
                 @empty
@@ -145,7 +148,10 @@
                         </div>
                         <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-200 pt-3 dark:border-white/10">
                             <span class="text-xs font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">{{ str((string) $payment->method)->headline() }}</span>
-                            <span class="admin-status-pill bg-zinc-100 text-zinc-700 dark:bg-white/[0.07] dark:text-zinc-300">{{ str((string) $payment->status)->headline() }}</span>
+                            @php
+                                $paymentBadge = \App\Features\Admin\ViewModels\AdminStatusViewModel::payment($payment->status);
+                            @endphp
+                            <span class="admin-status-pill {{ $paymentBadge['class'] }}">{{ $paymentBadge['label'] }}</span>
                         </div>
                     </article>
                 @empty

@@ -6,8 +6,12 @@
     $activePackageSessions = $portal['activePackageSessions'];
     $payments = $portal['payments'];
     $upcomingEnrollments = $portal['upcomingEnrollments'];
+    $qrToken = $portal['qrToken'] ?? null;
     $qrTokenIsActive = (bool) ($portal['qrTokenIsActive'] ?? false);
     $qrStatusLabel = $portal['qrStatusLabel'] ?? 'Belum diterbitkan';
+    $dashboardQrSvg = $qrTokenIsActive && $qrToken
+        ? app(\App\Support\QrSvgRenderer::class)->render($qrToken->token, 160)
+        : '';
     $stats = $portal['stats'];
     $activity = $portal['activity'];
     $statusLabel = match ((string) $member->status) {
@@ -17,7 +21,6 @@
         default => str((string) $member->status)->headline()->toString(),
     };
     $quickActions = [
-        ['label' => 'Profil', 'description' => 'Data akun dan identitas', 'route' => 'member.profile', 'icon' => 'user'],
         ['label' => 'Membership', 'description' => 'Status paket member', 'route' => 'member.membership', 'icon' => 'card'],
         ['label' => 'Jadwal Kelas', 'description' => 'Kelas aktif dan kuota', 'route' => 'member.booking', 'icon' => 'calendar'],
         ['label' => 'Transaksi', 'description' => 'Riwayat pembayaran', 'route' => 'member.transactions', 'icon' => 'receipt'],
@@ -57,11 +60,20 @@
                 </div>
 
                 <div class="rounded-lg border border-white/10 bg-white p-4 text-zinc-950 shadow-[0_24px_70px_rgba(0,0,0,0.32)]">
-                    <div class="grid aspect-square place-items-center rounded-md border border-zinc-200 bg-[linear-gradient(135deg,#fff,#f4f4f5)] p-5">
-                        @include('member.partials.icon', ['name' => 'qr', 'class' => 'h-28 w-28 text-zinc-950'])
-                    </div>
+                    <a href="{{ route('member.qr') }}" class="block rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40" aria-label="Buka halaman QR member">
+                        <div class="grid aspect-square place-items-center rounded-md border border-zinc-200 bg-[linear-gradient(135deg,#fff,#f4f4f5)] p-4">
+                            @if ($qrTokenIsActive && filled($dashboardQrSvg))
+                                <div class="h-full w-full overflow-hidden rounded-md text-zinc-950 [&_svg]:h-full [&_svg]:w-full" aria-hidden="true">
+                                    {!! $dashboardQrSvg !!}
+                                </div>
+                            @else
+                                @include('member.partials.icon', ['name' => 'qr', 'class' => 'h-24 w-24 text-zinc-400'])
+                            @endif
+                        </div>
+                    </a>
                     <p class="mt-3 text-center text-xs font-black uppercase tracking-[0.14em] text-zinc-500">QR Member</p>
-                    <p class="mt-1 text-center text-sm font-black text-zinc-950">{{ $qrTokenIsActive ? 'QR siap dipantau' : $qrStatusLabel }}</p>
+                    <p class="mt-1 text-center text-sm font-black {{ $qrTokenIsActive ? 'text-emerald-700' : 'text-zinc-500' }}">{{ $qrTokenIsActive ? 'QR aktif' : $qrStatusLabel }}</p>
+                    <a href="{{ route('member.qr') }}" class="mt-3 inline-flex w-full items-center justify-center rounded-md bg-zinc-950 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-white transition hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40">{{ $qrTokenIsActive ? 'Buka QR' : 'Detail QR' }}</a>
                 </div>
             </div>
         </section>
@@ -190,20 +202,7 @@
 
             <div class="mt-5 grid gap-3">
                 @forelse ($upcomingEnrollments as $enrollment)
-                    @php
-                        $enrollmentStatusLabel = match ((string) $enrollment->status) {
-                            'booked', 'active', 'confirmed' => 'Terdaftar',
-                            'pending_payment' => 'Menunggu Bayar',
-                            'cancelled', 'canceled' => 'Dibatalkan',
-                            default => str((string) $enrollment->status)->headline()->toString(),
-                        };
-                        $enrollmentStatusClass = match ((string) $enrollment->status) {
-                            'booked', 'active', 'confirmed' => 'member-status-success',
-                            'pending_payment' => 'member-status-warning',
-                            'cancelled', 'canceled' => 'member-status-danger',
-                            default => 'member-status-neutral',
-                        };
-                    @endphp
+                    @php($enrollmentMeta = $enrollment->member_status_meta ?? ['label' => str((string) $enrollment->status)->headline()->toString(), 'class' => 'member-status-neutral'])
                     <article class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45">
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div class="min-w-0">
@@ -212,7 +211,7 @@
                                     {{ $enrollment->session_date?->translatedFormat('l, d M Y') }} - {{ substr((string) $enrollment->schedule?->start_time, 0, 5) }}
                                 </p>
                             </div>
-                            <span class="member-status-pill {{ $enrollmentStatusClass }}">{{ $enrollmentStatusLabel }}</span>
+                            <span class="member-status-pill {{ $enrollmentMeta['class'] }}">{{ $enrollmentMeta['label'] }}</span>
                         </div>
                     </article>
                 @empty
@@ -239,24 +238,7 @@
 
             <div class="mt-5 space-y-3">
                 @forelse ($payments->take(4) as $payment)
-                    @php
-                        $paymentStatusLabel = match ((string) $payment->status) {
-                            'waiting_payment', 'pending', 'unpaid' => 'Menunggu Bayar',
-                            'waiting_confirmation' => 'Menunggu Konfirmasi',
-                            'paid' => 'Lunas',
-                            'rejected' => 'Ditolak',
-                            'failed' => 'Gagal',
-                            'expired' => 'Kedaluwarsa',
-                            'cancelled', 'canceled' => 'Dibatalkan',
-                            default => str((string) $payment->status)->headline()->toString(),
-                        };
-                        $paymentStatusClass = match ((string) $payment->status) {
-                            'paid' => 'member-status-success',
-                            'waiting_payment', 'pending', 'unpaid', 'waiting_confirmation' => 'member-status-warning',
-                            'rejected', 'failed', 'expired', 'cancelled', 'canceled' => 'member-status-danger',
-                            default => 'member-status-neutral',
-                        };
-                    @endphp
+                    @php($paymentMeta = $payment->member_status_meta ?? ['label' => str((string) $payment->status)->headline()->toString(), 'class' => 'member-status-neutral'])
                     <article class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
@@ -267,7 +249,7 @@
                         </div>
                         <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-200 pt-3 dark:border-white/10">
                             <span class="text-xs font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">{{ str((string) $payment->method)->headline() }}</span>
-                            <span class="member-status-pill {{ $paymentStatusClass }}">{{ $paymentStatusLabel }}</span>
+                            <span class="member-status-pill {{ $paymentMeta['class'] }}">{{ $paymentMeta['label'] }}</span>
                         </div>
                     </article>
                 @empty

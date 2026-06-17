@@ -53,7 +53,7 @@ class MemberPortalController extends Controller
     private function page(Request $request, MemberDashboardQuery $query, string $key, string $title, string $description): View
     {
         return view('member.page', [
-            'portal' => $query->forUser($request->user()),
+            'portal' => $query->forUser($request->user(), $key, $request->query()),
             'page' => [
                 'key' => $key,
                 'title' => $title,

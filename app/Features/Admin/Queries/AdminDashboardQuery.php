@@ -77,7 +77,7 @@ class AdminDashboardQuery
             ]],
             ['label' => 'Anggota & Paket', 'items' => [
                 ['label' => 'Anggota', 'route' => 'admin.members', 'active' => 'admin.members', 'icon' => 'members'],
-                ['label' => 'Paket', 'route' => 'admin.packages', 'active' => 'admin.packages', 'icon' => 'card'],
+                ['label' => 'Paket', 'route' => 'admin.packages', 'active' => 'admin.packages', 'icon' => 'package'],
             ]],
             ['label' => 'Aktivitas', 'items' => [
                 ['label' => 'Kelas', 'route' => 'admin.classes', 'active' => 'admin.classes', 'icon' => 'activity'],
@@ -94,8 +94,10 @@ class AdminDashboardQuery
             ['label' => 'Tim & Sistem', 'items' => [
                 ['label' => 'Trainer', 'route' => 'admin.trainers', 'active' => 'admin.trainers', 'icon' => 'trainer'],
                 ['label' => 'Laporan', 'route' => 'admin.reports', 'active' => 'admin.reports', 'icon' => 'chart'],
-                ['label' => 'Audit Log', 'route' => 'admin.audit-log', 'active' => 'admin.audit-log', 'icon' => 'shield'],
+                ['label' => 'Audit Log', 'route' => 'admin.audit-log', 'active' => 'admin.audit-log', 'icon' => 'clipboard-list'],
                 ['label' => 'Pengaturan', 'route' => 'admin.settings', 'active' => 'admin.settings', 'icon' => 'settings'],
+            ]],
+            ['label' => 'Akun', 'items' => [
                 ['label' => 'Profil Admin', 'route' => 'admin.profile', 'active' => 'admin.profile', 'icon' => 'user'],
             ]],
         ];
@@ -304,10 +306,11 @@ class AdminDashboardQuery
     private function notificationsModule(): array
     {
         return array_replace($this->module('Kesiapan Notifikasi', 'Area pengingat member, booking, dan pembayaran.', 'Belum ada daftar notifikasi operasional.', ['Area', 'Status', 'Catatan']), [
+            'view' => 'admin.partials.notifications-page',
             'rows' => collect([
-                ['Membership', 'Siap', 'Pengingat masa aktif dan renewal.'],
-                ['Booking', 'Siap', 'Reminder jadwal kelas dan perubahan kuota.'],
-                ['Pembayaran', 'Siap', 'Follow-up pembayaran menunggu.'],
+                ['area' => 'Membership', 'status' => 'Siap', 'kind' => 'success', 'note' => 'Pengingat masa aktif dan renewal.'],
+                ['area' => 'Booking', 'status' => 'Siap', 'kind' => 'success', 'note' => 'Reminder jadwal kelas dan perubahan kuota.'],
+                ['area' => 'Pembayaran', 'status' => 'Siap', 'kind' => 'success', 'note' => 'Follow-up pembayaran menunggu.'],
             ]),
         ]);
     }
