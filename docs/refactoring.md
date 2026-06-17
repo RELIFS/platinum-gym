@@ -1,6 +1,6 @@
 # Refactoring Documentation
 
-Status: Updated 2026-06-14. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
+Status: Updated 2026-06-15. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
 
 Dokumen ini mencatat perubahan struktur kode yang dilakukan untuk meningkatkan keterbacaan, maintainability, dan kesiapan evolusi sistem.
 
@@ -530,3 +530,45 @@ Admin membutuhkan workbench yang tetap cepat, dapat dicari lintas seluruh data, 
 - Halaman seperti produk, anggota, pembayaran, kelas, booking, check-in, galeri, testimoni, promo, trainer, audit log, dan pengaturan dapat memuat data bertahap.
 - Search dan filter bekerja dari query database, bukan hanya data yang sedang terlihat.
 - Mobile card fallback dan tabel desktop tetap memakai komponen yang sama.
+
+## 17. Member Server-Side Pagination Dan Status ViewModel
+
+### Sebelum
+
+Halaman member yang berisi daftar memakai data terbatas dari dashboard query. Beberapa status pembayaran, booking, notifikasi, paket, dan jadwal juga masih diformat langsung di Blade.
+
+### Masalah
+
+Saat data member bertambah, pencarian dan filter perlu berlaku pada seluruh data milik member, bukan hanya data yang sedang tampil. Logic status yang berulang di Blade juga membuat halaman lebih sulit dipelihara.
+
+### Perubahan
+
+`MemberDashboardQuery` sekarang membedakan kebutuhan dashboard ringkas dan halaman list aktif. Halaman membership, booking kelas, riwayat booking, transaksi, dan notifikasi memakai pagination Laravel dengan query string dan batas tetap per halaman.
+
+Status label/class dipusatkan pada:
+
+```text
+app/Features/MemberPortal/ViewModels/MemberPortalStatusViewModel.php
+```
+
+Partial member reusable ditambahkan untuk toolbar filter, pagination, dan empty state:
+
+```text
+resources/views/member/partials/filter-toolbar.blade.php
+resources/views/member/partials/pagination.blade.php
+resources/views/member/partials/empty-state.blade.php
+```
+
+### Alasan
+
+- Query tetap own-data dan bekerja dari database.
+- Blade fokus pada render markup.
+- Search/filter tetap akurat ketika transaksi, booking, paket, atau notifikasi bertambah.
+- UI member memakai pola yang lebih konsisten tanpa mengulang markup filter dan pagination.
+
+### Dampak
+
+- List member menjadi lebih siap untuk data production.
+- Copy member lebih fokus dan tidak menampilkan label internal.
+- Sidebar/drawer member lebih minimal dengan footer `Keluar` saja.
+- Test `MemberPortalTest` menjaga pagination/filter, own-data boundary, dan copy production member.

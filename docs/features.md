@@ -1,6 +1,6 @@
 # Feature Documentation
 
-Status: Updated 2026-06-14. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
+Status: Updated 2026-06-15. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
 
 Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Platinum Gym Padang.
 
@@ -27,10 +27,10 @@ Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Pla
 | Policy own-data | Sudah tersedia | Member |
 | Auth UI Platinum Gym | Sudah tersedia dan dipoles visual | Pengunjung/member |
 | Theme toggle | Sudah tersedia | Pengguna UI |
-| Member portal | Operasional: edit profil member, membership checkout, paket sesi, booking, transaksi, QR, notifikasi | Member |
+| Member portal | Operasional: edit profil member, membership checkout, paket sesi, booking, transaksi, QR, notifikasi, dan server-side pagination/filter | Member |
 | Admin portal | Production custom Blade: CRUD master data, pembayaran, booking, check-in, settings, audit, laporan CSV, dan tabel paginated | Admin |
 | Dashboard owner placeholder | Sudah tersedia dasar | Owner |
-| Membership package | Checkout Midtrans Sandbox dan approval admin aktif | Member, admin |
+| Membership package | Checkout Midtrans dan approval admin aktif | Member, admin |
 | Booking kelas | Booking/cancel member dan confirm/cancel admin aktif | Member, admin |
 | Pembayaran | Midtrans Sandbox, webhook, invoice, approval/reject admin aktif | Member, admin |
 | Check-in gym | QR member dan scan token admin aktif | Member, admin |
@@ -414,7 +414,7 @@ Member portal digunakan agar member yang sudah login dapat mengecek informasi ak
 |---|---|
 | `/member/dashboard` | Ringkasan membership, paket sesi, transaksi, booking, QR, dan notifikasi |
 | `/member/profil` | Profil member editable dan akses ke keamanan akun |
-| `/member/membership` | Status membership, katalog paket, dan checkout Midtrans Sandbox |
+| `/member/membership` | Status membership, katalog paket, dan checkout Midtrans |
 | `/member/booking-kelas` | Booking jadwal kelas sesuai membership/paket sesi/payment |
 | `/member/riwayat-booking` | Riwayat booking member |
 | `/member/transaksi` | Riwayat transaksi, detail, invoice, dan tombol bayar Midtrans |
@@ -426,6 +426,9 @@ Member portal digunakan agar member yang sudah login dapat mengecek informasi ak
 
 - Sidebar dan mobile drawer hanya berisi navigasi, footer action, dan grouped menu `Utama`, `Aktivitas`, dan `Akun`.
 - Identitas member, kode member, status membership, dan invoice tidak ditampilkan di sidebar agar tidak redundan.
+- Footer sidebar/drawer hanya menampilkan `Keluar`; shortcut website dan akun login tidak diduplikasi di sidebar member.
+- Katalog membership, booking kelas, riwayat booking, transaksi, dan notifikasi memakai server-side pagination/filter dengan query string agar pencarian berlaku pada seluruh data milik member, bukan hanya item yang sedang terlihat.
+- Batas list member dibuat tetap: paket 6 item, jadwal 9 item, transaksi 8 item, riwayat booking 8 item, dan notifikasi 8 item per halaman.
 - Gymmi tersedia sebagai floating widget global Gemini-backed di semua halaman member dan tetap mengarah ke route internal untuk action aman.
 - Gymmi member menampilkan action `QR Member` ke `/member/qr` dan tidak menampilkan token QR mentah.
 - Route/page `/member/ai-assistant` tidak aktif; Gymmi tetap berupa widget global, bukan halaman terpisah.

@@ -4,6 +4,33 @@ Semua perubahan penting pada proyek Platinum Gym Padang dicatat pada dokumen ini
 
 Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Dependency`, `Refactor`, dan `Testing`.
 
+## [Unreleased] - Admin Panel UI/UX & A11y Polish
+
+### Added
+
+- Menambahkan `AdminStatusViewModel` dan kelas pill semantik (`admin-status-success/warning/danger/info/neutral`) untuk status member, pembayaran, dan booking di dashboard serta panel operasional admin.
+- Menambahkan tombol `admin-button-danger` dan dukungan opsi `variant=danger` plus `confirm` pada partial aksi tabel admin.
+- Menambahkan konfirmasi (`confirm()`) sebelum menyetujui/menolak pembayaran, membatalkan booking, dan menyimpan pengaturan website.
+- Menambahkan label aksesibel dan `aria-label` pada input alasan penolakan pembayaran.
+- Menambahkan render `type=password` dengan toggle show/hide untuk field pengaturan sensitif (defensif).
+- Menambahkan blok identitas admin (avatar inisial, nama, role) pada footer sidebar desktop dan drawer mobile.
+- Menambahkan preview file existing, `aria-invalid`/`aria-describedby`, dan loading state pada form resource admin.
+- Menambahkan ikon admin `search`, `download`, `check`, `x`, `warning`, `eye`, `eye-off`, dan mendesain ulang ikon `empty`; menambahkan ikon search pada input pencarian tabel.
+- Menambahkan link `Ganti Password` pada grup sidebar `Akun` (mengarah ke Breeze `profile.edit`) dan CTA `Edit Akun Saya` pada halaman Profil Admin.
+
+### Changed
+
+- Badge pembayaran tertunda kini tampil di mobile dengan `aria-label` deskriptif.
+- Mobile drawer admin mengikuti tema light/dark agar konsisten dengan sidebar desktop.
+- `<main>` admin memakai `overflow-x-clip` untuk mencegah clipping elemen melayang.
+- Tombol "Reset" pada tabel admin menjadi "Bersihkan Pencarian"; tombol "Terapkan" filter laporan/audit memakai variant primer.
+- Export CSV laporan tersinkron dengan tanggal yang sedang dipilih melalui Alpine binding, dan filter tanggal memvalidasi `date_to >= date_from`.
+- Catatan cash payment memakai `textarea`; field wajib pada form operasional admin diberi tanda `*`.
+
+### Testing
+
+- Menambahkan `tests/Feature/AdminPortalImprovementsTest.php` dengan 9 pengujian untuk status pill semantik, konfirmasi aksi destructif, label aksesibel, preview file, identitas sidebar, link ganti password, badge pembayaran, dan binding export laporan.
+
 ## [0.1.0] - Auth Foundation
 
 ### Added
@@ -83,6 +110,7 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Menambahkan payment cash admin, booking create admin, check-in manual, settings whitelist, audit filter, report CSV export, dan partial `admin.pages.operations`.
 - Menambahkan `MemberProfileController`, `UpdateMemberProfileRequest`, dan `UpdateMemberProfileAction` untuk update profil member dari `/member/profil`.
 - Menambahkan server-side pagination, search, dan filter status pada tabel modul admin yang datanya dapat bertambah.
+- Menambahkan server-side pagination, search, dan filter pada katalog membership, jadwal booking, riwayat booking, transaksi, dan notifikasi member.
 - Menambahkan workflow pembayaran Midtrans Sandbox, invoice, webhook idempotent, QR member, check-in admin, dan notifikasi operasional member.
 
 ### Refactor
@@ -94,6 +122,7 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Memusatkan normalisasi nomor Indonesia pada `NormalizeIndonesianPhone`.
 - Memindahkan logic chatbot public/member ke `resources/js/public-chatbot.js` dan mempertahankan export lama untuk kompatibilitas.
 - Menambahkan komponen dashboard dan UI Blade reusable untuk app shell internal.
+- Memusatkan status label member ke `MemberPortalStatusViewModel` dan menambahkan partial member untuk filter toolbar, pagination, dan empty state.
 
 ### Changed
 
@@ -116,10 +145,12 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Memoles `/profile` menjadi halaman `Keamanan Akun` untuk email login, password, dan penghapusan akun.
 - Memperbesar target checkbox mahasiswa di form profil member menjadi 24px untuk aksesibilitas.
 - Merapikan copy dan layout admin agar fokus pada pekerjaan inti tanpa label internal seperti mode/demo.
+- Merapikan sidebar dan copy member agar footer hanya `Keluar`, tanpa label internal `Member Area`/`Member Portal`, tanpa shortcut redundan, dan tanpa penyebutan environment payment pada UI member.
 
 ### Testing
 
-- `php artisan test --no-ansi` lulus dengan 165 test dan 999 assertion.
+- `php artisan test --no-ansi` lulus dengan 170 test dan 1101 assertion.
+- `php artisan test --filter=MemberPortalTest --no-ansi` lulus dengan 38 test dan 227 assertion.
 - Browser QA admin lulus untuk `/admin`, `/admin/pembayaran`, `/admin/produk`, `/admin/resource/products/tambah`, `/admin/booking`, `/admin/check-in`, `/admin/pengaturan`, dan `/admin/laporan` pada viewport 360px, 390px, 768px, 1366px, dan 1440px tanpa console error atau horizontal overflow.
 - `npm.cmd run build` berhasil membuat asset Vite production.
 - `vendor\bin\pint --test` lulus.

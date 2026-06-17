@@ -15,7 +15,7 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 | Auth, role, permission, Google OAuth | Operasional dengan UI auth Platinum Gym, email verification, Google onboarding, dan role redirect |
 | Public website company profile | Operasional dengan halaman informasi, katalog produk stok aktual, real image assets, dan Gymmi public |
 | Clean architecture foundation | Aktif berbasis `app/Features`, Action, Query, FormRequest, ViewModel, dan component Blade |
-| Member portal | Operasional: profil editable, checkout membership/paket sesi, booking/cancel, transaksi, QR, notifikasi, sidebar minimal, dan Gymmi global |
+| Member portal | Operasional: profil editable, checkout membership/paket sesi, booking/cancel, transaksi, QR, notifikasi, sidebar minimal, server-side pagination/filter, dan Gymmi global |
 | Admin portal | Production custom Blade dengan 32 route `/admin`, CRUD master data, payment cash/approve/reject, booking create/confirm/cancel, QR/manual check-in, settings whitelist, audit filter, report CSV, dan masked secrets |
 | Payment, email, QR, Gymmi AI | Operasional memakai Midtrans Sandbox, Resend, QR visual/check-in, dan Gemini dengan fallback lokal |
 | Owner report/export, invoice PDF, upload bukti bayar, refund/correction workflow | Rencana pengembangan berikutnya |
@@ -63,7 +63,7 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 - Google Maps iframe embed tanpa API key pada halaman Lokasi.
 - Seeder kontak public, promo, testimoni, galeri, produk, dan foto produk optimized.
 - Tampilan autentikasi bertema Platinum Gym dengan panel visual foto gym pada desktop dan form panel responsive.
-- Portal member untuk dashboard, edit profil member, keamanan akun, checkout membership/paket sesi, booking/cancel kelas, riwayat booking, transaksi/detail/pay, QR visual, notifikasi, dan chatbot global Gymmi.
+- Portal member untuk dashboard, edit profil member, keamanan akun, checkout membership/paket sesi, booking/cancel kelas, riwayat booking, transaksi/detail/pay, QR visual, notifikasi, server-side pagination/filter, dan chatbot global Gymmi.
 - Admin portal custom Blade untuk dashboard, CRUD anggota/paket/kelas/jadwal/produk/konten/trainer, payment cash/approve/reject, booking create/confirm/cancel, check-in QR/manual, notifikasi, laporan CSV, audit log filter, pengaturan whitelist, tabel server-side pagination, dan profil admin.
 - Toggle tema dark/light mengikuti preferensi perangkat dan pilihan pengguna.
 - Struktur feature-based untuk Auth, PublicWebsite, MemberPortal, Admin, Payments, Bookings, CheckIns, Gymmi, dan Shared support.
@@ -147,7 +147,7 @@ php artisan test --no-ansi
 
 Project menggunakan Pest PHP. Pest berjalan di atas ekosistem PHPUnit, sehingga tetap kompatibel dengan testing Laravel.
 
-Baseline validasi terakhir pada fase production member/admin: `165 passed / 999 assertions`, `vendor\bin\pint --test` lulus, `composer validate --no-check-publish --no-ansi` valid, dan `npm.cmd run build` berhasil.
+Baseline validasi terakhir pada fase production member/admin: `170 passed / 1101 assertions`, `vendor\bin\pint --test` lulus, `composer validate --no-check-publish --no-ansi` valid, dan `npm.cmd run build` berhasil.
 
 Catatan: konfigurasi `phpunit.xml` memakai SQLite in-memory untuk testing. Pastikan PHP CLI memiliki extension `pdo_sqlite` aktif sebelum menjalankan full test suite lokal.
 
