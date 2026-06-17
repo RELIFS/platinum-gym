@@ -33,11 +33,10 @@
         <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-500/70 to-transparent" aria-hidden="true"></div>
         <div class="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div class="max-w-3xl">
-                <p class="text-xs font-black uppercase tracking-[0.2em] text-gold-400">Member Portal</p>
-                <h2 class="mt-3 text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl">Kelola {{ $page['title'] }}</h2>
+
+                <h2 class="text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl">{{ $page['title'] }}</h2>
                 <p class="mt-4 text-sm font-medium leading-7 text-zinc-300">{{ $page['description'] }}</p>
             </div>
-            <a href="{{ route('member.dashboard') }}" class="member-button-primary">Dashboard</a>
         </div>
     </section>
 

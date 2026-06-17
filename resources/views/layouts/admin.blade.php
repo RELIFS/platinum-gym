@@ -1,6 +1,12 @@
 @php
     $admin = $portal['admin'] ?? auth()->user();
     $pendingPaymentCount = data_get(collect($portal['stats'] ?? [])->firstWhere('label', 'Pembayaran Pending'), 'value', '0');
+    $adminName = (string) ($admin?->name ?? 'Admin');
+    $adminInitial = mb_strtoupper(mb_substr($adminName, 0, 1));
+    $adminRoleLabel = $admin?->getRoleNames()->implode(', ') ?: 'Admin';
+    $pendingBadgeAria = ((int) $pendingPaymentCount > 0)
+        ? $pendingPaymentCount.' pembayaran menunggu verifikasi'
+        : 'Tidak ada pembayaran menunggu verifikasi';
 @endphp
 
 <!DOCTYPE html>
@@ -52,6 +58,13 @@
                 </div>
 
                 <div class="border-t border-zinc-200 p-4 dark:border-white/10">
+                    <div class="mb-3 flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.04]" aria-label="Identitas admin">
+                        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold-500 text-sm font-black text-zinc-950" aria-hidden="true">{{ $adminInitial }}</span>
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-black text-zinc-950 dark:text-white">{{ $adminName }}</p>
+                            <p class="mt-0.5 truncate text-[0.7rem] font-bold uppercase tracking-[0.1em] text-gold-600 dark:text-gold-400">{{ $adminRoleLabel }}</p>
+                        </div>
+                    </div>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="admin-button-primary w-full">Keluar</button>
@@ -60,10 +73,10 @@
             </div>
 
             <div x-cloak x-bind:class="adminMenuOpen ? 'block' : 'hidden'" class="fixed inset-0 z-50 bg-zinc-950/70 backdrop-blur-sm lg:hidden" x-on:click="closeAdminMenu()" aria-hidden="true"></div>
-            <aside id="admin-mobile-navigation" x-ref="adminMobilePanel" x-cloak x-bind:class="adminMenuOpen ? 'flex' : 'hidden'" class="fixed inset-y-0 left-0 z-[55] w-[86%] max-w-[20rem] flex-col border-r border-white/10 bg-zinc-950 text-white shadow-2xl lg:hidden" role="dialog" aria-modal="true" aria-label="Menu admin mobile">
-                <div class="flex min-h-16 items-center justify-between border-b border-white/10 px-4">
+            <aside id="admin-mobile-navigation" x-ref="adminMobilePanel" x-cloak x-bind:class="adminMenuOpen ? 'flex' : 'hidden'" class="fixed inset-y-0 left-0 z-[55] w-[86%] max-w-[20rem] flex-col border-r border-zinc-200 bg-white text-zinc-950 shadow-2xl dark:border-white/10 dark:bg-zinc-950 dark:text-white lg:hidden" role="dialog" aria-modal="true" aria-label="Menu admin mobile">
+                <div class="flex min-h-16 items-center justify-between border-b border-zinc-200 px-4 dark:border-white/10">
                     <img src="{{ asset('images/brand/platinum-gym-wordmark-480.webp') }}" alt="Platinum Gym Padang" class="brand-logo h-9 w-auto" width="480" height="112" draggable="false">
-                    <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-white/[0.07] text-zinc-300 transition hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50" x-on:click="closeAdminMenu()" aria-label="Tutup navigasi admin">
+                    <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 dark:bg-white/[0.07] dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white" x-on:click="closeAdminMenu()" aria-label="Tutup navigasi admin">
                         @include('admin.partials.icon', ['name' => 'close', 'class' => 'h-5 w-5'])
                     </button>
                 </div>
@@ -72,11 +85,11 @@
                     <nav class="space-y-5" aria-label="Navigasi admin mobile">
                         @foreach ($navigation as $group)
                             <div>
-                                <p class="mb-2 px-3 text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-500">{{ $group['label'] }}</p>
+                                <p class="mb-2 px-3 text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-400 dark:text-zinc-500">{{ $group['label'] }}</p>
                                 <div class="grid gap-1">
                                     @foreach ($group['items'] as $item)
                                         @php($isActive = request()->routeIs($item['active']))
-                                        <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 {{ $isActive ? 'border-gold-500/35 bg-gold-500/10 text-gold-400' : 'text-zinc-300 hover:border-white/10 hover:bg-white/10 hover:text-white' }}" x-on:click="closeAdminMenu()">
+                                        <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 {{ $isActive ? 'border-gold-500/35 bg-gold-500/10 text-gold-700 dark:text-gold-400' : 'text-zinc-600 hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/10 dark:hover:text-white' }}" x-on:click="closeAdminMenu()">
                                             @include('admin.partials.icon', ['name' => $item['icon'], 'class' => 'h-5 w-5 shrink-0'])
                                             <span class="min-w-0 flex-1 truncate">{{ $item['label'] }}</span>
                                         </a>
@@ -87,10 +100,17 @@
                     </nav>
                 </div>
 
-                <div class="border-t border-white/10 p-4">
+                <div class="border-t border-zinc-200 p-4 dark:border-white/10">
+                    <div class="mb-3 flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.04]" aria-label="Identitas admin">
+                        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold-500 text-sm font-black text-zinc-950" aria-hidden="true">{{ $adminInitial }}</span>
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-black text-zinc-950 dark:text-white">{{ $adminName }}</p>
+                            <p class="mt-0.5 truncate text-[0.7rem] font-bold uppercase tracking-[0.1em] text-gold-600 dark:text-gold-400">{{ $adminRoleLabel }}</p>
+                        </div>
+                    </div>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-gold-500 px-4 text-sm font-black text-zinc-950">Keluar</button>
+                        <button type="submit" class="admin-button-primary w-full">Keluar</button>
                     </form>
                 </div>
             </aside>
@@ -106,27 +126,24 @@
                         </div>
 
                         <div class="flex items-center gap-2 sm:gap-3">
-                            <a href="{{ route('admin.payments') }}" class="hidden rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-black text-amber-700 transition hover:border-amber-500/50 hover:bg-amber-500/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 dark:text-amber-300 sm:inline-flex">{{ $pendingPaymentCount }} menunggu</a>
-                            <span class="hidden max-w-[12rem] truncate text-sm font-bold text-zinc-600 dark:text-zinc-300 md:inline">{{ $admin?->name }}</span>
+                            <a href="{{ route('admin.payments') }}" class="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-black text-amber-700 transition hover:border-amber-500/50 hover:bg-amber-500/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 dark:text-amber-300" aria-label="{{ $pendingBadgeAria }}">
+                                @include('admin.partials.icon', ['name' => 'receipt', 'class' => 'h-4 w-4'])
+                                <span>{{ $pendingPaymentCount }}</span>
+                                <span class="hidden sm:inline">menunggu</span>
+                            </a>
                             <x-theme-toggle class="h-11 w-11" />
                         </div>
                     </div>
                 </header>
 
-                <main id="admin-main" tabindex="-1" class="relative min-h-[calc(100dvh-4rem)] overflow-hidden lg:min-h-[calc(100dvh-5rem)]">
+                <main id="admin-main" tabindex="-1" class="relative min-h-[calc(100dvh-4rem)] overflow-x-clip lg:min-h-[calc(100dvh-5rem)]">
                     <div class="public-surface-grid absolute inset-0 opacity-20 dark:opacity-10" aria-hidden="true"></div>
                     <div class="relative mx-auto w-full max-w-7xl px-4 pb-16 pt-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-                        @if (session('status'))
-                            <div class="mb-5 rounded-lg border border-gold-500/30 bg-gold-500/10 px-4 py-3 text-sm font-bold text-zinc-800 dark:text-gold-200" role="status">
-                                {{ session('status') }}
-                            </div>
-                        @endif
-
-                        @if ($errors->any())
-                            <div class="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-200" role="alert">
-                                {{ $errors->first() }}
-                            </div>
-                        @endif
+                        @include('partials.flash-banner', [
+                            'message' => session('status'),
+                            'errorMessage' => $errors->any() ? $errors->first() : '',
+                            'kind' => session('status_kind', 'success'),
+                        ])
 
                         {{ $slot }}
                     </div>

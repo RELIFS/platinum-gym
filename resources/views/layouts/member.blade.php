@@ -1,6 +1,15 @@
 @php
     $activeMembership = $portal['activeMembership'] ?? null;
     $unreadNotificationsCount = (int) ($portal['unreadNotificationsCount'] ?? 0);
+    $portalUser = $portal['user'] ?? auth()->user();
+    $portalMember = $portal['member'] ?? null;
+    $memberDisplayName = (string) ($portalUser->name ?? 'Member');
+    $memberInitial = mb_strtoupper(mb_substr($memberDisplayName, 0, 1));
+    $memberCode = (string) ($portalMember->member_code ?? '-');
+    $unreadBadgeText = $unreadNotificationsCount > 99 ? '99+' : (string) $unreadNotificationsCount;
+    $headerStatusLabel = $activeMembership ? 'Membership Aktif' : 'Paket Belum Aktif';
+    $headerStatusShort = $activeMembership ? 'Aktif' : 'Belum Aktif';
+    $headerStatusClass = $activeMembership ? 'member-status-success' : 'member-status-warning';
     $navGroups = [
         [
             'label' => 'Utama',
@@ -14,7 +23,7 @@
             'label' => 'Aktivitas',
             'items' => [
                 ['label' => 'Booking Kelas', 'route' => 'member.booking', 'active' => 'member.booking', 'icon' => 'calendar'],
-                ['label' => 'Riwayat Booking', 'route' => 'member.bookings', 'active' => 'member.bookings', 'icon' => 'calendar'],
+                ['label' => 'Riwayat Booking', 'route' => 'member.bookings', 'active' => 'member.bookings', 'icon' => 'history'],
                 ['label' => 'Transaksi', 'route' => 'member.transactions', 'active' => 'member.transactions', 'icon' => 'receipt'],
                 ['label' => 'Notifikasi', 'route' => 'member.notifications', 'active' => 'member.notifications', 'icon' => 'bell', 'count' => $unreadNotificationsCount],
             ],
@@ -81,10 +90,14 @@
                 </div>
 
                 <div class="border-t border-zinc-200 p-4 dark:border-white/10">
-                    <div class="mb-3 grid grid-cols-2 gap-2">
-                        <a href="{{ route('public.home') }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-700 transition hover:border-gold-500/60 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-200 dark:hover:text-gold-400">Website</a>
-                        <a href="{{ route('profile.edit') }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-700 transition hover:border-gold-500/60 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-200 dark:hover:text-gold-400">Akun Login</a>
+                    <div class="mb-3 flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.04]" aria-label="Identitas member">
+                        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold-500 text-sm font-black text-zinc-950" aria-hidden="true">{{ $memberInitial }}</span>
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-black text-zinc-950 dark:text-white">{{ $memberDisplayName }}</p>
+                            <p class="mt-0.5 truncate font-mono text-[0.7rem] font-bold uppercase tracking-[0.1em] text-zinc-500 dark:text-zinc-400">{{ $memberCode }}</p>
+                        </div>
                     </div>
+
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-zinc-950 px-4 text-sm font-black text-white transition hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:bg-gold-500 dark:text-zinc-950 dark:hover:bg-gold-400 dark:focus-visible:ring-offset-zinc-950">
@@ -128,8 +141,15 @@
                 </div>
 
                 <div class="border-t border-white/10 p-4">
+                    <div class="mb-3 flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3" aria-label="Identitas member">
+                        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold-500 text-sm font-black text-zinc-950" aria-hidden="true">{{ $memberInitial }}</span>
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-black text-white">{{ $memberDisplayName }}</p>
+                            <p class="mt-0.5 truncate font-mono text-[0.7rem] font-bold uppercase tracking-[0.1em] text-zinc-400">{{ $memberCode }}</p>
+                        </div>
+                    </div>
                     <div class="grid gap-2">
-                        <a href="{{ route('public.home') }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/10 px-4 text-sm font-bold text-zinc-200">Website</a>
+
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-gold-500 px-4 text-sm font-black text-zinc-950">Keluar</button>
@@ -148,21 +168,19 @@
                                 </svg>
                             </button>
                             <div class="min-w-0">
-                                <p class="text-[0.72rem] font-black uppercase tracking-[0.14em] text-gold-600 dark:text-gold-400">Member Area</p>
+
                                 <h1 class="max-w-[9.5rem] break-words text-base font-black leading-tight text-zinc-950 dark:text-white sm:max-w-none sm:text-xl">{{ $title }}</h1>
                             </div>
                         </div>
 
                         <div class="flex items-center gap-2 sm:gap-3">
-                            @if ($activeMembership)
-                                <span class="member-status-pill member-status-success hidden sm:inline-flex">Membership Aktif</span>
-                            @else
-                                <span class="member-status-pill member-status-warning hidden sm:inline-flex">Paket Belum Aktif</span>
-                            @endif
-                            <a href="{{ route('member.notifications') }}" class="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-500/60 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300 dark:hover:text-gold-400" aria-label="Buka notifikasi member">
+                            <span class="member-status-pill {{ $headerStatusClass }} hidden sm:inline-flex" aria-label="Status membership: {{ $headerStatusLabel }}">{{ $headerStatusLabel }}</span>
+                            <span class="member-status-pill {{ $headerStatusClass }} inline-flex sm:hidden" aria-label="Status membership: {{ $headerStatusLabel }}" title="{{ $headerStatusLabel }}">{{ $headerStatusShort }}</span>
+                            <a href="{{ route('member.notifications') }}" class="relative inline-flex h-11 min-w-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-2 text-zinc-700 shadow-sm transition hover:border-gold-500/60 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300 dark:hover:text-gold-400" aria-label="Buka notifikasi member, {{ $unreadNotificationsCount }} belum dibaca">
                                 @include('member.partials.icon', ['name' => 'bell', 'class' => 'h-5 w-5'])
                                 @if ($unreadNotificationsCount > 0)
-                                    <span class="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-gold-500 ring-2 ring-white dark:ring-zinc-950"></span>
+                                    <span class="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-gold-500 px-1 text-[0.65rem] font-black leading-none text-zinc-950 ring-2 ring-white dark:ring-zinc-950" aria-hidden="true">{{ $unreadBadgeText }}</span>
+                                    <span class="sr-only">{{ $unreadNotificationsCount }} notifikasi belum dibaca</span>
                                 @endif
                             </a>
                             <x-theme-toggle class="h-11 w-11" />
@@ -173,17 +191,11 @@
                 <main id="member-main" tabindex="-1" class="relative min-h-[calc(100dvh-4rem)] overflow-hidden lg:min-h-[calc(100dvh-5rem)]">
                     <div class="public-surface-grid absolute inset-0 opacity-20 dark:opacity-10" aria-hidden="true"></div>
                     <div class="relative mx-auto w-full max-w-7xl px-4 pb-28 pt-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-                        @if (session('status'))
-                            <div class="mb-5 rounded-lg border border-gold-500/30 bg-gold-500/10 px-4 py-3 text-sm font-bold text-zinc-800 dark:text-gold-200" role="status" aria-live="polite">
-                                {{ session('status') }}
-                            </div>
-                        @endif
-
-                        @if ($errors->any())
-                            <div class="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-200" role="alert" aria-live="assertive">
-                                {{ $errors->first() }}
-                            </div>
-                        @endif
+                        @include('partials.flash-banner', [
+                            'message' => session('status'),
+                            'errorMessage' => $errors->any() ? $errors->first() : '',
+                            'kind' => session('status_kind', 'success'),
+                        ])
 
                         {{ $slot }}
                     </div>
