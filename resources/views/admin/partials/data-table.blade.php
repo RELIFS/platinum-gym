@@ -43,16 +43,21 @@
 
             <label class="min-w-0">
                 <span class="sr-only">Cari {{ $module['title'] ?? 'data admin' }}</span>
-                <input
-                    type="search"
-                    name="q"
-                    value="{{ $filters->get('q') }}"
-                    class="admin-table-search"
-                    placeholder="Cari nama, kode, status..."
-                    autocomplete="off"
-                    spellcheck="false"
-                    data-admin-table-search
-                >
+                <span class="relative block">
+                    <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-zinc-400 dark:text-zinc-500" aria-hidden="true">
+                        @include('admin.partials.icon', ['name' => 'search', 'class' => 'h-4 w-4'])
+                    </span>
+                    <input
+                        type="search"
+                        name="q"
+                        value="{{ $filters->get('q') }}"
+                        class="admin-table-search pl-9"
+                        placeholder="Cari nama, kode, status..."
+                        autocomplete="off"
+                        spellcheck="false"
+                        data-admin-table-search
+                    >
+                </span>
             </label>
 
             @if ($statusOptions->isNotEmpty())
@@ -70,7 +75,7 @@
             @endif
 
             <button type="submit" class="admin-button-primary min-h-11">Terapkan</button>
-            <a href="{{ url()->current().($preservedFilters->isNotEmpty() ? '?'.http_build_query($preservedFilters->all()) : '') }}" class="admin-button-secondary min-h-11">Reset</a>
+            <a href="{{ url()->current().($preservedFilters->isNotEmpty() ? '?'.http_build_query($preservedFilters->all()) : '') }}" class="admin-button-secondary min-h-11">Bersihkan Pencarian</a>
         </form>
     @endif
 

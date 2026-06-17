@@ -5,7 +5,7 @@
                 Selamat <span class="text-gold-500">Datang</span>
             </h1>
             <p class="auth-panel-copy">
-                Masuk untuk mengakses dashboard dan layanan member Platinum Gym Padang.
+                Masuk ke akun Platinum Gym Padang untuk melanjutkan ke area Anda.
             </p>
         </div>
 

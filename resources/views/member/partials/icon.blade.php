@@ -64,6 +64,14 @@
         </svg>
         @break
 
+    @case('history')
+        <svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4.5 12a7.5 7.5 0 1 0 2.25-5.36" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            <path d="M4.5 4.5V8H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M12 8v4.5l3 1.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        @break
+
     @default
         <svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" stroke="currentColor" stroke-width="1.8" />

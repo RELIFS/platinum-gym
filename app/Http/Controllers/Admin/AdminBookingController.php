@@ -24,7 +24,10 @@ class AdminBookingController extends Controller
                 CarbonImmutable::parse($request->validated('session_date')),
             );
         } catch (\RuntimeException $exception) {
-            return back()->with('status', $exception->getMessage())->withInput();
+            return back()
+                ->with('status', $exception->getMessage())
+                ->with('status_kind', 'error')
+                ->withInput();
         }
 
         return back()->with('status', 'Booking kelas berhasil dibuat oleh admin.');

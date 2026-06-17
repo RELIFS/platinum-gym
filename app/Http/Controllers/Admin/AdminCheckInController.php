@@ -18,7 +18,10 @@ class AdminCheckInController extends Controller
         try {
             $checkIn = $scanMemberQr->handle($request->validated('token'), $request->user()->id);
         } catch (RuntimeException $exception) {
-            return back()->with('status', $exception->getMessage())->withInput();
+            return back()
+                ->with('status', $exception->getMessage())
+                ->with('status_kind', 'error')
+                ->withInput();
         }
 
         return back()->with('status', 'Check-in berhasil untuk '.$checkIn->member?->user?->name.'.');
@@ -29,7 +32,10 @@ class AdminCheckInController extends Controller
         try {
             $checkIn = $manualCheckIn->handle(Member::query()->findOrFail($request->validated('member_id')), $request->user()->id);
         } catch (RuntimeException $exception) {
-            return back()->with('status', $exception->getMessage())->withInput();
+            return back()
+                ->with('status', $exception->getMessage())
+                ->with('status_kind', 'error')
+                ->withInput();
         }
 
         return back()->with('status', 'Check-in manual berhasil untuk '.$checkIn->member?->user?->name.'.');
