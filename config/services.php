@@ -40,6 +40,8 @@ return [
         'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
         'snap_sandbox_url' => env('MIDTRANS_SNAP_SANDBOX_URL', 'https://app.sandbox.midtrans.com/snap/v1'),
         'snap_production_url' => env('MIDTRANS_SNAP_PRODUCTION_URL', 'https://app.midtrans.com/snap/v1'),
+        'api_sandbox_url' => env('MIDTRANS_API_SANDBOX_URL', 'https://api.sandbox.midtrans.com'),
+        'api_production_url' => env('MIDTRANS_API_PRODUCTION_URL', 'https://api.midtrans.com'),
         'timeout' => env('MIDTRANS_TIMEOUT', 10),
     ],
 
