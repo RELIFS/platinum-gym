@@ -101,11 +101,17 @@
                         @endphp
                         <tr class="align-top transition hover:bg-zinc-50 dark:hover:bg-white/[0.035]">
                             @foreach ($rowCells as $cell)
+                                @php
+                                    $isBadgeCell = is_array($cell) && isset($cell['label'], $cell['class']);
+                                    $cellLabel = $isBadgeCell ? (string) $cell['label'] : $cell;
+                                @endphp
                                 <td class="max-w-[18rem] break-words px-4 py-3 font-semibold text-zinc-700 dark:text-zinc-200">
-                                    @if ($hasStatusColumn && $loop->index === $statusIndex)
-                                        <span class="admin-status-pill bg-zinc-100 text-zinc-700 dark:bg-white/[0.07] dark:text-zinc-300">{{ $cell }}</span>
+                                    @if ($isBadgeCell)
+                                        <span class="admin-status-pill {{ $cell['class'] }}">{{ $cellLabel }}</span>
+                                    @elseif ($hasStatusColumn && $loop->index === $statusIndex)
+                                        <span class="admin-status-pill bg-zinc-100 text-zinc-700 dark:bg-white/[0.07] dark:text-zinc-300">{{ $cellLabel }}</span>
                                     @else
-                                        {{ $cell }}
+                                        {{ $cellLabel }}
                                     @endif
                                 </td>
                             @endforeach
@@ -131,14 +137,18 @@
                         @foreach ($columns as $column)
                             @php
                                 $cell = $rowCells->get($loop->index, '-');
+                                $isBadgeCell = is_array($cell) && isset($cell['label'], $cell['class']);
+                                $cellLabel = $isBadgeCell ? (string) $cell['label'] : $cell;
                             @endphp
                             <div class="min-w-0">
                                 <dt class="text-[0.68rem] font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">{{ $column }}</dt>
                                 <dd class="mt-1 break-words text-sm font-bold text-zinc-800 dark:text-zinc-100">
-                                    @if ($hasStatusColumn && $loop->index === $statusIndex)
-                                        <span class="admin-status-pill bg-zinc-100 text-zinc-700 dark:bg-white/[0.07] dark:text-zinc-300">{{ $cell }}</span>
+                                    @if ($isBadgeCell)
+                                        <span class="admin-status-pill {{ $cell['class'] }}">{{ $cellLabel }}</span>
+                                    @elseif ($hasStatusColumn && $loop->index === $statusIndex)
+                                        <span class="admin-status-pill bg-zinc-100 text-zinc-700 dark:bg-white/[0.07] dark:text-zinc-300">{{ $cellLabel }}</span>
                                     @else
-                                        {{ $cell }}
+                                        {{ $cellLabel }}
                                     @endif
                                 </dd>
                             </div>

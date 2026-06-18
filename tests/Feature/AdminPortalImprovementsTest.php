@@ -4,10 +4,12 @@ use App\Models\ClassEnrollment;
 use App\Models\ClassSchedule;
 use App\Models\GymClass;
 use App\Models\Member;
+use App\Models\MemberPackageSession;
 use App\Models\Membership;
 use App\Models\Package as ServicePackage;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\Trainer;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 
@@ -247,6 +249,99 @@ test('admin notifications page renders semantic success status pill', function (
         ->assertSee('Membership')
         ->assertSee('Siap')
         ->assertSee('admin-status-success', false);
+});
+
+test('admin trainer page shows active member recap and capacity status', function () {
+    $admin = createAdminImprovementsUser();
+
+    $package = ServicePackage::create([
+        'name' => 'PT Capacity Improvements',
+        'slug' => 'pt-capacity-improvements',
+        'package_kind' => 'personal_trainer',
+        'type' => 'pt',
+        'price' => 650000,
+        'session_count' => 5,
+        'is_active' => true,
+    ]);
+
+    $availableTrainer = Trainer::create(['name' => 'Coach Available', 'specialization' => 'PT', 'is_active' => true]);
+    $nearlyFullTrainer = Trainer::create(['name' => 'Coach Nearly Full', 'specialization' => 'PT', 'is_active' => true]);
+    $fullTrainer = Trainer::create(['name' => 'Coach Full', 'specialization' => 'PT', 'is_active' => true]);
+    Trainer::create(['name' => 'Coach Empty', 'specialization' => 'PT', 'is_active' => true]);
+
+    $memberSequence = 1;
+    $sessionSequence = 1;
+    $createMember = function (string $status = 'active') use (&$memberSequence): Member {
+        [, $member] = createAdminImprovementsMember('PG-TRAINER-CAP-'.str_pad((string) $memberSequence, 4, '0', STR_PAD_LEFT));
+        $memberSequence++;
+
+        if ($status !== 'active') {
+            $member->forceFill(['status' => $status])->save();
+        }
+
+        return $member;
+    };
+    $createSession = function (Trainer $trainer, Member $member, string $status = 'active', int $remainingSessions = 3, ?string $expiredAt = null) use ($package, &$sessionSequence): void {
+        MemberPackageSession::create([
+            'member_id' => $member->id,
+            'package_id' => $package->id,
+            'trainer_id' => $trainer->id,
+            'code' => 'MPS-CAP-'.str_pad((string) $sessionSequence, 4, '0', STR_PAD_LEFT),
+            'total_sessions' => 5,
+            'used_sessions' => max(0, 5 - $remainingSessions),
+            'remaining_sessions' => $remainingSessions,
+            'price' => 650000,
+            'started_at' => now()->subDay()->toDateString(),
+            'expired_at' => $expiredAt,
+            'status' => $status,
+        ]);
+        $sessionSequence++;
+    };
+
+    foreach (range(1, 2) as $_) {
+        $createSession($availableTrainer, $createMember());
+    }
+
+    $duplicateMember = $createMember();
+    $createSession($availableTrainer, $duplicateMember);
+    $createSession($availableTrainer, $duplicateMember);
+    $createSession($availableTrainer, $createMember('inactive'));
+    $createSession($availableTrainer, $createMember(), 'expired');
+    $createSession($availableTrainer, $createMember(), 'active', 0);
+    $createSession($availableTrainer, $createMember(), 'active', 3, now()->subDay()->toDateString());
+
+    foreach (range(1, 14) as $_) {
+        $createSession($nearlyFullTrainer, $createMember());
+    }
+
+    foreach (range(1, 20) as $_) {
+        $createSession($fullTrainer, $createMember());
+    }
+
+    $this->actingAs($admin)->get('/admin/trainer')
+        ->assertOk()
+        ->assertSee('Member Aktif')
+        ->assertSee('Kapasitas')
+        ->assertSee('Status Kapasitas')
+        ->assertSeeInOrder(['Coach Full', '20', 'Penuh'])
+        ->assertSeeInOrder(['Coach Nearly Full', '14', 'Hampir Penuh'])
+        ->assertSeeInOrder(['Coach Available', '3', 'Tersedia'])
+        ->assertSeeInOrder(['Coach Empty', '0', 'Tersedia'])
+        ->assertSee('admin-status-danger', false)
+        ->assertSee('admin-status-warning', false)
+        ->assertSee('admin-status-success', false);
+});
+
+test('admin reports include trainer capacity recap rows', function () {
+    $admin = createAdminImprovementsUser();
+
+    Trainer::create(['name' => 'Coach Report Available', 'specialization' => 'PT', 'is_active' => true]);
+
+    $this->actingAs($admin)->get('/admin/laporan')
+        ->assertOk()
+        ->assertSee('Trainer tersedia')
+        ->assertSee('Trainer hampir penuh')
+        ->assertSee('Trainer penuh');
 });
 
 test('admin layout renders success flash banner with emerald palette and polite live region', function () {

@@ -3,12 +3,14 @@
 namespace App\Features\Admin\Queries;
 
 use App\Features\Admin\Support\AdminEditableSettingRegistry;
+use App\Features\Admin\ViewModels\AdminStatusViewModel;
 use App\Models\ClassEnrollment;
 use App\Models\ClassSchedule;
 use App\Models\Gallery;
 use App\Models\GymCheckIn;
 use App\Models\GymClass;
 use App\Models\Member;
+use App\Models\MemberPackageSession;
 use App\Models\Membership;
 use App\Models\Package;
 use App\Models\Payment;
@@ -29,6 +31,8 @@ use Illuminate\Support\Facades\Schema;
 class AdminDashboardQuery
 {
     private const ADMIN_PER_PAGE = 12;
+
+    private const TRAINER_DEFAULT_CAPACITY = 20;
 
     public function __construct(private readonly AdminEditableSettingRegistry $editableSettings) {}
 
@@ -135,6 +139,7 @@ class AdminDashboardQuery
     {
         $filters = $this->normaliseFilters($filters);
         [$from, $to] = $this->dateRange($filters);
+        $trainerRecap = $this->trainerCapacityRecap($to->toDateString());
 
         return collect([
             ['Member aktif', (string) Member::query()->where('status', 'active')->count(), 'Status akun member saat laporan dibuat.'],
@@ -142,6 +147,9 @@ class AdminDashboardQuery
             ['Pembayaran periode ini', $this->money(Payment::query()->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])->sum('amount')), 'Total nominal transaksi pada periode terpilih.'],
             ['Booking periode ini', (string) ClassEnrollment::query()->whereBetween('session_date', [$from->toDateString(), $to->toDateString()])->whereNotIn('status', ['cancelled', 'canceled'])->count(), 'Booking aktif pada periode terpilih.'],
             ['Check-in periode ini', (string) GymCheckIn::query()->whereBetween('check_in_date', [$from->toDateString(), $to->toDateString()])->count(), 'Aktivitas masuk gym pada periode terpilih.'],
+            ['Trainer tersedia', (string) $trainerRecap->get('available', 0), 'Trainer aktif dengan kapasitas member PT di bawah 70%.'],
+            ['Trainer hampir penuh', (string) $trainerRecap->get('nearly_full', 0), 'Trainer aktif dengan pemakaian kapasitas minimal 70%.'],
+            ['Trainer penuh', (string) $trainerRecap->get('full', 0), 'Trainer aktif dengan jumlah member PT mencapai atau melewati kapasitas.'],
         ]);
     }
 
@@ -479,21 +487,67 @@ class AdminDashboardQuery
     private function trainersModule(array $filters, bool $loadRows): array
     {
         $options = ['active' => 'Aktif', 'inactive' => 'Nonaktif'];
-        $module = array_replace($this->module('Trainer', 'Tim trainer dan spesialisasi yang tersedia.', 'Belum ada trainer.', ['Nama', 'Spesialisasi', 'Pengalaman', 'Status']), ['statusOptions' => $options]);
+        $module = array_replace($this->module('Trainer', 'Tim trainer, spesialisasi, dan kapasitas layanan personal trainer.', 'Belum ada trainer.', ['Nama', 'Spesialisasi', 'Pengalaman', 'Member Aktif', 'Kapasitas', 'Status Kapasitas', 'Status']), ['statusOptions' => $options]);
         if (! $loadRows) {
             return $module;
         }
 
-        $query = Trainer::query()->orderByDesc('is_active')->orderBy('name');
+        $query = $this->trainerCapacityQuery(now()->toDateString())
+            ->orderByDesc('is_active')
+            ->orderByDesc('active_member_count')
+            ->orderBy('name');
         $this->applySimpleSearch($query, $filters['q'], ['name', 'specialization', 'bio']);
         $this->applyBooleanStatusFilter($query, 'is_active', $filters['status']);
 
-        return $this->withPaginatedRows($module, $query, fn (Trainer $trainer): array => $this->actionRow('trainers', $trainer, [
+        return $this->withPaginatedRows($module, $query, fn (Trainer $trainer): array => $this->actionRow('trainers', $trainer, $this->trainerCapacityCells($trainer)), $filters, $options);
+    }
+
+    private function trainerCapacityQuery(string $today): EloquentBuilder
+    {
+        $activeMemberCount = MemberPackageSession::query()
+            ->selectRaw('count(distinct member_package_sessions.member_id)')
+            ->join('members', 'members.id', '=', 'member_package_sessions.member_id')
+            ->whereColumn('member_package_sessions.trainer_id', 'trainers.id')
+            ->where('member_package_sessions.status', 'active')
+            ->where('member_package_sessions.remaining_sessions', '>', 0)
+            ->where('members.status', 'active')
+            ->where(function (EloquentBuilder $query) use ($today): void {
+                $query->whereNull('member_package_sessions.expired_at')
+                    ->orWhereDate('member_package_sessions.expired_at', '>=', $today);
+            });
+
+        return Trainer::query()
+            ->select('trainers.*')
+            ->addSelect(['active_member_count' => $activeMemberCount]);
+    }
+
+    /** @return array<int, mixed> */
+    private function trainerCapacityCells(Trainer $trainer): array
+    {
+        $activeMemberCount = (int) ($trainer->active_member_count ?? 0);
+        $capacityStatus = AdminStatusViewModel::trainerCapacity($activeMemberCount, self::TRAINER_DEFAULT_CAPACITY);
+
+        return [
             $trainer->name,
             $trainer->specialization ?? '-',
             filled($trainer->experience_years) ? $trainer->experience_years.' tahun' : '-',
+            (string) $activeMemberCount,
+            (string) self::TRAINER_DEFAULT_CAPACITY,
+            ['label' => $capacityStatus['label'], 'class' => $capacityStatus['class']],
             $trainer->is_active ? 'Aktif' : 'Nonaktif',
-        ]), $filters, $options);
+        ];
+    }
+
+    private function trainerCapacityRecap(string $today): Collection
+    {
+        return $this->trainerCapacityQuery($today)
+            ->where('is_active', true)
+            ->get()
+            ->map(fn (Trainer $trainer): string => AdminStatusViewModel::trainerCapacity(
+                (int) ($trainer->active_member_count ?? 0),
+                self::TRAINER_DEFAULT_CAPACITY,
+            )['key'])
+            ->countBy();
     }
 
     private function reportsModule(array $filters): array

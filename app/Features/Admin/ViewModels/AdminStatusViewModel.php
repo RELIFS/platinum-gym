@@ -86,6 +86,26 @@ class AdminStatusViewModel
         ];
     }
 
+    /**
+     * @return array{key: string, label: string, class: string}
+     */
+    public static function trainerCapacity(int $activeMemberCount, int $capacity): array
+    {
+        if ($capacity <= 0) {
+            return ['key' => 'unknown', 'label' => 'Belum Diatur', 'class' => 'admin-status-neutral'];
+        }
+
+        if ($activeMemberCount >= $capacity) {
+            return ['key' => 'full', 'label' => 'Penuh', 'class' => 'admin-status-danger'];
+        }
+
+        if (($activeMemberCount / $capacity) >= 0.7) {
+            return ['key' => 'nearly_full', 'label' => 'Hampir Penuh', 'class' => 'admin-status-warning'];
+        }
+
+        return ['key' => 'available', 'label' => 'Tersedia', 'class' => 'admin-status-success'];
+    }
+
     private static function headline(string $value): string
     {
         return filled($value)
