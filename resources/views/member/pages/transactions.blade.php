@@ -1,8 +1,8 @@
 <section class="member-card mt-6">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div class="member-section-header">
         <div>
             <p class="member-eyebrow">Transaksi</p>
-            <h3 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Riwayat pembayaran</h3>
+            <h3 class="member-section-title">Riwayat pembayaran</h3>
         </div>
         <a href="{{ route('member.membership') }}" class="member-button-secondary">Pilih Paket</a>
     </div>
@@ -35,7 +35,7 @@
                         default => 'Layanan',
                     };
                 @endphp
-                <article class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45">
+                <article class="member-list-card">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
                             <p class="truncate font-mono text-sm font-black text-zinc-950 dark:text-white">{{ $payment->payment_code }}</p>
@@ -51,9 +51,9 @@
                     <div class="mt-4 flex flex-col gap-2">
                         <a href="{{ route('member.transactions.show', $payment) }}" class="member-button-secondary w-full">Detail</a>
                         @if ($paymentMeta['can_pay'])
-                            <form method="POST" action="{{ route('member.transactions.pay', $payment) }}">
+                            <form method="POST" action="{{ route('member.transactions.pay', $payment) }}" x-data="{ submitting: false }" x-on:submit="if (submitting) { $event.preventDefault() } else { submitting = true }">
                                 @csrf
-                                <button type="submit" class="member-button-primary w-full">Bayar Sekarang</button>
+                                <button type="submit" class="member-button-primary w-full" x-bind:disabled="submitting"><span x-show="! submitting">Bayar Sekarang</span><span x-show="submitting">Memproses...</span></button>
                             </form>
                         @endif
                     </div>
@@ -61,7 +61,7 @@
             @endforeach
         </div>
 
-        <div class="mt-5 hidden overflow-x-auto rounded-lg border border-zinc-200 dark:border-white/10 md:block">
+        <div class="member-table-wrap mt-5 hidden md:block">
             <table class="min-w-full divide-y divide-zinc-200 text-left text-sm dark:divide-white/10">
                 <caption class="sr-only">Riwayat pembayaran member</caption>
                 <thead class="bg-zinc-50 text-xs uppercase tracking-[0.14em] text-zinc-500 dark:bg-white/[0.04] dark:text-zinc-400">
@@ -88,7 +88,7 @@
                                 default => 'Layanan',
                             };
                         @endphp
-                        <tr class="bg-white dark:bg-zinc-950/35">
+                        <tr class="member-table-row">
                             <td class="px-5 py-4 font-mono font-black text-zinc-950 dark:text-white">{{ $payment->payment_code }}</td>
                             <td class="px-5 py-4">
                                 <p class="text-[0.7rem] font-black uppercase tracking-[0.14em] text-zinc-400 dark:text-zinc-500">{{ $serviceKindLabel }}</p>
@@ -102,9 +102,9 @@
                                 <div class="flex flex-wrap gap-2">
                                     <a href="{{ route('member.transactions.show', $payment) }}" class="member-button-secondary">Detail</a>
                                     @if ($paymentMeta['can_pay'])
-                                        <form method="POST" action="{{ route('member.transactions.pay', $payment) }}">
+                                        <form method="POST" action="{{ route('member.transactions.pay', $payment) }}" x-data="{ submitting: false }" x-on:submit="if (submitting) { $event.preventDefault() } else { submitting = true }">
                                             @csrf
-                                            <button type="submit" class="member-button-primary">Bayar</button>
+                                            <button type="submit" class="member-button-primary" x-bind:disabled="submitting"><span x-show="! submitting">Bayar</span><span x-show="submitting">Memproses...</span></button>
                                         </form>
                                     @endif
                                 </div>

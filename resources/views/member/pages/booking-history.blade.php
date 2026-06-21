@@ -1,8 +1,8 @@
 <section class="member-card mt-6">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div class="member-section-header">
         <div>
             <p class="member-eyebrow">Booking</p>
-            <h3 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Riwayat kelas</h3>
+            <h3 class="member-section-title">Riwayat kelas</h3>
         </div>
         <a href="{{ route('member.booking') }}" class="member-button-secondary">Booking Kelas</a>
     </div>
@@ -25,7 +25,7 @@
         <div class="mt-5 grid gap-4 md:grid-cols-2">
             @foreach ($recentEnrollments as $enrollment)
                 @php($bookingMeta = $enrollment->member_status_meta ?? ['label' => str((string) $enrollment->status)->headline()->toString(), 'class' => 'member-status-neutral', 'can_cancel' => false])
-                <article class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45">
+                <article class="member-list-card">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
                             <h4 class="break-words font-black text-zinc-950 dark:text-white">{{ $enrollment->schedule?->gymClass?->name ?? 'Kelas Platinum Gym' }}</h4>
@@ -39,10 +39,10 @@
                             method="DELETE"
                             :message="'Yakin ingin membatalkan booking ' . ($enrollment->schedule?->gymClass?->name ?? 'kelas ini') . '? Tindakan ini tidak bisa dibatalkan.'"
                             variant="danger"
-                            confirm-label="Batalkan Booking"
+                            confirm-label="Batalkan Jadwal Booking"
                             class="mt-4"
                         >
-                            <button type="submit" class="member-button-secondary w-full">Batalkan Booking</button>
+                            <button type="submit" class="member-button-danger w-full">Batalkan Jadwal Booking</button>
                             <p class="mt-2 text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">Booking bisa dibatalkan selama jadwal kelas belum lewat.</p>
                         </x-confirm-form>
                     @endif

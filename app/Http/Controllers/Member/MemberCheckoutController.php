@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Member;
 
+use App\Features\MemberPortal\Actions\EnsureMemberCheckoutEligibilityAction;
 use App\Features\MemberPortal\Queries\MemberDashboardQuery;
 use App\Features\MemberPortal\ViewModels\MemberPortalStatusViewModel;
 use App\Features\Payments\Actions\CreatePaymentCheckoutAction;
@@ -17,10 +18,21 @@ use RuntimeException;
 
 class MemberCheckoutController extends Controller
 {
-    public function membership(CheckoutPackageRequest $request, Package $package, CreatePaymentCheckoutAction $checkout): RedirectResponse
+    public function membership(CheckoutPackageRequest $request, Package $package, EnsureMemberCheckoutEligibilityAction $eligibility, CreatePaymentCheckoutAction $checkout): RedirectResponse
     {
+        $member = $request->user()->member()->firstOrFail();
+
         try {
-            $payment = $checkout->membership($request->user()->member()->firstOrFail(), $package);
+            $eligibility->handle($member, $package);
+        } catch (RuntimeException $exception) {
+            return redirect()
+                ->route('member.profile.edit')
+                ->with('status', $exception->getMessage())
+                ->with('status_kind', 'error');
+        }
+
+        try {
+            $payment = $checkout->membership($member, $package);
         } catch (RuntimeException $exception) {
             return back()
                 ->with('status', $exception->getMessage())
@@ -31,11 +43,22 @@ class MemberCheckoutController extends Controller
         return redirect()->route('member.transactions.show', $payment)->with('status', 'Checkout membership berhasil dibuat. Lanjutkan pembayaran melalui Midtrans.');
     }
 
-    public function packageSession(CheckoutPackageRequest $request, Package $package, CreatePaymentCheckoutAction $checkout): RedirectResponse
+    public function packageSession(CheckoutPackageRequest $request, Package $package, EnsureMemberCheckoutEligibilityAction $eligibility, CreatePaymentCheckoutAction $checkout): RedirectResponse
     {
+        $member = $request->user()->member()->firstOrFail();
+
+        try {
+            $eligibility->handle($member, $package);
+        } catch (RuntimeException $exception) {
+            return back()
+                ->with('status', $exception->getMessage())
+                ->with('status_kind', 'error')
+                ->withInput();
+        }
+
         try {
             $payment = $checkout->packageSession(
-                $request->user()->member()->firstOrFail(),
+                $member,
                 $package,
                 $request->integer('trainer_id') ?: null,
             );
