@@ -8,7 +8,8 @@
     $resetLabel = $resetLabel ?? 'Reset';
 @endphp
 
-<form method="GET" action="{{ url()->current() }}" class="mt-5 flex flex-wrap items-end gap-3">
+<form method="GET" action="{{ url()->current() }}" class="mt-5 rounded-lg border border-zinc-200 bg-zinc-50/70 p-3 dark:border-white/10 dark:bg-white/[0.035] sm:p-4">
+    <div class="flex flex-wrap items-end gap-3">
     @if ($showSearch)
         <label class="min-w-0 flex-1 basis-72">
             <span class="sr-only">{{ $searchLabel ?? 'Cari data member' }}</span>
@@ -16,7 +17,7 @@
                 type="search"
                 name="{{ $searchName }}"
                 value="{{ $filters->get($searchName) }}"
-                class="min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-900 shadow-sm transition placeholder:text-zinc-400 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/20 dark:border-white/10 dark:bg-zinc-950 dark:text-white"
+                class="member-form-input"
                 placeholder="{{ $searchPlaceholder }}"
                 autocomplete="off"
                 spellcheck="false"
@@ -31,7 +32,7 @@
         @endphp
         <label class="min-w-0 flex-1 basis-56">
             <span class="sr-only">{{ $select['label'] ?? 'Filter' }}</span>
-            <select name="{{ $name }}" class="min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-900 shadow-sm transition focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/20 dark:border-white/10 dark:bg-zinc-950 dark:text-white" aria-label="{{ $select['label'] ?? 'Filter' }}">
+            <select name="{{ $name }}" class="member-form-input" aria-label="{{ $select['label'] ?? 'Filter' }}">
                 <option value="">{{ $select['placeholder'] ?? 'Semua' }}</option>
                 @foreach ($options as $value => $label)
                     <option value="{{ $value }}" @selected((string) $filters->get($name) === (string) $value)>{{ $label }}</option>
@@ -40,6 +41,9 @@
         </label>
     @endforeach
 
-    <button type="submit" class="member-button-primary min-h-11">{{ $submitLabel }}</button>
-    <a href="{{ url()->current() }}" class="member-button-secondary min-h-11">{{ $resetLabel }}</a>
+        <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <button type="submit" class="member-button-primary min-h-11 w-full sm:w-auto">{{ $submitLabel }}</button>
+            <a href="{{ url()->current() }}" class="member-button-secondary min-h-11 w-full sm:w-auto">{{ $resetLabel }}</a>
+        </div>
+    </div>
 </form>

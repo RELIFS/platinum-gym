@@ -3,21 +3,21 @@
     $emailVerified = $user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail
         ? $user->hasVerifiedEmail()
         : true;
-    $memberInputClasses = 'min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-900 shadow-sm transition placeholder:text-zinc-400 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/20 dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:placeholder:text-zinc-500';
+    $memberInputClasses = 'member-form-input';
 @endphp
 
-<form id="send-verification" method="post" action="{{ route('verification.send') }}">
+<form id="send-verification" method="post" action="{{ route('verification.send') }}" x-data="{ submitting: false }" x-on:submit="if (submitting) { $event.preventDefault() } else { submitting = true }">
     @csrf
 </form>
 
 <section class="member-card">
     <header>
         <p class="member-eyebrow">Identitas Login</p>
-        <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Informasi Akun</h2>
+        <h2 class="member-section-title">Informasi Akun</h2>
         <p class="mt-2 member-copy">Perbarui nama dan email akun Anda. Email digunakan untuk login dan menerima notifikasi pembayaran/booking.</p>
     </header>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-5 grid gap-4 sm:max-w-2xl">
+    <form method="post" action="{{ route('profile.update') }}" class="mt-5 grid gap-4 sm:max-w-2xl" x-data="{ submitting: false }" x-on:submit="if (submitting) { $event.preventDefault() } else { submitting = true }">
         @csrf
         @method('patch')
 
@@ -54,7 +54,7 @@
         </label>
 
         <div class="flex items-center gap-3">
-            <button type="submit" class="member-button-primary">Simpan</button>
+            <button type="submit" class="member-button-primary" x-bind:disabled="submitting"><span x-show="! submitting">Simpan</span><span x-show="submitting">Menyimpan...</span></button>
             @if (session('status') === 'profile-updated')
                 <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300">Tersimpan.</p>
             @endif
@@ -65,12 +65,12 @@
 <section class="member-card mt-6">
     <header>
         <p class="member-eyebrow">Kata Sandi</p>
-        <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Ubah Password</h2>
+        <h2 class="member-section-title">Ubah Password</h2>
         <p class="mt-2 member-copy">Gunakan kombinasi huruf besar, kecil, angka, dan simbol untuk menjaga keamanan akun Anda.</p>
     </header>
 
     <form method="post" action="{{ route('password.update') }}" class="mt-5 grid gap-4 sm:max-w-2xl"
-        x-data="{ show1: false, show2: false, show3: false }">
+        x-data="{ show1: false, show2: false, show3: false, submitting: false }" x-on:submit="if (submitting) { $event.preventDefault() } else { submitting = true }">
         @csrf
         @method('put')
 
@@ -123,7 +123,7 @@
         </label>
 
         <div class="flex items-center gap-3">
-            <button type="submit" class="member-button-primary">Simpan</button>
+            <button type="submit" class="member-button-primary" x-bind:disabled="submitting"><span x-show="! submitting">Simpan</span><span x-show="submitting">Menyimpan...</span></button>
             @if (session('status') === 'password-updated')
                 <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300">Password berhasil diperbarui.</p>
             @endif

@@ -4,7 +4,6 @@
     $portalUser = $portal['user'] ?? auth()->user();
     $portalMember = $portal['member'] ?? null;
     $memberDisplayName = (string) ($portalUser->name ?? 'Member');
-    $memberInitial = mb_strtoupper(mb_substr($memberDisplayName, 0, 1));
     $memberCode = (string) ($portalMember->member_code ?? '-');
     $unreadBadgeText = $unreadNotificationsCount > 99 ? '99+' : (string) $unreadNotificationsCount;
     $headerStatusLabel = $activeMembership ? 'Membership Aktif' : 'Paket Belum Aktif';
@@ -31,7 +30,7 @@
         [
             'label' => 'Akun',
             'items' => [
-                ['label' => 'Profil', 'route' => 'member.profile', 'active' => 'member.profile', 'icon' => 'user'],
+                ['label' => 'Profil', 'route' => 'member.profile', 'active' => 'member.profile*', 'icon' => 'user'],
             ],
         ],
     ];
@@ -73,7 +72,7 @@
                                 <div class="space-y-1">
                                     @foreach ($group['items'] as $item)
                                         @php($isActive = request()->routeIs($item['active']))
-                                        <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="group flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-950 {{ $isActive ? 'bg-zinc-950 text-white shadow-[inset_4px_0_0_0_#FEAC18] dark:bg-white/[0.09]' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/[0.07] dark:hover:text-white' }}">
+                                        <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="group flex min-h-11 items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-950 {{ $isActive ? 'border-gold-500/35 bg-gold-500/10 text-gold-700 dark:border-white/10 dark:bg-white/[0.09] dark:text-white' : 'border-transparent text-zinc-600 hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/[0.07] dark:hover:text-white' }}">
                                             <span class="grid h-8 w-8 shrink-0 place-items-center rounded-md {{ $isActive ? 'bg-gold-500 text-zinc-950' : 'bg-zinc-100 text-zinc-500 group-hover:text-gold-600 dark:bg-white/[0.06] dark:text-zinc-400 dark:group-hover:text-gold-400' }}">
                                                 @include('member.partials.icon', ['name' => $item['icon'], 'class' => 'h-4 w-4'])
                                             </span>
@@ -91,7 +90,7 @@
 
                 <div class="border-t border-zinc-200 p-4 dark:border-white/10">
                     <div class="mb-3 flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.04]" aria-label="Identitas member">
-                        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold-500 text-sm font-black text-zinc-950" aria-hidden="true">{{ $memberInitial }}</span>
+                        <x-member-avatar :user="$portalUser" class="h-10 w-10 text-sm" aria-hidden="true" />
                         <div class="min-w-0">
                             <p class="truncate text-sm font-black text-zinc-950 dark:text-white">{{ $memberDisplayName }}</p>
                             <p class="mt-0.5 truncate font-mono text-[0.7rem] font-bold uppercase tracking-[0.1em] text-zinc-500 dark:text-zinc-400">{{ $memberCode }}</p>
@@ -100,18 +99,18 @@
 
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-zinc-950 px-4 text-sm font-black text-white transition hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:bg-gold-500 dark:text-zinc-950 dark:hover:bg-gold-400 dark:focus-visible:ring-offset-zinc-950">
+                        <button type="submit" class="member-button-secondary w-full">
                             Keluar
                         </button>
                     </form>
                 </div>
             </div>
 
-            <div x-cloak x-bind:class="memberMenuOpen ? 'block' : 'hidden'" class="fixed inset-0 z-50 bg-zinc-950/70 backdrop-blur-sm lg:hidden" x-on:click="closeMemberMenu()" aria-hidden="true"></div>
-            <aside id="member-mobile-navigation" x-ref="memberMobilePanel" x-cloak x-bind:class="memberMenuOpen ? 'flex' : 'hidden'" class="fixed inset-y-0 left-0 z-[55] w-[86%] max-w-[20rem] flex-col border-r border-white/10 bg-zinc-950 text-white shadow-2xl lg:hidden" role="dialog" aria-modal="true" aria-label="Menu member mobile">
-                <div class="flex min-h-16 items-center justify-between border-b border-white/10 px-4">
+            <div x-cloak x-bind:class="memberMenuOpen ? 'block' : 'hidden'" class="fixed inset-0 z-50 bg-zinc-900/25 backdrop-blur-sm dark:bg-zinc-950/70 lg:hidden" x-on:click="closeMemberMenu()" aria-hidden="true"></div>
+            <aside id="member-mobile-navigation" x-ref="memberMobilePanel" x-cloak x-bind:class="memberMenuOpen ? 'flex' : 'hidden'" class="fixed inset-y-0 left-0 z-[55] w-[88%] max-w-[20rem] flex-col border-r border-zinc-200 bg-white text-zinc-950 shadow-[18px_0_60px_rgba(24,24,27,0.10)] dark:border-white/10 dark:bg-zinc-950 dark:text-white lg:hidden" role="dialog" aria-modal="true" aria-label="Menu member mobile">
+                <div class="flex min-h-16 items-center justify-between border-b border-zinc-200 px-4 dark:border-white/10">
                     <img src="{{ asset('images/brand/platinum-gym-wordmark-480.webp') }}" alt="Platinum Gym Padang" class="brand-logo h-9 w-auto" width="480" height="112" draggable="false">
-                    <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-white/[0.07] text-zinc-300 transition hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50" x-on:click="closeMemberMenu()" aria-label="Tutup navigasi member">
+                    <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 dark:bg-white/[0.07] dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white" x-on:click="closeMemberMenu()" aria-label="Tutup navigasi member">
                         <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                             <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                         </svg>
@@ -122,15 +121,15 @@
                     <nav class="space-y-5" aria-label="Navigasi member mobile">
                         @foreach ($navGroups as $group)
                             <div>
-                                <p class="mb-2 px-3 text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-500">{{ $group['label'] }}</p>
+                                <p class="mb-2 px-3 text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-500">{{ $group['label'] }}</p>
                                 <div class="grid gap-1">
                                     @foreach ($group['items'] as $item)
                                         @php($isActive = request()->routeIs($item['active']))
-                                        <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 {{ $isActive ? 'bg-gold-500 text-zinc-950' : 'text-zinc-300 hover:bg-white/10 hover:text-white' }}" x-on:click="closeMemberMenu()">
+                                        <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 {{ $isActive ? 'border-gold-500/35 bg-gold-500/10 text-gold-700 dark:text-gold-400' : 'text-zinc-600 hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/10 dark:hover:text-white' }}" x-on:click="closeMemberMenu()">
                                             @include('member.partials.icon', ['name' => $item['icon'], 'class' => 'h-5 w-5 shrink-0'])
                                             <span class="min-w-0 flex-1 truncate">{{ $item['label'] }}</span>
                                             @if (($item['count'] ?? 0) > 0)
-                                                <span class="rounded-full bg-white/15 px-2 py-0.5 text-[0.65rem] font-black">{{ $item['count'] }}</span>
+                                                <span class="rounded-full bg-gold-500 px-2 py-0.5 text-[0.65rem] font-black text-zinc-950">{{ $item['count'] }}</span>
                                             @endif
                                         </a>
                                     @endforeach
@@ -140,19 +139,19 @@
                     </nav>
                 </div>
 
-                <div class="border-t border-white/10 p-4">
-                    <div class="mb-3 flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3" aria-label="Identitas member">
-                        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold-500 text-sm font-black text-zinc-950" aria-hidden="true">{{ $memberInitial }}</span>
+                <div class="border-t border-zinc-200 p-4 dark:border-white/10">
+                    <div class="mb-3 flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.04]" aria-label="Identitas member">
+                        <x-member-avatar :user="$portalUser" class="h-10 w-10 text-sm" aria-hidden="true" />
                         <div class="min-w-0">
-                            <p class="truncate text-sm font-black text-white">{{ $memberDisplayName }}</p>
-                            <p class="mt-0.5 truncate font-mono text-[0.7rem] font-bold uppercase tracking-[0.1em] text-zinc-400">{{ $memberCode }}</p>
+                            <p class="truncate text-sm font-black text-zinc-950 dark:text-white">{{ $memberDisplayName }}</p>
+                            <p class="mt-0.5 truncate font-mono text-[0.7rem] font-bold uppercase tracking-[0.1em] text-zinc-500 dark:text-zinc-400">{{ $memberCode }}</p>
                         </div>
                     </div>
                     <div class="grid gap-2">
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-gold-500 px-4 text-sm font-black text-zinc-950">Keluar</button>
+                            <button type="submit" class="member-button-secondary w-full">Keluar</button>
                         </form>
                     </div>
                 </div>
@@ -162,20 +161,20 @@
                 <header class="sticky top-0 z-30 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/90">
                     <div class="mx-auto flex min-h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:min-h-20 lg:px-8">
                         <div class="flex min-w-0 items-center gap-3">
-                            <button type="button" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-zinc-950 text-white shadow-[0_12px_28px_rgba(24,24,27,0.22)] transition hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:bg-gold-500 dark:text-zinc-950 lg:hidden" x-on:click="openMemberMenu()" x-bind:aria-expanded="memberMenuOpen.toString()" aria-controls="member-mobile-navigation" aria-label="Buka navigasi member">
+                            <button type="button" class="member-mobile-menu-button lg:hidden" x-on:click="openMemberMenu()" x-bind:aria-expanded="memberMenuOpen.toString()" aria-controls="member-mobile-navigation" aria-label="Buka navigasi member">
                                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                                     <path d="M3 5.5H17M3 10H17M3 14.5H17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
                                 </svg>
                             </button>
                             <div class="min-w-0">
 
-                                <h1 class="max-w-[9.5rem] break-words text-base font-black leading-tight text-zinc-950 dark:text-white sm:max-w-none sm:text-xl">{{ $title }}</h1>
+                                <h1 class="max-w-[7rem] break-words text-base font-black leading-tight text-zinc-950 dark:text-white min-[360px]:max-w-[9.5rem] sm:max-w-none sm:text-xl">{{ $title }}</h1>
                             </div>
                         </div>
 
                         <div class="flex items-center gap-2 sm:gap-3">
                             <span class="member-status-pill {{ $headerStatusClass }} hidden sm:inline-flex" aria-label="Status membership: {{ $headerStatusLabel }}">{{ $headerStatusLabel }}</span>
-                            <span class="member-status-pill {{ $headerStatusClass }} inline-flex sm:hidden" aria-label="Status membership: {{ $headerStatusLabel }}" title="{{ $headerStatusLabel }}">{{ $headerStatusShort }}</span>
+                            <span class="member-status-pill {{ $headerStatusClass }} hidden min-[360px]:inline-flex sm:hidden" aria-label="Status membership: {{ $headerStatusLabel }}" title="{{ $headerStatusLabel }}">{{ $headerStatusShort }}</span>
                             <a href="{{ route('member.notifications') }}" class="relative inline-flex h-11 min-w-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-2 text-zinc-700 shadow-sm transition hover:border-gold-500/60 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300 dark:hover:text-gold-400" aria-label="Buka notifikasi member, {{ $unreadNotificationsCount }} belum dibaca">
                                 @include('member.partials.icon', ['name' => 'bell', 'class' => 'h-5 w-5'])
                                 @if ($unreadNotificationsCount > 0)

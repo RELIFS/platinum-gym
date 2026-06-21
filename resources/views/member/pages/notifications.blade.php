@@ -1,13 +1,13 @@
 <section class="member-card mt-6">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div class="member-section-header">
         <div>
             <p class="member-eyebrow">Notifikasi</p>
-            <h3 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Pemberitahuan member</h3>
+            <h3 class="member-section-title">Pemberitahuan member</h3>
         </div>
         @if (($portal['unreadNotificationsCount'] ?? 0) > 0)
-            <form method="POST" action="{{ route('member.notifications.read-all') }}">
+            <form method="POST" action="{{ route('member.notifications.read-all') }}" x-data="{ submitting: false }" x-on:submit="if (submitting) { $event.preventDefault() } else { submitting = true }">
                 @csrf
-                <button type="submit" class="member-button-secondary">Tandai Semua Dibaca</button>
+                <button type="submit" class="member-button-secondary" x-bind:disabled="submitting"><span x-show="! submitting">Tandai Semua Dibaca</span><span x-show="submitting">Memproses...</span></button>
             </form>
         @endif
     </div>
@@ -39,7 +39,7 @@
                     $appBase = rtrim((string) url('/'), '/');
                     $isInternalAction = filled($actionUrl) && str_starts_with((string) $actionUrl, $appBase);
                 @endphp
-                <article class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45">
+                <article class="member-list-card">
                     <div class="flex items-start gap-3">
                         <span class="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-gold-500/10 text-gold-600 dark:text-gold-400" aria-hidden="true">
                             @include('member.partials.icon', ['name' => 'bell', 'class' => 'h-5 w-5'])
@@ -56,9 +56,9 @@
                                     <a href="{{ $actionUrl }}" class="member-button-primary">{{ $actionLabel }}</a>
                                 @endif
                                 @if (is_null($notification->read_at))
-                                    <form method="POST" action="{{ route('member.notifications.read', $notification) }}">
+                                    <form method="POST" action="{{ route('member.notifications.read', $notification) }}" x-data="{ submitting: false }" x-on:submit="if (submitting) { $event.preventDefault() } else { submitting = true }">
                                         @csrf
-                                        <button type="submit" class="member-button-secondary">Tandai Dibaca</button>
+                                        <button type="submit" class="member-button-secondary" x-bind:disabled="submitting"><span x-show="! submitting">Tandai Dibaca</span><span x-show="submitting">Memproses...</span></button>
                                     </form>
                                 @endif
                             </div>

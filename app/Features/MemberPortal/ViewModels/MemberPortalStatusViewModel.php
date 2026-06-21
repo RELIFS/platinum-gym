@@ -71,7 +71,7 @@ class MemberPortalStatusViewModel
     }
 
     /**
-     * @return array{access_label: string, access_class: string, capacity_left: int, capacity_full: bool, day_label: string, is_paid: bool, is_included: bool, is_session_based: bool, member_price: float|null, non_member_price: float|null, promo_price: float|null, display_price: float|null, has_promo: bool, button_label: string}
+     * @return array{access_label: string, access_class: string, capacity_left: int, capacity_full: bool, day_label: string, is_paid: bool, is_included: bool, is_session_based: bool, member_price: float|null, non_member_price: float|null, promo_price: float|null, display_price: float|null, has_promo: bool, button_label: string, can_book: bool, disabled_reason: string|null, alert_message: string|null, cta_label: string|null, cta_url: string|null}
      */
     public static function schedule(ClassSchedule $schedule): array
     {
@@ -117,6 +117,11 @@ class MemberPortalStatusViewModel
             'display_price' => $displayPrice,
             'has_promo' => $hasPromo,
             'button_label' => $buttonLabel,
+            'can_book' => true,
+            'disabled_reason' => null,
+            'alert_message' => null,
+            'cta_label' => null,
+            'cta_url' => null,
         ];
     }
 
@@ -197,7 +202,6 @@ class MemberPortalStatusViewModel
         return [
             'included' => 'Membership',
             'session_based' => 'Paket Sesi',
-            'paid' => 'Bayar Kelas',
         ];
     }
 
@@ -285,7 +289,12 @@ class MemberPortalStatusViewModel
 
     private static function classAccessLabel(string $accessType): string
     {
-        return self::classAccessOptions()[$accessType] ?? 'Kelas';
+        return match ($accessType) {
+            'included' => 'Membership',
+            'session_based' => 'Paket Sesi',
+            'paid' => 'Bayar Kelas',
+            default => 'Kelas',
+        };
     }
 
     private static function dayLabel(int $day): string

@@ -23,7 +23,7 @@
             @endphp
             <nav class="flex flex-wrap gap-2" aria-label="Navigasi halaman {{ $label }}">
                 @if ($paginator->onFirstPage())
-                    <span class="member-button-secondary min-h-11 opacity-45" aria-disabled="true">Sebelumnya</span>
+                    <span class="member-button-disabled min-h-11 opacity-70" aria-disabled="true">Sebelumnya</span>
                 @else
                     <a href="{{ $paginator->previousPageUrl() }}" class="member-button-secondary min-h-11" aria-label="Halaman sebelumnya">Sebelumnya</a>
                 @endif
@@ -32,14 +32,14 @@
                     @if ($pageNumber === $currentPage)
                         <span class="grid min-h-11 min-w-11 place-items-center rounded-lg bg-gold-500 px-3 text-sm font-black text-zinc-950" aria-current="page">{{ $pageNumber }}</span>
                     @else
-                        <a href="{{ $paginator->url($pageNumber) }}" class="grid min-h-11 min-w-11 place-items-center rounded-lg border border-zinc-200 bg-white px-3 text-sm font-black text-zinc-700 transition hover:border-gold-500/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-zinc-950/45 dark:text-zinc-200" aria-label="Halaman {{ $pageNumber }}">{{ $pageNumber }}</a>
+                        <a href="{{ $paginator->url($pageNumber) }}" class="grid min-h-11 min-w-11 place-items-center rounded-lg border border-zinc-200 bg-white px-3 text-sm font-black text-zinc-700 transition hover:border-gold-500/60 hover:bg-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-zinc-950/45 dark:text-zinc-200 dark:hover:bg-white/[0.07]" aria-label="Halaman {{ $pageNumber }}">{{ $pageNumber }}</a>
                     @endif
                 @endforeach
 
                 @if ($paginator->hasMorePages())
                     <a href="{{ $paginator->nextPageUrl() }}" class="member-button-secondary min-h-11" aria-label="Halaman berikutnya">Berikutnya</a>
                 @else
-                    <span class="member-button-secondary min-h-11 opacity-45" aria-disabled="true">Berikutnya</span>
+                    <span class="member-button-disabled min-h-11 opacity-70" aria-disabled="true">Berikutnya</span>
                 @endif
             </nav>
         @endif

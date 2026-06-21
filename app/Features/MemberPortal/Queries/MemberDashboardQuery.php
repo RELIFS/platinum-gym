@@ -2,11 +2,14 @@
 
 namespace App\Features\MemberPortal\Queries;
 
+use App\Features\MemberPortal\Support\MemberPackageEligibility;
 use App\Features\MemberPortal\ViewModels\MemberPortalStatusViewModel;
 use App\Features\Payments\Actions\SyncMidtransPaymentStatusAction;
 use App\Models\ClassEnrollment;
 use App\Models\ClassSchedule;
+use App\Models\GymCheckIn;
 use App\Models\Member;
+use App\Models\MemberPackageSessionUsage;
 use App\Models\Package;
 use App\Models\Payment;
 use App\Models\QrToken;
@@ -42,6 +45,15 @@ class MemberDashboardQuery
             ->whereDate('end_date', '>=', $today)
             ->orderBy('end_date')
             ->first();
+
+        $activeMemberships = $member->memberships()
+            ->with('package')
+            ->where('status', 'active')
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->orderBy('end_date')
+            ->orderBy('created_at')
+            ->get();
 
         $latestMembership = $member->memberships()
             ->with('package')
@@ -80,8 +92,16 @@ class MemberDashboardQuery
         $recentEnrollments = $this->recentEnrollments($member, $pageKey, $filters);
 
         $recentCheckIns = $member->gymCheckIns()
+            ->with(['membership.package', 'packageSessionUsages.packageSession.package'])
             ->latest('check_in_at')
-            ->limit(4)
+            ->limit(8)
+            ->get();
+
+        $recentStandaloneSessionUsages = $member->packageSessionUsages()
+            ->with(['packageSession.package'])
+            ->whereNull('gym_check_in_id')
+            ->latest('used_at')
+            ->limit(8)
             ->get();
 
         $qrToken = QrToken::query()
@@ -91,8 +111,9 @@ class MemberDashboardQuery
             ->latest('created_at')
             ->first();
 
-        $packages = $this->packages($hiddenSessionPackageIds, $pageKey, $filters);
-        $classSchedules = $this->classSchedules($pageKey, $filters);
+        $hasActiveGymMembership = $this->hasActiveGymMembership($member, $today);
+        $packages = $this->packages($member, $hiddenSessionPackageIds, $pageKey, $filters, (bool) $activeMembership, $hasActiveGymMembership);
+        $classSchedules = $this->classSchedules($member, $pageKey, $filters, $today);
         $notifications = $this->notifications($user, $pageKey, $filters);
         $trainerOptions = $this->trainerOptionsForPackages($packages);
 
@@ -100,6 +121,7 @@ class MemberDashboardQuery
             'user' => $user,
             'member' => $member,
             'activeMembership' => $activeMembership,
+            'activeMemberships' => $activeMemberships,
             'latestMembership' => $latestMembership,
             'activePackageSessions' => $activePackageSessions,
             'pendingPaymentCount' => $pendingPaymentCount,
@@ -107,11 +129,15 @@ class MemberDashboardQuery
             'upcomingEnrollments' => $upcomingEnrollments,
             'recentEnrollments' => $recentEnrollments,
             'recentCheckIns' => $recentCheckIns,
+            'recentCheckInRows' => $this->recentCheckInRows($recentCheckIns, $recentStandaloneSessionUsages),
             'qrToken' => $qrToken,
             'qrTokenIsActive' => $this->qrTokenIsActive($qrToken),
             'qrStatusLabel' => $this->qrStatusLabel($qrToken),
             'packages' => $packages,
+            'packageGroups' => $this->packageGroups($packages),
+            'hasActiveGymMembership' => $hasActiveGymMembership,
             'classSchedules' => $classSchedules,
+            'classScheduleGroups' => $this->classScheduleGroups($classSchedules),
             'notifications' => $notifications,
             'trainerOptions' => $trainerOptions,
             'unreadNotificationsCount' => $user->unreadNotifications()->count(),
@@ -131,6 +157,72 @@ class MemberDashboardQuery
         }
 
         return $date;
+    }
+
+    /**
+     * @param  Collection<int, GymCheckIn>  $recentCheckIns
+     * @param  Collection<int, MemberPackageSessionUsage>  $recentStandaloneSessionUsages
+     * @return Collection<int, array{date_label: string, time_label: string, package_label: string, status_label: string, status_class: string, remaining_label: string}>
+     */
+    private function recentCheckInRows(Collection $recentCheckIns, Collection $recentStandaloneSessionUsages): Collection
+    {
+        return $recentCheckIns
+            ->map(fn (GymCheckIn $checkIn): array => $this->recentCheckInRow($checkIn))
+            ->concat($recentStandaloneSessionUsages->map(fn (MemberPackageSessionUsage $usage): array => $this->recentSessionUsageRow($usage)))
+            ->sortByDesc('sort_at')
+            ->take(8)
+            ->map(function (array $row): array {
+                unset($row['sort_at']);
+
+                return $row;
+            })
+            ->values();
+    }
+
+    /**
+     * @return array{date_label: string, time_label: string, package_label: string, status_label: string, status_class: string, remaining_label: string, sort_at: int}
+     */
+    private function recentCheckInRow(GymCheckIn $checkIn): array
+    {
+        $sessionUsages = $checkIn->packageSessionUsages;
+        $hasSessionUsage = $sessionUsages->isNotEmpty();
+        $membershipLabel = $checkIn->membership?->package?->name ?? 'Membership aktif';
+        $sessionLabels = $sessionUsages
+            ->map(fn (MemberPackageSessionUsage $usage): ?string => $usage->packageSession?->package?->name ?? $usage->packageSession?->code)
+            ->filter()
+            ->unique()
+            ->values();
+        $remainingLabels = $sessionUsages
+            ->map(fn (MemberPackageSessionUsage $usage): ?string => $usage->packageSession?->remaining_sessions !== null ? ((int) $usage->packageSession->remaining_sessions).' sesi' : null)
+            ->filter()
+            ->unique()
+            ->values();
+
+        return [
+            'date_label' => $checkIn->check_in_date?->translatedFormat('d M Y') ?? '-',
+            'time_label' => $checkIn->check_in_at?->format('H:i') ?? '-',
+            'package_label' => $hasSessionUsage ? collect([$membershipLabel])->merge($sessionLabels)->filter()->unique()->implode(' + ') : $membershipLabel,
+            'status_label' => $hasSessionUsage ? 'Check-in + Sesi' : 'Check-in',
+            'status_class' => $hasSessionUsage ? 'member-status-info' : 'member-status-success',
+            'remaining_label' => $remainingLabels->isNotEmpty() ? $remainingLabels->implode(', ') : '-',
+            'sort_at' => $checkIn->check_in_at?->getTimestamp() ?? 0,
+        ];
+    }
+
+    /**
+     * @return array{date_label: string, time_label: string, package_label: string, status_label: string, status_class: string, remaining_label: string, sort_at: int}
+     */
+    private function recentSessionUsageRow(MemberPackageSessionUsage $usage): array
+    {
+        return [
+            'date_label' => $usage->usage_date?->translatedFormat('d M Y') ?? '-',
+            'time_label' => $usage->used_at?->format('H:i') ?? '-',
+            'package_label' => $usage->packageSession?->package?->name ?? $usage->packageSession?->code ?? 'Paket sesi',
+            'status_label' => 'Sesi',
+            'status_class' => 'member-status-info',
+            'remaining_label' => $usage->packageSession?->remaining_sessions !== null ? ((int) $usage->packageSession->remaining_sessions).' sesi' : '-',
+            'sort_at' => $usage->used_at?->getTimestamp() ?? 0,
+        ];
     }
 
     /**
@@ -222,32 +314,108 @@ class MemberDashboardQuery
         });
     }
 
-    private function packages(Collection $hiddenSessionPackageIds, string $pageKey, array $filters): mixed
+    private function hasActiveGymMembership(Member $member, string $today): bool
+    {
+        return $member->memberships()
+            ->where('status', 'active')
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->whereHas('package', fn ($query) => $query->whereIn('type', ['gym', 'include']))
+            ->exists();
+    }
+
+    private function packages(Member $member, Collection $hiddenSessionPackageIds, string $pageKey, array $filters, bool $hasActiveMembership, bool $hasActiveGymMembership): mixed
     {
         $query = Package::query()
             ->where('is_active', true)
             ->when($hiddenSessionPackageIds->isNotEmpty(), fn ($query) => $query->whereNotIn('id', $hiddenSessionPackageIds))
             ->orderByRaw("case when package_kind = 'membership' then 0 else 1 end")
+            ->orderByRaw("case when category = 'umum' then 0 when category = 'mahasiswa' then 1 else 2 end")
+            ->orderByRaw("case when type = 'gym' then 0 when type = 'senam' then 1 when type = 'include' then 2 when type = 'muaythai' then 3 when type = 'poundfit' then 4 when type = 'pt' then 5 else 6 end")
             ->orderBy('price')
             ->orderBy('name');
 
         if ($pageKey === 'membership') {
             $this->applyPackageFilters($query, $filters);
 
-            return $query->paginate(6)->withQueryString()->through(function (Package $package): Package {
+            return $query->paginate(24)->withQueryString()->through(function (Package $package) use ($member, $hasActiveMembership, $hasActiveGymMembership): Package {
                 $package->setAttribute('member_status_meta', MemberPortalStatusViewModel::package($package));
+                $package->setAttribute('member_eligibility', MemberPackageEligibility::forPackage(
+                    $member,
+                    $package,
+                    $hasActiveMembership,
+                    $hasActiveGymMembership,
+                    route('member.profile.edit'),
+                    route('member.membership', ['kind' => 'membership', 'q' => 'Gym'])
+                ));
 
                 return $package;
             });
         }
 
-        return $query->limit(8)->get()->each(function (Package $package): void {
+        return $query->limit(8)->get()->each(function (Package $package) use ($member, $hasActiveMembership, $hasActiveGymMembership): void {
             $package->setAttribute('member_status_meta', MemberPortalStatusViewModel::package($package));
+            $package->setAttribute('member_eligibility', MemberPackageEligibility::forPackage(
+                $member,
+                $package,
+                $hasActiveMembership,
+                $hasActiveGymMembership,
+                route('member.profile.edit'),
+                route('member.membership', ['kind' => 'membership', 'q' => 'Gym'])
+            ));
         });
     }
 
-    private function classSchedules(string $pageKey, array $filters): mixed
+    /**
+     * @return array<int, array{key: string, title: string, packages: Collection<int, Package>}>
+     */
+    private function packageGroups(mixed $packages): array
     {
+        $items = $packages instanceof Paginator
+            ? collect($packages->items())
+            : ($packages instanceof Collection ? $packages : collect());
+
+        $groups = [
+            ['key' => 'umum', 'title' => 'Kategori Umum', 'packages' => $items->filter(fn (Package $package): bool => $this->packageBelongsToGroup($package, 'umum'))->values()],
+            ['key' => 'mahasiswa', 'title' => 'Kategori Mahasiswa', 'packages' => $items->filter(fn (Package $package): bool => $this->packageBelongsToGroup($package, 'mahasiswa'))->values()],
+            ['key' => 'poundfit', 'title' => 'Poundfit', 'packages' => $items->filter(fn (Package $package): bool => (string) $package->type === 'poundfit')->values()],
+            ['key' => 'personal-trainer', 'title' => 'Personal Trainer', 'packages' => $items->filter(fn (Package $package): bool => (string) $package->type === 'pt')->values()],
+            ['key' => 'lainnya', 'title' => 'Layanan Lainnya', 'packages' => $items->filter(fn (Package $package): bool => ! $this->packageHasNamedGroup($package))->values()],
+        ];
+
+        return collect($groups)
+            ->filter(fn (array $group): bool => $group['packages']->isNotEmpty())
+            ->values()
+            ->all();
+    }
+
+    private function packageBelongsToGroup(Package $package, string $category): bool
+    {
+        $type = (string) $package->type;
+
+        if (! in_array($type, ['gym', 'senam', 'include', 'muaythai'], true)) {
+            return false;
+        }
+
+        if ($category === 'mahasiswa') {
+            return str((string) $package->category)->lower()->toString() === 'mahasiswa' || filled($package->max_age);
+        }
+
+        return str((string) $package->category)->lower()->toString() === 'umum' && blank($package->max_age);
+    }
+
+    private function packageHasNamedGroup(Package $package): bool
+    {
+        return $this->packageBelongsToGroup($package, 'umum')
+            || $this->packageBelongsToGroup($package, 'mahasiswa')
+            || (string) $package->type === 'poundfit'
+            || (string) $package->type === 'pt';
+    }
+
+    private function classSchedules(Member $member, string $pageKey, array $filters, string $today): mixed
+    {
+        $activeSessionTypes = $this->activePackageSessionTypes($member, $today);
+
         $query = ClassSchedule::query()
             ->with(['gymClass', 'trainer'])
             ->withCount(['enrollments as booked_count' => fn ($query) => $query->whereIn('status', ['booked', 'active', 'confirmed', 'pending_payment'])])
@@ -259,10 +427,10 @@ class MemberDashboardQuery
         if ($pageKey === 'booking-kelas') {
             $this->applyScheduleFilters($query, $filters);
 
-            return $query->paginate(9)->withQueryString()->through(fn (ClassSchedule $schedule) => $this->prepareSchedule($schedule));
+            return $query->paginate(24)->withQueryString()->through(fn (ClassSchedule $schedule) => $this->prepareSchedule($schedule, $activeSessionTypes));
         }
 
-        return $query->limit(8)->get()->each(fn (ClassSchedule $schedule) => $this->prepareSchedule($schedule));
+        return $query->limit(8)->get()->each(fn (ClassSchedule $schedule) => $this->prepareSchedule($schedule, $activeSessionTypes));
     }
 
     private function notifications(User $user, string $pageKey, array $filters): mixed
@@ -287,12 +455,86 @@ class MemberDashboardQuery
         });
     }
 
-    private function prepareSchedule(ClassSchedule $schedule): ClassSchedule
+    /**
+     * @return Collection<int, string>
+     */
+    private function activePackageSessionTypes(Member $member, string $today): Collection
+    {
+        return $member->packageSessions()
+            ->with('package:id,type')
+            ->where('status', 'active')
+            ->where('remaining_sessions', '>', 0)
+            ->where(function ($query) use ($today): void {
+                $query->whereNull('expired_at')
+                    ->orWhereDate('expired_at', '>=', $today);
+            })
+            ->get()
+            ->pluck('package.type')
+            ->filter()
+            ->unique()
+            ->values();
+    }
+
+    /**
+     * @param  Collection<int, string>  $activeSessionTypes
+     */
+    private function prepareSchedule(ClassSchedule $schedule, Collection $activeSessionTypes): ClassSchedule
     {
         $schedule->setAttribute('next_session_date', $this->nextSessionDate((int) $schedule->day_of_week)->toDateString());
-        $schedule->setAttribute('member_status_meta', MemberPortalStatusViewModel::schedule($schedule));
+        $meta = MemberPortalStatusViewModel::schedule($schedule);
+        $requiredPackageType = (string) $schedule->gymClass?->required_package_type;
+
+        if (($meta['is_session_based'] ?? false) && filled($requiredPackageType) && ! $activeSessionTypes->contains($requiredPackageType)) {
+            $meta['can_book'] = false;
+            $meta['disabled_reason'] = 'Kelas ini membutuhkan membership aktif yang sesuai.';
+        }
+
+        $schedule->setAttribute('member_status_meta', $meta);
 
         return $schedule;
+    }
+
+    /**
+     * @return array<int, array{key: string, title: string, schedules: Collection<int, ClassSchedule>}>
+     */
+    private function classScheduleGroups(mixed $classSchedules): array
+    {
+        $items = $classSchedules instanceof Paginator
+            ? collect($classSchedules->items())
+            : ($classSchedules instanceof Collection ? $classSchedules : collect());
+
+        $groups = collect([
+            ['key' => 'aerobic', 'title' => 'Aerobic'],
+            ['key' => 'zumba', 'title' => 'Zumba'],
+            ['key' => 'muaythai', 'title' => 'Muaythai'],
+            ['key' => 'poundfit', 'title' => 'Poundfit'],
+            ['key' => 'lainnya', 'title' => 'Kelas Lainnya'],
+        ])->map(function (array $group) use ($items): array {
+            $group['schedules'] = $items
+                ->filter(fn (ClassSchedule $schedule): bool => $this->scheduleGroupKey($schedule) === $group['key'])
+                ->values();
+
+            return $group;
+        });
+
+        return $groups
+            ->filter(fn (array $group): bool => $group['schedules']->isNotEmpty())
+            ->values()
+            ->all();
+    }
+
+    private function scheduleGroupKey(ClassSchedule $schedule): string
+    {
+        $className = str((string) $schedule->gymClass?->name)->lower()->toString();
+        $classType = str((string) $schedule->gymClass?->class_type)->lower()->toString();
+
+        return match (true) {
+            str_contains($className, 'aerobic') => 'aerobic',
+            str_contains($className, 'zumba') => 'zumba',
+            str_contains($className, 'muaythai') || $classType === 'muaythai' => 'muaythai',
+            str_contains($className, 'poundfit') || $classType === 'poundfit' => 'poundfit',
+            default => 'lainnya',
+        };
     }
 
     /**
