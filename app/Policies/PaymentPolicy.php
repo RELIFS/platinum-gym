@@ -14,11 +14,15 @@ class PaymentPolicy
 
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->hasRole('owner') && $user->can('view_financial_reports');
     }
 
     public function view(User $user, Payment $payment): bool
     {
+        if ($user->hasRole('owner') && $user->can('view_financial_reports')) {
+            return true;
+        }
+
         return $payment->member?->user_id === $user->id;
     }
 

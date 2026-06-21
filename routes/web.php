@@ -11,9 +11,13 @@ use App\Http\Controllers\AdminPortalController;
 use App\Http\Controllers\GymmiChatController;
 use App\Http\Controllers\Member\MemberBookingController;
 use App\Http\Controllers\Member\MemberCheckoutController;
+use App\Http\Controllers\Member\MemberInvoiceController;
 use App\Http\Controllers\Member\MemberNotificationController;
 use App\Http\Controllers\Member\MemberProfileController;
 use App\Http\Controllers\MemberPortalController;
+use App\Http\Controllers\Owner\OwnerDashboardController;
+use App\Http\Controllers\Owner\OwnerInvoiceController;
+use App\Http\Controllers\Owner\OwnerReportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicWebsiteController;
 use App\Http\Controllers\Webhook\MidtransWebhookController;
@@ -46,6 +50,7 @@ Route::middleware(['auth', 'verified', 'role:member', 'member.profile.complete']
     ->group(function () {
         Route::get('/dashboard', [MemberPortalController::class, 'dashboard'])->name('dashboard');
         Route::get('/profil', [MemberPortalController::class, 'profile'])->name('profile');
+        Route::get('/profil/edit', [MemberPortalController::class, 'profileEdit'])->name('profile.edit');
         Route::patch('/profil', [MemberProfileController::class, 'update'])->name('profile.update');
         Route::get('/membership', [MemberPortalController::class, 'membership'])->name('membership');
         Route::post('/membership/{package}/checkout', [MemberCheckoutController::class, 'membership'])->name('membership.checkout');
@@ -57,7 +62,9 @@ Route::middleware(['auth', 'verified', 'role:member', 'member.profile.complete']
         Route::get('/transaksi', [MemberPortalController::class, 'transactions'])->name('transactions');
         Route::get('/transaksi/{payment}', [MemberCheckoutController::class, 'show'])->name('transactions.show');
         Route::post('/transaksi/{payment}/bayar', [MemberCheckoutController::class, 'pay'])->name('transactions.pay');
+        Route::get('/invoice/{invoice}', [MemberInvoiceController::class, 'show'])->name('invoices.show');
         Route::get('/qr', [MemberPortalController::class, 'qr'])->name('qr');
+        Route::get('/qr/download', [MemberPortalController::class, 'downloadQr'])->name('qr.download');
         Route::get('/notifikasi', [MemberPortalController::class, 'notifications'])->name('notifications');
         Route::post('/notifikasi/baca-semua', [MemberNotificationController::class, 'readAll'])->name('notifications.read-all');
         Route::post('/notifikasi/{notification}/baca', [MemberNotificationController::class, 'read'])->name('notifications.read');
@@ -69,8 +76,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->group(function () {
         Route::get('/', [AdminPortalController::class, 'dashboard'])->name('dashboard');
         Route::get('/check-in', [AdminPortalController::class, 'checkIn'])->name('check-in');
+        Route::post('/check-in/preview', [AdminCheckInController::class, 'preview'])->name('check-in.preview');
         Route::post('/check-in/scan', [AdminCheckInController::class, 'scan'])->name('check-in.scan');
-        Route::post('/check-in/manual', [AdminCheckInController::class, 'manual'])->name('check-in.manual');
+        Route::post('/check-in/confirm', [AdminCheckInController::class, 'confirm'])->name('check-in.confirm');
         Route::get('/booking', [AdminPortalController::class, 'booking'])->name('booking');
         Route::post('/booking', [AdminBookingController::class, 'store'])->name('booking.store');
         Route::post('/booking/{enrollment}/confirm', [AdminBookingController::class, 'confirm'])->name('booking.confirm');
@@ -105,7 +113,13 @@ Route::middleware(['auth', 'verified', 'role:owner'])
     ->prefix('owner')
     ->name('owner.')
     ->group(function () {
-        Route::view('/', 'owner.dashboard')->name('dashboard');
+        Route::get('/', [OwnerDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/laporan', [OwnerReportController::class, 'index'])->name('reports.index');
+        Route::get('/laporan/keuangan', [OwnerReportController::class, 'finance'])->name('reports.finance');
+        Route::get('/laporan/member', [OwnerReportController::class, 'members'])->name('reports.members');
+        Route::get('/laporan/booking-kelas', [OwnerReportController::class, 'classes'])->name('reports.classes');
+        Route::get('/laporan/export', [OwnerReportController::class, 'export'])->name('reports.export');
+        Route::get('/invoice/{invoice}', [OwnerInvoiceController::class, 'show'])->name('invoices.show');
     });
 
 Route::middleware('auth')->group(function () {
