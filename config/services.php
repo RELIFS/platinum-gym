@@ -59,6 +59,15 @@ return [
         'max_output_tokens' => env('GYMMI_AI_MAX_OUTPUT_TOKENS', 500),
         'temperature' => env('GYMMI_AI_TEMPERATURE', 0.45),
         'rate_limit_per_minute' => env('GYMMI_AI_RATE_LIMIT_PER_MINUTE', 12),
+        'circuit_breaker_seconds' => env('GYMMI_AI_CIRCUIT_BREAKER_SECONDS', 300),
+        'public_cache_seconds' => env('GYMMI_AI_PUBLIC_CACHE_SECONDS', 900),
+    ],
+
+    'pddikti' => [
+        'enabled' => env('PDDIKTI_ENABLED', false),
+        'base_url' => env('PDDIKTI_BASE_URL'),
+        'token' => env('PDDIKTI_TOKEN'),
+        'timeout' => env('PDDIKTI_TIMEOUT', 10),
     ],
 
     'slack' => [
