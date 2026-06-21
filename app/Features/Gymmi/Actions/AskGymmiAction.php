@@ -9,6 +9,7 @@ use App\Features\PublicWebsite\Queries\PublicSettingsQuery;
 use App\Features\PublicWebsite\ViewModels\PublicChatbotViewModel;
 use App\Models\AiConversation;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Throwable;
@@ -30,7 +31,7 @@ class AskGymmiAction
         $context = $context === 'member' && $user ? 'member' : 'public';
         $safeMessage = Str::limit(strip_tags($message), 700, '');
         $promptContext = $this->contextBuilder->build($context, $user);
-        $reply = $this->client->ask($safeMessage, $promptContext, $history);
+        $reply = $this->askClient($safeMessage, $promptContext, $context, $user, $history);
         $source = filled($reply) ? 'gemini' : 'fallback';
         $text = $reply ?: $this->fallbackReply($safeMessage, $context);
 
@@ -40,6 +41,28 @@ class AskGymmiAction
             'text' => $text,
             'source' => $source,
         ];
+    }
+
+    /**
+     * @param  array<int, array{from?: string, text?: string}>  $history
+     */
+    private function askClient(string $message, string $promptContext, string $context, ?User $user, array $history): ?string
+    {
+        if ($context !== 'public' || $user || $history !== []) {
+            return $this->client->ask($message, $promptContext, $history);
+        }
+
+        $cacheSeconds = (int) config('services.gemini.public_cache_seconds', 900);
+
+        if ($cacheSeconds <= 0) {
+            return $this->client->ask($message, $promptContext, $history);
+        }
+
+        return Cache::remember(
+            'gymmi:public-reply:'.sha1($message.'|'.$promptContext),
+            now()->addSeconds($cacheSeconds),
+            fn (): ?string => $this->client->ask($message, $promptContext, $history),
+        );
     }
 
     private function fallbackReply(string $message, string $context): string

@@ -4,6 +4,7 @@ namespace App\Features\Gymmi\Clients;
 
 use App\Features\Gymmi\Contracts\GymmiAssistantClient;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -25,13 +26,17 @@ class GeminiGymmiClient implements GymmiAssistantClient
 
         $model = $this->model();
         $body = $this->payload($message, $context, $history);
+        $circuitKey = $this->circuitKey($model);
 
-        foreach ($this->prioritizedKeys($keys) as $key) {
+        if (Cache::has($circuitKey)) {
+            return null;
+        }
+
+        foreach ($this->prioritizedKeys($keys) as $attempt => $key) {
             try {
                 $response = Http::baseUrl((string) config('services.gemini.base_url'))
                     ->timeout((int) config('services.gemini.timeout', 12))
                     ->connectTimeout((int) config('services.gemini.connect_timeout', 5))
-                    ->retry(2, 250, throw: false)
                     ->withHeaders([
                         'Accept' => 'application/json',
                         'Content-Type' => 'application/json',
@@ -46,7 +51,18 @@ class GeminiGymmiClient implements GymmiAssistantClient
                 Log::warning('Gemini Gymmi request failed.', [
                     'status' => $response->status(),
                     'model' => $model,
+                    'attempt' => $attempt + 1,
                 ]);
+
+                if ($response->status() === 429) {
+                    Cache::put($circuitKey, true, now()->addSeconds($this->circuitBreakerSeconds()));
+
+                    break;
+                }
+
+                if ($response->status() === 404) {
+                    break;
+                }
 
                 if (! in_array($response->status(), [429, 500, 502, 503, 504], true)) {
                     break;
@@ -104,6 +120,16 @@ class GeminiGymmiClient implements GymmiAssistantClient
             ->after('models/')
             ->trim()
             ->toString();
+    }
+
+    private function circuitKey(string $model): string
+    {
+        return 'gymmi:gemini:circuit:'.sha1($model);
+    }
+
+    private function circuitBreakerSeconds(): int
+    {
+        return max(30, (int) config('services.gemini.circuit_breaker_seconds', 300));
     }
 
     /**

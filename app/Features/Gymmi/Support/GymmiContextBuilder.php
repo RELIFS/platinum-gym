@@ -41,10 +41,10 @@ class GymmiContextBuilder
 
         return 'Kontak dan lokasi: '.collect([
             'alamat' => $settings->get('address'),
-            'telepon' => $settings->get('phone'),
-            'WhatsApp' => $settings->get('whatsapp'),
-            'email' => $settings->get('email'),
-            'Instagram' => $settings->get('instagram'),
+            'telepon' => $settings->get('phone_display') ?: $settings->get('phone_number'),
+            'WhatsApp' => $settings->get('whatsapp_number'),
+            'email' => $settings->get('public_email'),
+            'Instagram' => $settings->get('instagram_handle'),
             'jam operasional' => $settings->get('operational_hours'),
         ])->filter()->map(fn (string $value, string $key) => "{$key}: {$value}")->implode('; ');
     }
