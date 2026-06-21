@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Features\MemberPortal\Actions\DownloadMemberQrAction;
 use App\Features\MemberPortal\Queries\MemberDashboardQuery;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use RuntimeException;
 
 class MemberPortalController extends Controller
 {
@@ -18,6 +22,11 @@ class MemberPortalController extends Controller
     public function profile(Request $request, MemberDashboardQuery $query): View
     {
         return $this->page($request, $query, 'profil', 'Profil Member', 'Data akun dan identitas member Platinum Gym Padang.');
+    }
+
+    public function profileEdit(Request $request, MemberDashboardQuery $query): View
+    {
+        return $this->page($request, $query, 'profil-edit', 'Edit Profil', 'Perbarui foto, kontak, dan data pendukung layanan member.');
     }
 
     public function membership(Request $request, MemberDashboardQuery $query): View
@@ -43,6 +52,23 @@ class MemberPortalController extends Controller
     public function qr(Request $request, MemberDashboardQuery $query): View
     {
         return $this->page($request, $query, 'qr', 'QR Member', 'Status kartu digital member untuk check-in Platinum Gym.');
+    }
+
+    public function downloadQr(Request $request, DownloadMemberQrAction $downloadQr): Response|RedirectResponse
+    {
+        try {
+            $download = $downloadQr->handle($request->user()->member()->firstOrFail());
+        } catch (RuntimeException $exception) {
+            return back()
+                ->with('status', $exception->getMessage())
+                ->with('status_kind', 'error');
+        }
+
+        return response($download['content'], 200, [
+            'Content-Type' => $download['mime'],
+            'Content-Disposition' => 'attachment; filename="'.$download['filename'].'"',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     public function notifications(Request $request, MemberDashboardQuery $query): View

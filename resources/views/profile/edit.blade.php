@@ -21,7 +21,7 @@
                 <div>
                     <p class="text-xs font-black uppercase tracking-[0.22em] text-gold-400">Credential Center</p>
                     <h2 class="mt-3 text-3xl font-black leading-tight sm:text-4xl">Akun login tetap aman dan rapi</h2>
-                    <p class="mt-4 max-w-3xl text-sm font-medium leading-7 text-zinc-300">Gunakan halaman ini untuk mengubah email dan kata sandi. Data member seperti alamat, kontak darurat, tinggi, dan berat badan dikelola dari portal member.</p>
+                    <p class="mt-4 max-w-3xl text-sm font-medium leading-7 text-zinc-300">Gunakan halaman ini untuk mengubah email dan kata sandi. Data member seperti foto profil, alamat, kontak darurat, dan data mahasiswa dikelola dari portal member.</p>
                 </div>
                 <div class="rounded-lg border border-white/10 bg-white/[0.06] p-4">
                     <p class="text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-400">Akun Aktif</p>

@@ -12,11 +12,15 @@ class Member extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['user_id', 'member_code', 'gender', 'birth_date', 'address', 'emergency_contact', 'is_student', 'student_id_number', 'height_cm', 'weight_kg', 'joined_at', 'status'];
+    protected $fillable = ['user_id', 'member_code', 'gender', 'birth_date', 'address', 'emergency_contact', 'is_student', 'student_id_number', 'student_verification_status', 'student_verified_at', 'student_verification_source', 'student_verification_note', 'joined_at', 'status'];
+
+    protected $attributes = [
+        'student_verification_status' => 'unverified',
+    ];
 
     protected function casts(): array
     {
-        return ['birth_date' => 'date', 'is_student' => 'boolean', 'weight_kg' => 'decimal:2', 'joined_at' => 'date'];
+        return ['birth_date' => 'date', 'is_student' => 'boolean', 'student_verified_at' => 'datetime', 'joined_at' => 'date'];
     }
 
     public static function generateMemberCode(): string
@@ -67,6 +71,11 @@ class Member extends Model
     public function gymCheckIns(): HasMany
     {
         return $this->hasMany(GymCheckIn::class);
+    }
+
+    public function packageSessionUsages(): HasMany
+    {
+        return $this->hasMany(MemberPackageSessionUsage::class);
     }
 
     public function testimonials(): HasMany
