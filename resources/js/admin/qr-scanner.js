@@ -2,8 +2,7 @@
 // Uses html5-qrcode (dynamic import) so that the main app bundle is not inflated for non-admin pages.
 // IMPORTANT: getUserMedia requires a secure context (HTTPS or http://localhost). When the page is
 // served over plain HTTP on a production domain (e.g. before SSL is provisioned), camera access
-// will be blocked by the browser. We surface that with a clear banner and keep the paste-token /
-// manual member fallbacks fully usable.
+// will be blocked by the browser. We surface that with a clear banner and keep check-in QR-only.
 
 const CAMERA_REGION_ID = 'admin-qr-camera-region';
 
@@ -27,7 +26,7 @@ function submitTokenForm(token) {
     if (!input) return false;
     input.value = token;
     // Mark a flag so the user knows the page is about to reload with a status.
-    showToast('QR terdeteksi. Memproses check-in…', 'success');
+    showToast('QR terdeteksi. Memuat preview member...', 'success');
     form.submit();
     return true;
 }
@@ -85,7 +84,7 @@ export async function initAdminQrScanner() {
             startBtn.classList.add('hidden');
         } catch (error) {
             console.error('[admin-qr] camera start failed', error);
-            showToast('Tidak bisa mengakses kamera. Gunakan input token manual.', 'error');
+            showToast('Tidak bisa mengakses kamera. Pastikan browser mendukung kamera dan koneksi aman.', 'error');
             startBtn.disabled = false;
             startBtn.removeAttribute('aria-busy');
         }

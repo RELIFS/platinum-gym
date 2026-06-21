@@ -18,12 +18,12 @@
         <section class="admin-card mt-6">
             <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div class="min-w-0">
-                    <p class="admin-eyebrow">Pembayaran Cash</p>
+                    <p class="admin-eyebrow">Pembayaran Tunai</p>
                     <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Catat transaksi langsung</h2>
-                    <p class="mt-2 admin-copy">Gunakan untuk pembayaran di kasir. Sistem membuat transaksi, invoice, dan aktivasi layanan dalam satu proses.</p>
+                    <p class="mt-2 admin-copy">Gunakan saat member membayar langsung di kasir. Sistem akan mencatat pembayaran dan mengaktifkan layanan dalam satu proses.</p>
                 </div>
             </div>
-            <form method="POST" action="{{ route('admin.payments.cash') }}" class="mt-5 grid gap-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+            <form method="POST" action="{{ route('admin.payments.cash') }}" class="admin-panel mt-5 grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
                 @csrf
                 <label>
                     <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Member <span class="text-red-500" aria-hidden="true">*</span></span>
@@ -61,7 +61,7 @@
                     @error('note') <span class="mt-2 block text-sm font-bold text-red-600 dark:text-red-300" role="alert">{{ $message }}</span> @enderror
                 </label>
                 <div class="flex items-end">
-                    <button type="submit" class="admin-button-primary w-full">Catat Cash</button>
+                    <button type="submit" class="admin-button-primary w-full">Catat Pembayaran Tunai</button>
                 </div>
             </form>
         </section>
@@ -74,7 +74,7 @@
                     @php
                         $paymentBadge = \App\Features\Admin\ViewModels\AdminStatusViewModel::payment($payment->status);
                     @endphp
-                    <article class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45">
+                    <article class="admin-panel">
                         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                             <div class="min-w-0">
                                 <div class="flex flex-wrap items-center gap-2">
@@ -104,7 +104,7 @@
                                     class="flex gap-2"
                                 >
                                     <label class="sr-only" for="reject-reason-{{ $payment->id }}">Alasan penolakan pembayaran {{ $payment->payment_code }}</label>
-                                    <input id="reject-reason-{{ $payment->id }}" type="text" name="reason" required maxlength="500" class="min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-900 shadow-sm focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/20 dark:border-white/10 dark:bg-zinc-950 dark:text-white" placeholder="Alasan" aria-label="Alasan penolakan pembayaran {{ $payment->payment_code }}">
+                                    <input id="reject-reason-{{ $payment->id }}" type="text" name="reason" required maxlength="500" class="min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-900 shadow-sm focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/20 dark:border-white/10 dark:bg-zinc-950 dark:text-white" placeholder="Tulis alasan penolakan" aria-label="Alasan penolakan pembayaran {{ $payment->payment_code }}">
                                     <button type="submit" class="admin-button-danger">Tolak</button>
                                 </x-confirm-form>
                             </div>
@@ -126,14 +126,14 @@
                 <div class="min-w-0">
                     <p class="admin-eyebrow">Filter Laporan</p>
                     <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Periode operasional</h2>
-                    <p class="mt-2 admin-copy">Ringkasan dan export CSV memakai periode yang sama.</p>
+                    <p class="mt-2 admin-copy">Ringkasan dan file CSV memakai periode yang sama.</p>
                 </div>
                 <a x-bind:href="'{{ $reportsExportBase }}?date_from=' + encodeURIComponent(dateFrom) + '&date_to=' + encodeURIComponent(dateTo)" class="admin-button-primary">
                     @include('admin.partials.icon', ['name' => 'download', 'class' => 'h-4 w-4'])
-                    Export CSV
+                    Unduh CSV
                 </a>
             </div>
-            <form method="GET" action="{{ route('admin.reports') }}" class="mt-5 grid gap-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45 md:grid-cols-[1fr_1fr_auto] md:items-end">
+            <form method="GET" action="{{ route('admin.reports') }}" class="admin-panel mt-5 grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
                 <label>
                     <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Dari Tanggal</span>
                     <input type="date" name="date_from" x-model="dateFrom" x-bind:max="dateTo" class="admin-form-input mt-2">
@@ -151,7 +151,7 @@
         <section class="admin-card mt-6">
             <p class="admin-eyebrow">Filter Audit</p>
             <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Jejak perubahan sistem</h2>
-            <form method="GET" action="{{ route('admin.audit-log') }}" class="mt-5 grid gap-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] lg:items-end" x-data="{ dateFrom: '{{ $portal['filters']['date_from'] ?? now()->startOfMonth()->toDateString() }}', dateTo: '{{ $portal['filters']['date_to'] ?? now()->toDateString() }}' }">
+            <form method="GET" action="{{ route('admin.audit-log') }}" class="admin-panel mt-5 grid gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] lg:items-end" x-data="{ dateFrom: '{{ $portal['filters']['date_from'] ?? now()->startOfMonth()->toDateString() }}', dateTo: '{{ $portal['filters']['date_to'] ?? now()->toDateString() }}' }">
                 <label>
                     <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Dari</span>
                     <input type="date" name="date_from" x-model="dateFrom" x-bind:max="dateTo" class="admin-form-input mt-2">
@@ -161,18 +161,18 @@
                     <input type="date" name="date_to" x-model="dateTo" x-bind:min="dateFrom" class="admin-form-input mt-2">
                 </label>
                 <label>
-                    <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Event</span>
+                    <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Jenis Perubahan</span>
                     <select name="event" class="admin-form-input mt-2">
-                        <option value="">Semua event</option>
-                        @foreach (['created' => 'Created', 'updated' => 'Updated', 'deleted' => 'Deleted'] as $eventValue => $eventLabel)
+                        <option value="">Semua aktivitas</option>
+                        @foreach (['created' => 'Dibuat', 'updated' => 'Diperbarui', 'deleted' => 'Dihapus'] as $eventValue => $eventLabel)
                             <option value="{{ $eventValue }}" @selected(($portal['filters']['event'] ?? '') === $eventValue)>{{ $eventLabel }}</option>
                         @endforeach
                     </select>
                 </label>
                 <label>
-                    <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">User</span>
+                    <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Admin</span>
                     <select name="causer_id" class="admin-form-input mt-2">
-                        <option value="">Semua user</option>
+                        <option value="">Semua admin</option>
                         @foreach (collect($portal['activityUsers'] ?? []) as $activityUser)
                             <option value="{{ $activityUser->id }}" @selected((string) ($portal['filters']['causer_id'] ?? '') === (string) $activityUser->id)>{{ $activityUser->name }}</option>
                         @endforeach
@@ -199,7 +199,7 @@
                 title="Simpan Pengaturan"
                 confirm-label="Simpan"
                 variant="primary"
-                class="mt-5 grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45 lg:grid-cols-2"
+                class="admin-panel mt-5 grid gap-4 lg:grid-cols-2"
             >
                 @foreach (($portal['editableSettings']['fields'] ?? []) as $field)
                     @php
@@ -242,7 +242,7 @@
         <section class="admin-card mt-6">
             <p class="admin-eyebrow">Tindakan Booking</p>
             <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Konfirmasi kelas hari ini</h2>
-            <form method="POST" action="{{ route('admin.booking.store') }}" class="mt-5 grid gap-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_12rem_auto] lg:items-end">
+            <form method="POST" action="{{ route('admin.booking.store') }}" class="admin-panel mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_12rem_auto] lg:items-end">
                 @csrf
                 <label>
                     <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Member <span class="text-red-500" aria-hidden="true">*</span></span>
@@ -273,7 +273,7 @@
                     @php
                         $bookingBadge = \App\Features\Admin\ViewModels\AdminStatusViewModel::booking($enrollment->status);
                     @endphp
-                    <article class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45">
+                    <article class="admin-panel">
                         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                             <div class="min-w-0">
                                 <div class="flex flex-wrap items-center gap-2">
@@ -292,9 +292,9 @@
                                     method="POST"
                                     :message="'Batalkan booking ' . ($enrollment->schedule?->gymClass?->name ?? 'kelas ini') . ' untuk member ini? Tindakan ini tidak bisa dibatalkan.'"
                                     variant="danger"
-                                    confirm-label="Batalkan"
+                                    confirm-label="Batalkan Booking"
                                 >
-                                    <button type="submit" class="admin-button-danger w-full">Batalkan</button>
+                                    <button type="submit" class="admin-button-danger w-full">Batalkan Booking</button>
                                 </x-confirm-form>
                             </div>
                         </div>
