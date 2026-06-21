@@ -13,11 +13,7 @@
             @csrf
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                    <label for="birth_date" class="auth-label">Tanggal Lahir</label>
-                    <input id="birth_date" class="auth-input" type="date" name="birth_date" value="{{ old('birth_date') }}" required max="{{ now()->subDay()->toDateString() }}" @error('birth_date') aria-invalid="true" @enderror>
-                    <x-input-error :messages="$errors->get('birth_date')" class="auth-error" />
-                </div>
+                <x-birth-date-selects />
 
                 <div>
                     <label for="gender" class="auth-label">Jenis Kelamin</label>
