@@ -84,6 +84,12 @@ Jalankan migration dan seeder:
 php artisan migrate --seed
 ```
 
+Buat link public storage untuk file yang harus bisa dibaca browser, seperti foto profil member:
+
+```bash
+php artisan storage:link
+```
+
 ## Konfigurasi Integrasi Opsional
 
 `.env.example` sudah menyediakan placeholder non-secret untuk Google OAuth, Resend, Midtrans, Gemini, mail, queue, dan session secure cookie. Isi hanya nilai yang dibutuhkan pada `.env` lokal atau production; jangan commit secret ke Git.
@@ -282,6 +288,21 @@ chmod -R 775 storage bootstrap/cache
 
 Pada Windows, pastikan folder `storage` dan `bootstrap/cache` dapat ditulis oleh aplikasi.
 
+### Foto profil atau file public storage tidak tampil
+
+Gejala:
+
+- Upload foto berhasil, tetapi gambar tidak tampil di browser.
+- URL `/storage/...` menghasilkan 403 atau 404.
+
+Solusi:
+
+```bash
+php artisan storage:link
+```
+
+Pastikan folder `storage/app/public` dapat ditulis aplikasi dan `public/storage` mengarah ke folder tersebut.
+
 ## Verifikasi Instalasi
 
 Instalasi dianggap berhasil jika:
@@ -294,5 +315,7 @@ Instalasi dianggap berhasil jika:
 - Member dapat membuka dashboard, membership, transaksi, booking, QR, dan notifikasi setelah login dan email verified.
 - Admin local dapat login lewat `/login` dan masuk ke `/admin`.
 - Admin dapat membuka dashboard, pembayaran, booking, check-in, produk, pengaturan, audit log, dan laporan.
+- Owner local dapat login lewat `/login` dan masuk ke `/owner`.
+- Owner dapat membuka dashboard bisnis, laporan, export CSV, dan invoice web sesuai data yang tersedia.
 - Test berjalan tanpa gagal.
 - Asset frontend berhasil dibuild.

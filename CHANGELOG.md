@@ -4,6 +4,39 @@ Semua perubahan penting pada proyek Platinum Gym Padang dicatat pada dokumen ini
 
 Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Dependency`, `Refactor`, dan `Testing`.
 
+## [Unreleased] - Owner Portal, Reports, Invoice, Dan Portal Polish
+
+### Added
+
+- Menambahkan Owner portal read-only dengan layout khusus, dashboard bisnis, KPI, grafik pendapatan, breakdown sumber pendapatan, transaksi terbaru, dan membership yang akan berakhir.
+- Menambahkan halaman laporan Owner untuk keuangan, member, dan booking kelas dengan filter periode/status/metode serta export CSV native.
+- Menambahkan halaman invoice web untuk member dan owner berdasarkan transaksi yang sudah ada tanpa membuat logic pembayaran baru.
+- Menambahkan input tanggal lahir yang lebih ramah untuk register dan complete profile.
+- Menambahkan dukungan profil member yang lebih lengkap, avatar, verifikasi profil, QR download, dan guard kelayakan checkout.
+- Menambahkan alur pratinjau check-in QR admin sebelum confirm check-in atau pemakaian sesi.
+- Menambahkan grafik tren aktivitas admin berbasis data real dengan lazy-loaded chart.
+
+### Changed
+
+- Merapikan tampilan dan microcopy portal admin agar lebih ringkas, profesional, dan tidak terlalu berulang.
+- Merapikan tampilan portal member, filter, pagination, card, chatbot shell, dan state responsif.
+- Merapikan light theme website publik agar elemen utilitas tidak memakai surface gelap yang terlalu dominan.
+- Memperbarui dokumentasi root agar status Owner, Reports CSV, invoice web, dan dependency frontend sesuai implementasi terbaru.
+
+### Fixed
+
+- Memperkuat fallback, cache, dan circuit breaker Gymmi AI agar kegagalan provider tidak merusak pengalaman pengguna.
+- Memperbaiki sumber kontak publik yang dipakai konteks Gymmi.
+
+### Dependency
+
+- Menambahkan `apexcharts` untuk grafik interaktif dashboard Admin dan Owner.
+
+### Testing
+
+- Menambahkan coverage untuk Owner portal, invoice document, ownership policy, auth tanggal lahir, member portal, admin portal, public website, dan Gymmi.
+- Validasi terakhir: `php artisan test --no-ansi` lulus dengan 260 test dan 1848 assertion, `npm.cmd run build` lulus, `vendor\bin\pint --test` lulus, dan `git diff --check` lulus dengan peringatan CRLF.
+
 ## [Unreleased] - Admin Panel UI/UX & A11y Polish
 
 ### Added

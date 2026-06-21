@@ -16,16 +16,17 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 | Public website company profile | Operasional dengan halaman informasi, katalog produk stok aktual, real image assets, dan Gymmi public |
 | Clean architecture foundation | Aktif berbasis `app/Features`, Action, Query, FormRequest, ViewModel, dan component Blade |
 | Member portal | Operasional: profil editable, checkout membership/paket sesi, booking/cancel, transaksi, QR, notifikasi, sidebar minimal, server-side pagination/filter, dan Gymmi global |
-| Admin portal | Production custom Blade dengan 32 route `/admin`, CRUD master data, payment cash/approve/reject, booking create/confirm/cancel, QR/manual check-in, settings whitelist, audit filter, report CSV, dan masked secrets |
+| Admin portal | Production custom Blade dengan route `/admin`, CRUD master data, payment cash/approve/reject, booking create/confirm/cancel, QR-camera preview-confirm check-in, settings whitelist, audit filter, report CSV, dan masked secrets |
+| Owner portal | Operasional read-only untuk dashboard bisnis, laporan web, export CSV, dan invoice transaksi berbasis data pembayaran terkonfirmasi |
 | Payment, email, QR, Gymmi AI | Operasional memakai Midtrans Sandbox, Resend, QR visual/check-in, dan Gemini dengan fallback lokal |
-| Owner report/export, invoice PDF, upload bukti bayar, refund/correction workflow | Rencana pengembangan berikutnya |
+| Invoice PDF/Excel, upload bukti bayar, refund/correction workflow | Rencana pengembangan berikutnya |
 
 ## Tujuan Proyek
 
 - Menyediakan company profile digital untuk Platinum Gym Padang.
 - Menyediakan autentikasi dan otorisasi untuk member, admin, dan owner.
 - Menyediakan halaman public untuk layanan, jadwal kelas, produk, galeri, lokasi, dan BMI.
-- Menyediakan flow membership, booking, pembayaran, notifikasi, check-in, CRUD master data, dan laporan operasional admin.
+- Menyediakan flow membership, booking, pembayaran, notifikasi, check-in, CRUD master data, laporan operasional admin, dan monitoring bisnis owner.
 - Mendokumentasikan proses konstruksi dan evolusi perangkat lunak secara bertahap.
 
 ## Masalah Yang Diselesaikan
@@ -64,15 +65,15 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 - Seeder kontak public, promo, testimoni, galeri, produk, dan foto produk optimized.
 - Tampilan autentikasi bertema Platinum Gym dengan panel visual foto gym pada desktop dan form panel responsive.
 - Portal member untuk dashboard, edit profil member, keamanan akun, checkout membership/paket sesi, booking/cancel kelas, riwayat booking, transaksi/detail/pay, QR visual, notifikasi, server-side pagination/filter, dan chatbot global Gymmi.
-- Admin portal custom Blade untuk dashboard, CRUD anggota/paket/kelas/jadwal/produk/konten/trainer, payment cash/approve/reject, booking create/confirm/cancel, check-in QR/manual, notifikasi, laporan CSV, audit log filter, pengaturan whitelist, tabel server-side pagination, dan profil admin.
+- Admin portal custom Blade untuk dashboard, CRUD anggota/paket/kelas/jadwal/produk/konten/trainer, payment cash/approve/reject, booking create/confirm/cancel, check-in QR-camera preview-confirm, notifikasi, laporan CSV, audit log filter, pengaturan whitelist, tabel server-side pagination, dan profil admin.
+- Owner portal read-only untuk ringkasan bisnis, tren pendapatan, laporan keuangan/member/booking-kelas, export CSV, dan tampilan invoice web.
 - Toggle tema dark/light mengikuti preferensi perangkat dan pilihan pengguna.
-- Struktur feature-based untuk Auth, PublicWebsite, MemberPortal, Admin, Payments, Bookings, CheckIns, Gymmi, dan Shared support.
-- Testing fitur autentikasi, public website, member portal, admin portal, pembayaran, booking, check-in, authorization, dan Gymmi menggunakan Pest.
+- Struktur feature-based untuk Auth, PublicWebsite, MemberPortal, Admin, OwnerPortal, Reports, Invoices, Payments, Bookings, CheckIns, Gymmi, dan Shared support.
+- Testing fitur autentikasi, public website, member portal, admin portal, owner portal, invoice, pembayaran, booking, check-in, authorization, dan Gymmi menggunakan Pest.
 
 ### Fitur Rencana Pengembangan
 
-- Dashboard owner dan laporan owner.
-- Invoice PDF/download dan upload bukti pembayaran manual bila diperlukan.
+- Invoice PDF/Excel dan upload bukti pembayaran manual bila diperlukan.
 - Refund/correction workflow untuk pembayaran operasional.
 - Export queue untuk dataset besar jika laporan mulai berat.
 - Upload media konten website.
@@ -147,7 +148,7 @@ php artisan test --no-ansi
 
 Project menggunakan Pest PHP. Pest berjalan di atas ekosistem PHPUnit, sehingga tetap kompatibel dengan testing Laravel.
 
-Baseline validasi terakhir pada fase production member/admin: `170 passed / 1101 assertions`, `vendor\bin\pint --test` lulus, `composer validate --no-check-publish --no-ansi` valid, dan `npm.cmd run build` berhasil.
+Baseline validasi terakhir pada fase production portal: `260 passed / 1848 assertions`, `vendor\bin\pint --test` lulus, `git diff --check` lulus dengan peringatan CRLF, dan `npm.cmd run build` berhasil.
 
 Catatan: konfigurasi `phpunit.xml` memakai SQLite in-memory untuk testing. Pastikan PHP CLI memiliki extension `pdo_sqlite` aktif sebelum menjalankan full test suite lokal.
 

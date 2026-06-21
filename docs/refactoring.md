@@ -1,6 +1,6 @@
 # Refactoring Documentation
 
-Status: Updated 2026-06-15. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
+Status: Updated 2026-06-22. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
 
 Dokumen ini mencatat perubahan struktur kode yang dilakukan untuk meningkatkan keterbacaan, maintainability, dan kesiapan evolusi sistem.
 
@@ -178,11 +178,10 @@ Test lebih mudah dibaca dan disesuaikan dengan behavior sistem.
 
 Refactoring berikut akan dievaluasi saat kompleksitas fitur bertambah:
 
-- Penyempurnaan dashboard owner dan laporan/export saat scope owner dimulai.
 - Penyempurnaan action pembayaran, booking, dan check-in jika aturan bisnis bertambah.
 - Export queue untuk laporan besar.
 - Invoice PDF/download dan upload bukti pembayaran jika dibutuhkan.
-- Cleanup route dan komponen bila scope owner atau modul baru bertambah.
+- Cleanup route dan komponen bila modul baru bertambah.
 
 ## 6. Feature-Based Clean Architecture Foundation
 
@@ -436,7 +435,7 @@ Controller tetap tipis, query data terpusat, Blade fokus pada presentasi, dan ak
 - Dashboard menjadi pusat kerja operasional dengan status strip, KPI ringkas, quick links, dan data terbaru.
 - Partial tabel admin reusable mendukung server-side search, status filter, pagination, count, empty/no-result state, caption/aria polish, mobile card fallback, dan row actions aman.
 - Data sensitif pada setting disamarkan di query layer, sedangkan update setting hanya membuka whitelist kontak/maps/jam operasional/invoice publik.
-- Test `AdminPortalTest` menjaga auth guard, role guard, render route, data operasional, masking setting, approval/cash pembayaran, check-in QR/manual, report export, resource CRUD, dan toggle status.
+- Test `AdminPortalTest` menjaga auth guard, role guard, render route, data operasional, masking setting, approval/cash pembayaran, check-in QR preview-confirm, report export, resource CRUD, dan toggle status.
 
 ## 13. Gymmi Chatbot Identity
 
@@ -480,7 +479,7 @@ Checkout, webhook payment, booking, QR check-in, dan approval admin menyentuh ba
 ### Dampak
 
 - Member dapat checkout membership/paket sesi, booking kelas, melihat transaksi/detail invoice, membayar lewat Midtrans Sandbox, melihat QR, dan mengelola notifikasi.
-- Admin dapat create/update master data, mencatat pembayaran cash, approve/reject pembayaran, create/confirm/cancel booking, scan/input QR/manual check-in, update setting publik whitelist, export laporan CSV, dan toggle status/tayang data operasional.
+- Admin dapat create/update master data, mencatat pembayaran cash, approve/reject pembayaran, create/confirm/cancel booking, scan QR kamera ke preview lalu confirm check-in/pemakaian sesi, update setting publik whitelist, export laporan CSV, dan toggle status/tayang data operasional.
 - Midtrans Sandbox dan Resend dikonfigurasi lewat `.env`; secret tidak masuk source code.
 - Produk tetap katalog informasi, bukan checkout produk.
 ## 15. Gymmi Gemini Backend
@@ -572,3 +571,46 @@ resources/views/member/partials/empty-state.blade.php
 - Copy member lebih fokus dan tidak menampilkan label internal.
 - Sidebar/drawer member lebih minimal dengan footer `Keluar` saja.
 - Test `MemberPortalTest` menjaga pagination/filter, own-data boundary, dan copy production member.
+
+## 18. Owner Portal, Reports, Dan Invoice Web
+
+### Sebelum
+
+Owner dashboard masih berupa halaman dasar untuk validasi role dan belum memiliki layout, laporan, grafik, atau invoice web.
+
+### Masalah
+
+Owner membutuhkan monitoring bisnis yang berbeda dari admin. Admin fokus operasional harian, sedangkan owner perlu membaca pendapatan, transaksi, member, membership, booking kelas, dan invoice secara read-only.
+
+### Perubahan
+
+Owner portal dipisahkan ke controller, query, layout, dan view sendiri:
+
+```text
+app/Http/Controllers/Owner
+app/Features/OwnerPortal/Queries
+app/Features/Reports/Data
+app/Features/Reports/Queries
+app/Features/Invoices/Queries
+app/View/Components/OwnerLayout.php
+resources/views/layouts/owner.blade.php
+resources/views/owner
+resources/views/invoices
+```
+
+Reports owner memakai filter periode/status/metode/tipe laporan dan export CSV native. Invoice web memakai data transaksi yang sudah ada dan tidak membuat logic pembayaran baru.
+
+### Alasan
+
+- Owner tetap read-only dan tidak membawa aksi mutasi admin ke area bisnis.
+- Query laporan berada di layer fitur, bukan di Blade.
+- CSV native cukup untuk batch awal tanpa menambah package PDF/Excel.
+- Invoice web menjadi presentasi dokumen transaksi tanpa mengekspos token, payload provider, secret, atau data internal.
+
+### Dampak
+
+- `/owner` menjadi dashboard bisnis dengan KPI, grafik pendapatan, breakdown, transaksi terbaru, dan membership yang akan berakhir.
+- `/owner/laporan` dan halaman laporan detail dapat membaca ringkasan serta tabel preview.
+- `/owner/laporan/export` menghasilkan CSV laporan sesuai filter.
+- `/owner/invoice/{invoice}` dan `/member/invoice/{invoice}` menampilkan invoice web sesuai policy.
+- `PaymentPolicy` dan `InvoicePolicy` memberi akses owner untuk membaca laporan/invoice, sementara aksi mutasi tetap tidak diberikan.

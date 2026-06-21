@@ -71,6 +71,8 @@ Scan `resources/js/**/*.js` diperlukan karena renderer Gymmi membuat sebagian cl
 | `@tailwindcss/vite` | Integrasi Tailwind dengan Vite | Mendukung proses build frontend | `^4.0.0` | Perlu perhatian kompatibilitas dengan versi Tailwind yang dipakai | Dependency frontend |
 | `alpinejs` | Interaktivitas ringan frontend | Digunakan untuk behavior UI sederhana seperti dropdown atau toggle | `^3.4.2` | Tidak cocok untuk state management kompleks | Sudah digunakan |
 | `axios` | HTTP client JavaScript | Disiapkan untuk request AJAX frontend | `^1.11.0` | Perlu pengaturan CSRF dan error handling | Dependency frontend |
+| `apexcharts` | Grafik interaktif frontend | Digunakan untuk grafik dashboard Admin dan Owner dengan tooltip, gradient, marker hover, dan theme-aware rendering | `^5.15.2` | Menambah ukuran bundle sehingga harus di-load lazy hanya pada halaman yang memakai grafik | Sudah digunakan |
+| `html5-qrcode` | Scanner QR kamera frontend | Digunakan secara lazy pada halaman admin check-in untuk membaca QR member dari kamera | `2.3.8` | Akses kamera membutuhkan secure context/HTTPS atau localhost dan permission browser | Sudah digunakan |
 | `concurrently` | Menjalankan beberapa command dev | Membantu menjalankan server, queue, dan Vite bersamaan | `^9.0.1` | Hanya kebutuhan development | Dependency development |
 | `postcss` | CSS processing | Digunakan dalam pipeline Tailwind/Vite | `^8.4.31` | Konfigurasi salah dapat membuat build CSS gagal | Dependency frontend |
 | `autoprefixer` | Vendor prefix CSS | Menambah kompatibilitas browser | `^10.4.2` | Umumnya rendah, mengikuti konfigurasi browser target | Dependency frontend |
@@ -87,6 +89,7 @@ Scan `resources/js/**/*.js` diperlukan karena renderer Gymmi membuat sebagian cl
 | Integrasi | Fungsi | Modul | Alasan | Status |
 |---|---|---|---|---|
 | Google Gemini API REST | AI assistant Gymmi | Public/member chatbot | Laravel HTTP client cukup untuk timeout, retry, fallback, dan test tanpa menambah package Composer | Sudah digunakan |
+| Native streamed CSV | Export laporan ringan | Admin/owner reports | Response streaming Laravel cukup untuk export CSV awal tanpa menambah package Excel/PDF | Sudah digunakan |
 
 ## Dependency Yang Tidak Dipakai Pada Arsitektur Aktif
 
