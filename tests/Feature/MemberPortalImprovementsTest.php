@@ -148,6 +148,26 @@ test('booking page shows pay button label and price for paid class', function ()
 test('checkout pt package requires trainer selection matching specialization', function () {
     [$user, $member] = createImprovementsMember('PG-PORTAL-PT-TRAINER');
 
+    $gymPackage = ServicePackage::create([
+        'name' => 'Gym For PT Trainer Test',
+        'slug' => 'gym-for-pt-trainer-test',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 249000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    Membership::create([
+        'member_id' => $member->id,
+        'package_id' => $gymPackage->id,
+        'code' => 'MBR-PT-TRAINER-0001',
+        'start_date' => now()->subDay()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 249000,
+        'status' => 'active',
+    ]);
+
     $package = ServicePackage::create([
         'name' => 'PT Trainer Test',
         'slug' => 'pt-trainer-test',
@@ -202,7 +222,27 @@ test('checkout pt package requires trainer selection matching specialization', f
 });
 
 test('membership page shows trainer dropdown only for pt and muaythai packages', function () {
-    [$user] = createImprovementsMember('PG-PORTAL-TRAINER-DROPDOWN');
+    [$user, $member] = createImprovementsMember('PG-PORTAL-TRAINER-DROPDOWN');
+
+    $gymPackage = ServicePackage::create([
+        'name' => 'Gym Dropdown Active Test',
+        'slug' => 'gym-dropdown-active-test',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 249000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    Membership::create([
+        'member_id' => $member->id,
+        'package_id' => $gymPackage->id,
+        'code' => 'MBR-TRAINER-DROPDOWN-0001',
+        'start_date' => now()->subDay()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 249000,
+        'status' => 'active',
+    ]);
 
     ServicePackage::create([
         'name' => 'PT Dropdown Test',

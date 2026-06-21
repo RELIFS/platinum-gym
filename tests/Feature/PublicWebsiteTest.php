@@ -53,9 +53,14 @@ test('home shows brand and core calls to action', function () {
 });
 
 test('public header exposes clean logo, accessible theme action, and chatbot', function () {
-    $this->get('/')
+    $response = $this->get('/');
+
+    $response
         ->assertOk()
         ->assertSee('brand-logo', false)
+        ->assertSee('public-mobile-menu-button', false)
+        ->assertSee('aria-controls="mobile-navigation"', false)
+        ->assertDontSee('bg-zinc-950 text-white shadow-[0_12px_28px_rgba(24,24,27,0.24)]', false)
         ->assertDontSee('brand-logo-frame', false)
         ->assertSee('data-theme-toggle', false)
         ->assertSee('aria-label="Aktifkan mode gelap"', false)
@@ -67,6 +72,12 @@ test('public header exposes clean logo, accessible theme action, and chatbot', f
         ->assertSee('spellcheck="true"', false)
         ->assertSee('Ketik pertanyaan untuk Gymmi', false)
         ->assertDontSee('Chat Admin');
+
+    preg_match('/<section\b(?=[^>]*data-chatbot-panel)[^>]*class="([^"]*)"/', $response->getContent(), $matches);
+
+    expect(explode(' ', $matches[1]))
+        ->not->toContain('flex')
+        ->toContain('flex-col');
 });
 
 test('services page shows seeded packages', function () {
@@ -172,6 +183,39 @@ test('location page renders google maps iframe when embed url is configured', fu
         ->assertSee('https://www.google.com/maps/embed?pb=', false)
         ->assertSee('Gunakan tombol di bawah peta untuk membuka rute langsung di Google Maps.')
         ->assertSee('Buka Google Maps');
+});
+
+test('public light theme keeps utility map and final cta from using large black surfaces', function () {
+    $location = $this->get('/lokasi');
+
+    $location
+        ->assertOk()
+        ->assertSee('public-card flex min-h-[32rem] flex-col justify-between overflow-hidden p-0', false)
+        ->assertSee('bg-zinc-100 sm:min-h-[30rem] dark:bg-zinc-950', false)
+        ->assertDontSee('public-card flex min-h-[32rem] flex-col justify-between overflow-hidden bg-zinc-950 p-0 text-white', false);
+
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('border border-zinc-200 bg-white/95', false)
+        ->assertSee('text-zinc-950 dark:text-white', false)
+        ->assertDontSee('overflow-hidden rounded-[2rem] bg-zinc-950 p-6 text-white shadow-2xl', false);
+
+    $this->get('/galeri')
+        ->assertOk()
+        ->assertSee('relative flex aspect-[4/3] items-end overflow-hidden bg-zinc-100 dark:bg-zinc-950', false)
+        ->assertDontSee('relative flex aspect-[4/3] items-end overflow-hidden bg-zinc-950', false);
+
+    $this->get('/bmi')
+        ->assertOk()
+        ->assertSee('bg-gradient-to-br from-white via-zinc-50 to-gold-500/10', false)
+        ->assertDontSee('border border-gold-500/25 bg-zinc-950 p-6 text-white', false);
+
+    $css = file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.public-media-frame')
+        ->toContain('bg-zinc-100')
+        ->not->toContain('@apply relative overflow-hidden rounded-2xl bg-zinc-950 ring-1 ring-zinc-200/80 dark:ring-white/10;');
 });
 
 test('location page falls back to visual card when embed url is blank', function () {

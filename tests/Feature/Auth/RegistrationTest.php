@@ -13,7 +13,55 @@ beforeEach(function () {
 test('registration screen can be rendered', function () {
     $response = $this->get('/register');
 
-    $response->assertStatus(200);
+    $response->assertStatus(200)
+        ->assertSee('name="birth_date_display"', false)
+        ->assertSee('name="birth_date"', false)
+        ->assertSee('placeholder="dd/mm/yyyy"', false)
+        ->assertSee('aria-label="Pilih tanggal lahir"', false)
+        ->assertDontSee('Pilih tanggal lahir sesuai identitas.')
+        ->assertDontSee('name="birth_day"', false)
+        ->assertDontSee('name="birth_month"', false)
+        ->assertDontSee('name="birth_year"', false);
+});
+
+test('new members can register with dd mm yyyy birth date display', function () {
+    Notification::fake();
+
+    $this->post('/register', [
+        'name' => 'Display Date Member',
+        'birth_date_display' => '15/01/2000',
+        'gender' => 'male',
+        'phone' => '081234567894',
+        'email' => 'display-date@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'terms' => '1',
+    ])->assertRedirect(route('verification.notice', absolute: false));
+
+    $member = User::where('email', 'display-date@example.com')->firstOrFail()->member;
+
+    expect($member->birth_date->toDateString())->toBe('2000-01-15');
+});
+
+test('new members can register with separated birth date fields', function () {
+    Notification::fake();
+
+    $this->post('/register', [
+        'name' => 'Tanggal Member',
+        'birth_day' => '15',
+        'birth_month' => '1',
+        'birth_year' => '2000',
+        'gender' => 'male',
+        'phone' => '081234567892',
+        'email' => 'tanggal@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'terms' => '1',
+    ])->assertRedirect(route('verification.notice', absolute: false));
+
+    $member = User::where('email', 'tanggal@example.com')->firstOrFail()->member;
+
+    expect($member->birth_date->toDateString())->toBe('2000-01-15');
 });
 
 test('new members can register', function () {
@@ -109,5 +157,39 @@ test('registration rejects invalid member fields', function () {
     ]);
 
     $response->assertSessionHasErrors(['birth_date', 'gender', 'phone']);
+    $this->assertGuest();
+});
+
+test('registration rejects invalid separated birth date fields', function () {
+    $response = $this->post('/register', [
+        'name' => 'Invalid Date Member',
+        'birth_day' => '31',
+        'birth_month' => '2',
+        'birth_year' => '2000',
+        'gender' => 'male',
+        'phone' => '081234567893',
+        'email' => 'invalid-date@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasErrors(['birth_date']);
+    $this->assertGuest();
+});
+
+test('registration rejects invalid dd mm yyyy birth date display', function () {
+    $response = $this->post('/register', [
+        'name' => 'Invalid Display Member',
+        'birth_date_display' => '31/02/2000',
+        'gender' => 'male',
+        'phone' => '081234567895',
+        'email' => 'invalid-display@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasErrors(['birth_date']);
     $this->assertGuest();
 });

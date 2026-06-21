@@ -4,10 +4,12 @@ use App\Models\AiConversation;
 use App\Models\Member;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
+    Cache::flush();
 });
 
 function configureGeminiForTest(array $overrides = []): void
@@ -82,6 +84,49 @@ test('gymmi chat falls back locally when gemini key is unavailable', function ()
         ->assertJsonFragment(['text' => 'Paket membership tersedia untuk umum dan mahasiswa. Mulai dari Gym Umum, Gym Mahasiswa, serta paket khusus sesuai promo aktif. Untuk daftar, gunakan tombol Daftar Member.']);
 
     expect(AiConversation::query()->first()?->meta)->toMatchArray(['source' => 'fallback']);
+});
+
+test('gymmi chat opens circuit and avoids burning keys after gemini rate limit', function () {
+    configureGeminiForTest();
+
+    Http::fake([
+        'generativelanguage.googleapis.com/*' => Http::response(['error' => ['status' => 'RESOURCE_EXHAUSTED']], 429),
+    ]);
+
+    $this->postJson(route('gymmi.chat'), [
+        'message' => 'Info membership Platinum Gym',
+        'context' => 'public',
+    ])
+        ->assertOk()
+        ->assertJsonPath('source', 'fallback');
+
+    Http::assertSentCount(1);
+
+    $this->postJson(route('gymmi.chat'), [
+        'message' => 'Info membership Platinum Gym lain',
+        'context' => 'public',
+    ])
+        ->assertOk()
+        ->assertJsonPath('source', 'fallback');
+
+    Http::assertSentCount(1);
+});
+
+test('gymmi chat does not loop all keys when gemini model is not found', function () {
+    configureGeminiForTest();
+
+    Http::fake([
+        'generativelanguage.googleapis.com/*' => Http::response(['error' => ['status' => 'NOT_FOUND']], 404),
+    ]);
+
+    $this->postJson(route('gymmi.chat'), [
+        'message' => 'Ada jadwal kelas apa?',
+        'context' => 'public',
+    ])
+        ->assertOk()
+        ->assertJsonPath('source', 'fallback');
+
+    Http::assertSentCount(1);
 });
 
 test('gymmi chat validates message input', function () {
