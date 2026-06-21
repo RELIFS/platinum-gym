@@ -20,11 +20,11 @@ class AdminEditableSettingRegistry
             ['name' => 'maps_url', 'label' => 'URL Google Maps', 'group' => 'contact', 'type' => 'url'],
             ['name' => 'maps_search_url', 'label' => 'URL Pencarian Maps', 'group' => 'contact', 'type' => 'url'],
             ['name' => 'maps_shared_url', 'label' => 'URL Share Maps', 'group' => 'contact', 'type' => 'url'],
-            ['name' => 'maps_embed_url', 'label' => 'URL Embed Maps', 'group' => 'contact', 'type' => 'textarea'],
+            ['name' => 'maps_embed_url', 'label' => 'URL Embed Google Maps', 'group' => 'contact', 'type' => 'textarea'],
             ['name' => 'operational_hours_weekday', 'label' => 'Jam Operasional Weekday', 'group' => 'general', 'type' => 'text'],
             ['name' => 'operational_hours_weekend', 'label' => 'Jam Operasional Weekend', 'group' => 'general', 'type' => 'text'],
-            ['name' => 'invoice_prefix', 'label' => 'Prefix Invoice', 'group' => 'invoice', 'type' => 'text'],
-            ['name' => 'invoice_footer', 'label' => 'Footer Invoice', 'group' => 'invoice', 'type' => 'textarea'],
+            ['name' => 'invoice_prefix', 'label' => 'Awalan Nomor Invoice', 'group' => 'invoice', 'type' => 'text'],
+            ['name' => 'invoice_footer', 'label' => 'Catatan Footer Invoice', 'group' => 'invoice', 'type' => 'textarea'],
         ];
     }
 

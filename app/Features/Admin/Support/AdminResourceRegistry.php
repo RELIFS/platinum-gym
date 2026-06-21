@@ -39,21 +39,20 @@ class AdminResourceRegistry
             'members' => $this->resource('Anggota', Member::class, 'manage_members', 'admin.members', [
                 ['name', 'Nama Lengkap', 'text', true], ['email', 'Email Login', 'email', true], ['phone', 'No. WhatsApp', 'text'],
                 ['gender', 'Gender', 'select', true, ['male' => 'Laki-laki', 'female' => 'Perempuan']], ['birth_date', 'Tanggal Lahir', 'date'],
-                ['address', 'Alamat', 'textarea'], ['emergency_contact', 'Kontak Darurat', 'text'], ['height_cm', 'Tinggi Badan (cm)', 'number'],
-                ['weight_kg', 'Berat Badan (kg)', 'number'], ['is_student', 'Mahasiswa', 'checkbox'], ['student_id_number', 'Nomor Identitas Mahasiswa', 'text'],
+                ['address', 'Alamat', 'textarea'], ['emergency_contact', 'Kontak Darurat', 'text'], ['is_student', 'Mahasiswa', 'checkbox'], ['student_id_number', 'NIM', 'text'],
                 ['status', 'Status Member', 'select', true, ['active' => 'Aktif', 'inactive' => 'Nonaktif']],
             ], 'Kelola akun member, profil, dan status akses.'),
             'packages' => $this->resource('Paket', Package::class, 'manage_packages', 'admin.packages', [
-                ['name', 'Nama Paket', 'text', true], ['slug', 'Slug', 'text'], ['package_kind', 'Jenis Paket', 'select', true, ['membership' => 'Membership', 'session' => 'Paket Sesi']],
+                ['name', 'Nama Paket', 'text', true], ['slug', 'Slug URL', 'text'], ['package_kind', 'Jenis Paket', 'select', true, ['membership' => 'Membership', 'session' => 'Paket Sesi']],
                 ['type', 'Tipe Akses', 'select', true, ['gym' => 'Gym', 'aerobic' => 'Aerobic', 'zumba' => 'Zumba', 'muaythai' => 'Muaythai', 'pt' => 'Personal Trainer', 'include' => 'Include']],
-                ['category', 'Kategori', 'text'], ['gender_restriction', 'Batas Gender', 'select', false, ['all' => 'Semua', 'male' => 'Laki-laki', 'female' => 'Perempuan']],
-                ['max_age', 'Batas Umur Maksimal', 'number'], ['price', 'Harga', 'number', true], ['promo_price', 'Harga Promo', 'number'],
+                ['category', 'Kategori', 'text'], ['gender_restriction', 'Batas Jenis Kelamin', 'select', false, ['all' => 'Semua', 'male' => 'Laki-laki', 'female' => 'Perempuan']],
+                ['max_age', 'Usia Maksimal', 'number'], ['price', 'Harga', 'number', true], ['promo_price', 'Harga Promo', 'number'],
                 ['promo_starts_at', 'Mulai Promo', 'datetime-local'], ['promo_ends_at', 'Selesai Promo', 'datetime-local'], ['duration_days', 'Durasi Hari', 'number'],
-                ['session_count', 'Jumlah Sesi', 'number'], ['requires_active_membership', 'Butuh Membership Aktif', 'checkbox'], ['description', 'Deskripsi', 'textarea'],
-                ['benefits', 'Benefit', 'textarea'], ['is_active', 'Paket Aktif', 'checkbox'],
+                ['session_count', 'Jumlah Sesi', 'number'], ['requires_active_membership', 'Wajib Membership Aktif', 'checkbox'], ['description', 'Deskripsi', 'textarea'],
+                ['benefits', 'Manfaat Paket', 'textarea'], ['is_active', 'Paket Aktif', 'checkbox'],
             ], 'Kelola paket membership dan paket sesi.'),
             'classes' => $this->resource('Kelas', GymClass::class, 'manage_classes', 'admin.classes', [
-                ['name', 'Nama Kelas', 'text', true], ['slug', 'Slug', 'text'], ['class_type', 'Jenis Kelas', 'select', true, ['gym' => 'Gym', 'aerobic' => 'Aerobic', 'zumba' => 'Zumba', 'muaythai' => 'Muaythai', 'pt' => 'Personal Trainer']],
+                ['name', 'Nama Kelas', 'text', true], ['slug', 'Slug URL', 'text'], ['class_type', 'Jenis Kelas', 'select', true, ['gym' => 'Gym', 'aerobic' => 'Aerobic', 'zumba' => 'Zumba', 'muaythai' => 'Muaythai', 'pt' => 'Personal Trainer']],
                 ['access_type', 'Tipe Akses', 'select', true, ['included' => 'Termasuk Membership', 'session_based' => 'Paket Sesi', 'paid' => 'Berbayar']],
                 ['required_package_type', 'Paket Dibutuhkan', 'text'], ['capacity', 'Kapasitas', 'number', true], ['member_price', 'Harga Member', 'number'],
                 ['non_member_price', 'Harga Non-member', 'number'], ['promo_price', 'Harga Promo', 'number'], ['description', 'Deskripsi', 'textarea'], ['is_active', 'Kelas Aktif', 'checkbox'],
@@ -64,27 +63,27 @@ class AdminResourceRegistry
                 ['start_time', 'Jam Mulai', 'time', true], ['end_time', 'Jam Selesai', 'time', true], ['room', 'Ruangan', 'text'], ['capacity', 'Kapasitas', 'number'], ['is_active', 'Jadwal Aktif', 'checkbox'],
             ], 'Kelola hari, jam, trainer, dan kapasitas.'),
             'product-categories' => $this->resource('Kategori Produk', ProductCategory::class, 'manage_products', 'admin.products', [
-                ['name', 'Nama Kategori', 'text', true], ['slug', 'Slug', 'text'], ['description', 'Deskripsi', 'textarea'], ['sort_order', 'Urutan', 'number'], ['is_active', 'Kategori Aktif', 'checkbox'],
+                ['name', 'Nama Kategori', 'text', true], ['slug', 'Slug URL', 'text'], ['description', 'Deskripsi', 'textarea'], ['sort_order', 'Urutan', 'number'], ['is_active', 'Kategori Aktif', 'checkbox'],
             ], 'Kelola kategori katalog produk.'),
             'products' => $this->resource('Produk', Product::class, 'manage_products', 'admin.products', [
-                ['category_id', 'Kategori', 'select-model', false, 'product-categories'], ['name', 'Nama Produk', 'text', true], ['slug', 'Slug', 'text'],
+                ['category_id', 'Kategori', 'select-model', false, 'product-categories'], ['name', 'Nama Produk', 'text', true], ['slug', 'Slug URL', 'text'],
                 ['price', 'Harga', 'number', true], ['stock', 'Stok', 'number', true], ['description', 'Deskripsi', 'textarea'], ['image_file', 'Foto Produk', 'file'],
-                ['image_alt', 'Alt Foto', 'text'], ['is_active', 'Produk Aktif', 'checkbox'],
+                ['image_alt', 'Deskripsi Foto', 'text'], ['is_active', 'Produk Aktif', 'checkbox'],
             ], 'Kelola katalog, stok, dan foto produk.'),
             'gallery' => $this->resource('Galeri', Gallery::class, 'manage_content', 'admin.gallery', [
-                ['title', 'Judul', 'text'], ['caption', 'Caption', 'textarea'], ['image_file', 'Foto Galeri', 'file'], ['image_alt', 'Alt Foto', 'text'], ['sort_order', 'Urutan', 'number'], ['is_published', 'Tayang di Website', 'checkbox'],
+                ['title', 'Judul', 'text'], ['caption', 'Caption', 'textarea'], ['image_file', 'Foto Galeri', 'file'], ['image_alt', 'Deskripsi Foto', 'text'], ['sort_order', 'Urutan', 'number'], ['is_published', 'Tayang di Website', 'checkbox'],
             ], 'Kelola foto fasilitas dan aktivitas.'),
             'testimonials' => $this->resource('Testimoni', Testimonial::class, 'manage_content', 'admin.testimonials', [
-                ['member_id', 'Member Terkait', 'select-model', false, 'members'], ['name', 'Nama Penampil', 'text', true], ['role', 'Label Role', 'text'],
+                ['member_id', 'Member Terkait', 'select-model', false, 'members'], ['name', 'Nama Penampil', 'text', true], ['role', 'Label Tampilan', 'text'],
                 ['content', 'Isi Testimoni', 'textarea', true], ['rating', 'Rating', 'number', true], ['sort_order', 'Urutan', 'number'], ['is_published', 'Tayang di Website', 'checkbox'],
             ], 'Kelola testimoni publik.'),
             'promos' => $this->resource('Promo', Promo::class, 'manage_content', 'admin.promos', [
-                ['title', 'Judul Promo', 'text', true], ['slug', 'Slug', 'text'], ['description', 'Deskripsi', 'textarea'], ['starts_at', 'Mulai', 'datetime-local'], ['ends_at', 'Selesai', 'datetime-local'],
+                ['title', 'Judul Promo', 'text', true], ['slug', 'Slug URL', 'text'], ['description', 'Deskripsi', 'textarea'], ['starts_at', 'Mulai', 'datetime-local'], ['ends_at', 'Selesai', 'datetime-local'],
                 ['discount_type', 'Tipe Diskon', 'select', false, ['none' => 'Tidak Ada', 'percentage' => 'Persen', 'fixed' => 'Nominal']], ['discount_value', 'Nilai Diskon', 'number'], ['sort_order', 'Urutan', 'number'], ['is_published', 'Tayang di Website', 'checkbox'],
             ], 'Kelola promo resmi website.'),
             'trainers' => $this->resource('Trainer', Trainer::class, 'manage_trainers', 'admin.trainers', [
                 ['name', 'Nama Trainer', 'text', true], ['specialization', 'Spesialisasi', 'text'], ['experience_years', 'Pengalaman (tahun)', 'number'],
-                ['certifications', 'Sertifikasi', 'textarea'], ['bio', 'Bio', 'textarea'], ['is_active', 'Trainer Aktif', 'checkbox'],
+                ['certifications', 'Sertifikasi', 'textarea'], ['bio', 'Profil Singkat', 'textarea'], ['is_active', 'Trainer Aktif', 'checkbox'],
             ], 'Kelola trainer dan status aktif.'),
         ];
     }
@@ -164,7 +163,7 @@ class AdminResourceRegistry
     {
         $userId = $model instanceof Member ? $model->user_id : null;
 
-        return ['name' => ['required', 'string', 'max:150'], 'email' => ['required', 'email:rfc,dns', 'max:150', Rule::unique('users', 'email')->ignore($userId)], 'phone' => ['nullable', 'string', 'max:20', Rule::unique('users', 'phone')->ignore($userId)], 'gender' => ['required', Rule::in(['male', 'female'])], 'birth_date' => ['nullable', 'date', 'before:today'], 'address' => ['nullable', 'string', 'max:2000'], 'emergency_contact' => ['nullable', 'string', 'max:20'], 'height_cm' => ['nullable', 'integer', 'min:80', 'max:250'], 'weight_kg' => ['nullable', 'numeric', 'min:20', 'max:300'], 'is_student' => ['boolean'], 'student_id_number' => ['nullable', 'string', 'max:50'], 'status' => ['required', Rule::in(['active', 'inactive'])]];
+        return ['name' => ['required', 'string', 'max:150'], 'email' => ['required', 'email:rfc,dns', 'max:150', Rule::unique('users', 'email')->ignore($userId)], 'phone' => ['nullable', 'string', 'max:20', Rule::unique('users', 'phone')->ignore($userId)], 'gender' => ['required', Rule::in(['male', 'female'])], 'birth_date' => ['nullable', 'date', 'before:today'], 'address' => ['nullable', 'string', 'max:2000'], 'emergency_contact' => ['nullable', 'string', 'max:20'], 'is_student' => ['boolean'], 'student_id_number' => ['nullable', 'string', 'max:50'], 'student_verification_status' => ['nullable', Rule::in(['unverified', 'pending_review', 'verified', 'failed'])], 'student_verification_note' => ['nullable', 'string', 'max:2000'], 'status' => ['required', Rule::in(['active', 'inactive'])]];
     }
 
     private function slugRules(string $table, ?Model $model): array

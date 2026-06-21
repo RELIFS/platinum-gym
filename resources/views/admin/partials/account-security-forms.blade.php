@@ -13,7 +13,7 @@
     <header>
         <p class="admin-eyebrow">Identitas Login</p>
         <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Informasi Akun</h2>
-        <p class="mt-2 admin-copy">Perbarui nama dan alamat email akun admin. Email digunakan untuk login dan menerima notifikasi sistem.</p>
+        <p class="mt-2 admin-copy">Perbarui nama dan alamat email akun admin. Email digunakan untuk masuk dan menerima notifikasi sistem.</p>
     </header>
 
     <form method="post" action="{{ route('profile.update') }}" class="mt-5 grid gap-4 sm:max-w-2xl">
@@ -53,9 +53,9 @@
         </label>
 
         <div class="flex items-center gap-3">
-            <button type="submit" class="admin-button-primary">Simpan</button>
+            <button type="submit" class="admin-button-primary">Simpan Profil</button>
             @if (session('status') === 'profile-updated')
-                <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300">Tersimpan.</p>
+                <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300">Informasi akun tersimpan.</p>
             @endif
         </div>
     </form>
@@ -64,7 +64,7 @@
 <section class="admin-card mt-6">
     <header>
         <p class="admin-eyebrow">Kata Sandi</p>
-        <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Ubah Password</h2>
+        <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Ubah Kata Sandi</h2>
         <p class="mt-2 admin-copy">Gunakan kombinasi huruf besar, kecil, angka, dan simbol untuk menjaga keamanan akun admin.</p>
     </header>
 
@@ -74,7 +74,7 @@
         @method('put')
 
         <label class="block">
-            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Password Saat Ini <span class="text-red-500" aria-hidden="true">*</span></span>
+            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Kata Sandi Saat Ini <span class="text-red-500" aria-hidden="true">*</span></span>
             <div class="relative mt-2">
                 <input id="update_password_current_password" name="current_password" x-bind:type="show1 ? 'text' : 'password'" autocomplete="current-password"
                     class="admin-form-input pr-12"
@@ -90,7 +90,7 @@
         </label>
 
         <label class="block">
-            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Password Baru <span class="text-red-500" aria-hidden="true">*</span></span>
+            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Kata Sandi Baru <span class="text-red-500" aria-hidden="true">*</span></span>
             <div class="relative mt-2">
                 <input id="update_password_password" name="password" x-bind:type="show2 ? 'text' : 'password'" autocomplete="new-password"
                     class="admin-form-input pr-12"
@@ -106,7 +106,7 @@
         </label>
 
         <label class="block">
-            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Konfirmasi Password Baru <span class="text-red-500" aria-hidden="true">*</span></span>
+            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Konfirmasi Kata Sandi Baru <span class="text-red-500" aria-hidden="true">*</span></span>
             <div class="relative mt-2">
                 <input id="update_password_password_confirmation" name="password_confirmation" x-bind:type="show3 ? 'text' : 'password'" autocomplete="new-password"
                     class="admin-form-input pr-12"
@@ -122,9 +122,9 @@
         </label>
 
         <div class="flex items-center gap-3">
-            <button type="submit" class="admin-button-primary">Simpan</button>
+            <button type="submit" class="admin-button-primary">Simpan Kata Sandi</button>
             @if (session('status') === 'password-updated')
-                <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300">Password berhasil diperbarui.</p>
+                <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300">Kata sandi berhasil diperbarui.</p>
             @endif
         </div>
     </form>

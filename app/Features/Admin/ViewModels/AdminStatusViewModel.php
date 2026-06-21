@@ -19,7 +19,7 @@ class AdminStatusViewModel
 
         return [
             'label' => match ($status) {
-                'waiting_payment', 'pending', 'unpaid' => 'Menunggu Bayar',
+                'waiting_payment', 'pending', 'unpaid' => 'Menunggu Pembayaran',
                 'waiting_confirmation' => 'Menunggu Konfirmasi',
                 'paid' => 'Lunas',
                 'rejected' => 'Ditolak',
@@ -72,7 +72,7 @@ class AdminStatusViewModel
                 'booked', 'active' => 'Terdaftar',
                 'confirmed' => 'Terkonfirmasi',
                 'attended' => 'Hadir',
-                'pending_payment' => 'Menunggu Bayar',
+                'pending_payment' => 'Menunggu Pembayaran',
                 'cancelled', 'canceled' => 'Dibatalkan',
                 default => self::headline($status),
             },

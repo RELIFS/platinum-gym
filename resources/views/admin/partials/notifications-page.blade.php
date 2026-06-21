@@ -23,32 +23,32 @@
             <h2 id="{{ $tableId }}-title" class="mt-2 text-xl font-black text-zinc-950 dark:text-white">{{ $title }}</h2>
             <p class="mt-2 admin-copy">{{ $description }}</p>
         </div>
-        <span class="admin-status-pill shrink-0 bg-zinc-100 text-zinc-600 dark:bg-white/[0.07] dark:text-zinc-300">{{ $rows->count() }} area</span>
+        <span class="admin-status-pill admin-status-neutral shrink-0">{{ $rows->count() }} area</span>
     </div>
 
     @if ($rows->isNotEmpty())
         <div class="admin-table-wrap mt-5 hidden md:block">
             <table class="min-w-full divide-y divide-zinc-200 text-left text-sm dark:divide-white/10">
                 <caption class="sr-only">{{ $title }}</caption>
-                <thead class="bg-zinc-50 text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-500 dark:bg-white/[0.03] dark:text-zinc-400">
+                <thead class="admin-table-head">
                     <tr>
                         <th scope="col" class="px-4 py-3">Area</th>
                         <th scope="col" class="px-4 py-3">Status</th>
                         <th scope="col" class="px-4 py-3">Catatan</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-zinc-200 bg-white dark:divide-white/10 dark:bg-transparent">
+                <tbody class="admin-table-body">
                     @foreach ($rows as $row)
                         @php
                             $kind = $row['kind'] ?? 'neutral';
                             $statusClass = $kindMap[$kind] ?? $kindMap['neutral'];
                         @endphp
-                        <tr class="align-top transition hover:bg-zinc-50 dark:hover:bg-white/[0.035]">
-                            <td class="max-w-[18rem] break-words px-4 py-3 font-semibold text-zinc-700 dark:text-zinc-200">{{ $row['area'] ?? '-' }}</td>
-                            <td class="max-w-[18rem] break-words px-4 py-3 font-semibold text-zinc-700 dark:text-zinc-200">
+                        <tr class="admin-table-row">
+                            <td class="admin-table-cell">{{ $row['area'] ?? '-' }}</td>
+                            <td class="admin-table-cell">
                                 <span class="admin-status-pill {{ $statusClass }}">{{ $row['status'] ?? '-' }}</span>
                             </td>
-                            <td class="max-w-[28rem] break-words px-4 py-3 font-semibold text-zinc-700 dark:text-zinc-200">{{ $row['note'] ?? '-' }}</td>
+                            <td class="admin-table-cell max-w-[28rem]">{{ $row['note'] ?? '-' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -64,18 +64,18 @@
                 <article class="admin-table-mobile-card">
                     <dl class="grid gap-3">
                         <div class="min-w-0">
-                            <dt class="text-[0.68rem] font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Area</dt>
-                            <dd class="mt-1 break-words text-sm font-bold text-zinc-800 dark:text-zinc-100">{{ $row['area'] ?? '-' }}</dd>
+                            <dt class="admin-table-label">Area</dt>
+                            <dd class="admin-table-value">{{ $row['area'] ?? '-' }}</dd>
                         </div>
                         <div class="min-w-0">
-                            <dt class="text-[0.68rem] font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Status</dt>
-                            <dd class="mt-1 break-words text-sm font-bold text-zinc-800 dark:text-zinc-100">
+                            <dt class="admin-table-label">Status</dt>
+                            <dd class="admin-table-value">
                                 <span class="admin-status-pill {{ $statusClass }}">{{ $row['status'] ?? '-' }}</span>
                             </dd>
                         </div>
                         <div class="min-w-0">
-                            <dt class="text-[0.68rem] font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Catatan</dt>
-                            <dd class="mt-1 break-words text-sm font-bold text-zinc-800 dark:text-zinc-100">{{ $row['note'] ?? '-' }}</dd>
+                            <dt class="admin-table-label">Catatan</dt>
+                            <dd class="admin-table-value">{{ $row['note'] ?? '-' }}</dd>
                         </div>
                     </dl>
                 </article>

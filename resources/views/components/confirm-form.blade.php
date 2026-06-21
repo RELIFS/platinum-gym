@@ -21,11 +21,11 @@
     $dialogId = 'confirm-form-' . uniqid();
 @endphp
 
-<div x-data="{ open: false }" class="contents">
+<div x-data="{ open: false, submitting: false }" class="contents">
     <form
         method="{{ $formMethod }}"
         action="{{ $action }}"
-        @if ($hasMessage) x-on:submit.prevent="open = true" @endif
+        @if ($hasMessage) x-on:submit.prevent="if (! submitting) open = true" @else x-on:submit="if (submitting) { $event.preventDefault() } else { submitting = true }" @endif
         {{ $attributes }}
     >
         @if ($formMethod === 'POST')
@@ -47,11 +47,11 @@
                 aria-modal="true"
                 aria-labelledby="{{ $dialogId }}-title"
                 aria-describedby="{{ $dialogId }}-desc"
-                x-on:keydown.escape.window="open = false"
+                x-on:keydown.escape.window="if (! submitting) open = false"
                 x-trap.noscroll="open"
                 x-transition.opacity
             >
-                <div class="absolute inset-0 bg-zinc-950/70 backdrop-blur-sm" x-on:click="open = false" aria-hidden="true"></div>
+                <div class="absolute inset-0 bg-zinc-950/70 backdrop-blur-sm" x-on:click="if (! submitting) open = false" aria-hidden="true"></div>
 
                 <div
                     class="relative w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-zinc-950"
@@ -66,12 +66,13 @@
                     <p id="{{ $dialogId }}-desc" class="mt-3 text-sm font-medium leading-6 text-zinc-600 dark:text-zinc-300">{{ $message }}</p>
 
                     <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                        <button type="button" x-on:click="open = false" class="{{ $cancelClass }}">{{ $cancelLabel }}</button>
+                        <button type="button" x-on:click="open = false" x-bind:disabled="submitting" class="{{ $cancelClass }} disabled:cursor-not-allowed disabled:opacity-60">{{ $cancelLabel }}</button>
                         <button
                             type="button"
-                            x-on:click="open = false; $root.querySelector('form').submit()"
-                            class="{{ $confirmClass }}"
-                        >{{ $confirmLabel }}</button>
+                            x-bind:disabled="submitting"
+                            x-on:click="if (submitting) return; submitting = true; open = false; $root.querySelector('form').submit()"
+                            class="{{ $confirmClass }} disabled:cursor-not-allowed disabled:opacity-60"
+                        ><span x-show="! submitting">{{ $confirmLabel }}</span><span x-show="submitting">Memproses...</span></button>
                     </div>
                 </div>
             </div>

@@ -138,6 +138,18 @@
         @apply inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-500/60 hover:bg-white hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-95 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300 dark:hover:border-gold-400/50 dark:hover:bg-white/[0.07] dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
     }
 
+    .public-mobile-menu-button {
+        @apply inline-flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-800 shadow-sm transition hover:-translate-y-0.5 hover:border-gold-500/60 hover:bg-gold-500/10 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 active:scale-[0.98] dark:border-transparent dark:bg-gold-500 dark:text-zinc-950 dark:focus-visible:ring-offset-zinc-950;
+    }
+
+    .member-mobile-menu-button {
+        @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-500/45 hover:bg-gold-500/10 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:border-transparent dark:bg-gold-500 dark:text-zinc-950;
+    }
+
+    .admin-mobile-menu-button {
+        @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-500/45 hover:bg-gold-500/10 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:border-transparent dark:bg-gold-500 dark:text-zinc-950;
+    }
+
     .public-header-link {
         @apply inline-flex h-11 touch-manipulation items-center justify-center rounded-full border border-zinc-300 bg-white/85 px-4 text-sm font-semibold text-zinc-900 shadow-sm transition hover:-translate-y-0.5 hover:border-gold-500/70 hover:bg-white hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:hover:border-gold-400/60 dark:hover:bg-white/[0.08] dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
     }
@@ -159,7 +171,7 @@
     }
 
     .public-media-frame {
-        @apply relative overflow-hidden rounded-2xl bg-zinc-950 ring-1 ring-zinc-200/80 dark:ring-white/10;
+        @apply relative overflow-hidden rounded-2xl bg-zinc-100 ring-1 ring-zinc-200/80 dark:bg-zinc-950 dark:ring-white/10;
     }
 
     .public-info-panel {
@@ -235,11 +247,15 @@
     }
 
     .member-card {
-        @apply min-w-0 rounded-lg border border-zinc-200 bg-white/95 p-5 shadow-[0_18px_50px_rgba(24,24,27,0.06)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.045] dark:shadow-[0_18px_60px_rgba(0,0,0,0.24)] sm:p-6;
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_10px_30px_rgba(24,24,27,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-zinc-950/75 dark:shadow-[0_18px_58px_rgba(0,0,0,0.22)] sm:p-6;
     }
 
     .member-card-strong {
-        @apply min-w-0 rounded-lg border border-zinc-800 bg-zinc-950 p-5 text-white shadow-[0_24px_80px_rgba(0,0,0,0.28)] dark:border-white/10 sm:p-6;
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_12px_34px_rgba(24,24,27,0.045)] backdrop-blur-sm dark:border-white/10 dark:bg-zinc-950/80 dark:shadow-[0_20px_64px_rgba(0,0,0,0.24)] sm:p-6;
+    }
+
+    .member-card-pass {
+        @apply min-w-0 rounded-lg border border-gold-500/25 bg-white p-5 text-zinc-950 shadow-[0_12px_36px_rgba(254,172,24,0.08)] dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-6;
     }
 
     .member-eyebrow {
@@ -254,12 +270,24 @@
         @apply text-sm font-medium leading-7 text-zinc-600 dark:text-zinc-400;
     }
 
+    .member-section-header {
+        @apply flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between;
+    }
+
+    .member-section-title {
+        @apply mt-2 text-xl font-black leading-tight text-zinc-950 dark:text-white;
+    }
+
     .member-button-primary {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg bg-gold-500 px-4 py-2.5 text-center text-sm font-black text-zinc-950 shadow-[0_14px_34px_rgba(254,172,24,0.28)] transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg bg-gold-500 px-4 py-2.5 text-center text-sm font-black text-zinc-950 shadow-[0_8px_22px_rgba(254,172,24,0.20)] transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-zinc-950;
     }
 
     .member-button-secondary {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-bold text-zinc-700 shadow-sm transition hover:border-gold-500/60 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-200 dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-bold text-zinc-700 shadow-sm transition hover:border-gold-500/55 hover:bg-zinc-50 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-200 dark:hover:bg-white/[0.075] dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
+    }
+
+    .member-button-danger {
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-red-500/35 bg-red-500/10 px-4 py-2.5 text-center text-sm font-black text-red-700 shadow-sm transition hover:border-red-500/55 hover:bg-red-500/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300 dark:focus-visible:ring-offset-zinc-950;
     }
 
     .member-button-disabled {
@@ -267,15 +295,53 @@
     }
 
     .member-stat {
-        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.045];
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_8px_24px_rgba(24,24,27,0.035)] dark:border-white/10 dark:bg-white/[0.045];
     }
 
     .member-soft-panel {
-        @apply rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-zinc-950/45;
+        @apply rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-white/10 dark:bg-zinc-900/70;
+    }
+
+    .member-list-card {
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_8px_24px_rgba(24,24,27,0.035)] transition hover:border-gold-500/45 hover:shadow-[0_14px_38px_rgba(254,172,24,0.08)] dark:border-white/10 dark:bg-zinc-950/70;
+    }
+
+    .member-horizontal-rail {
+        scrollbar-color: rgba(113, 113, 122, 0.38) transparent;
+        scrollbar-width: thin;
+    }
+
+    .member-horizontal-rail::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .member-horizontal-rail::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .member-horizontal-rail::-webkit-scrollbar-thumb {
+        background-color: rgba(113, 113, 122, 0.28);
+        border-radius: 999px;
+    }
+
+    .member-horizontal-rail:focus-visible {
+        @apply rounded-lg outline-none ring-2 ring-gold-500/40 ring-offset-2 ring-offset-white dark:ring-offset-zinc-950;
+    }
+
+    .member-form-input {
+        @apply min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-900 shadow-sm transition placeholder:text-zinc-400 hover:border-zinc-300 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/25 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:placeholder:text-zinc-500 dark:hover:border-white/20 dark:disabled:bg-white/[0.04];
+    }
+
+    .member-table-wrap {
+        @apply min-w-0 overflow-x-auto rounded-lg border border-zinc-200 dark:border-white/10;
+    }
+
+    .member-table-row {
+        @apply bg-white transition hover:bg-zinc-50 dark:bg-zinc-950/35 dark:hover:bg-white/[0.055];
     }
 
     .member-data-row {
-        @apply flex items-start justify-between gap-4 border-b border-zinc-200 py-3 last:border-b-0 dark:border-white/10;
+        @apply flex flex-col items-start gap-1 border-b border-zinc-200 py-3 last:border-b-0 dark:border-white/10 sm:flex-row sm:justify-between sm:gap-4;
     }
 
     .member-status-pill {
@@ -307,7 +373,7 @@
     }
 
     .admin-card {
-        @apply min-w-0 rounded-lg border border-zinc-200 bg-white/95 p-5 shadow-[0_18px_50px_rgba(24,24,27,0.06)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.045] dark:shadow-[0_18px_60px_rgba(0,0,0,0.24)] sm:p-6;
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.045)] backdrop-blur-sm dark:border-white/10 dark:bg-[#18181b]/90 dark:shadow-[0_18px_54px_rgba(0,0,0,0.22)] sm:p-6;
     }
 
     .admin-card-strong {
@@ -315,7 +381,15 @@
     }
 
     .admin-page-header {
-        @apply min-w-0 rounded-lg border border-zinc-200 bg-white/95 p-5 shadow-[0_18px_50px_rgba(24,24,27,0.06)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.045] dark:shadow-[0_18px_60px_rgba(0,0,0,0.24)] sm:p-6;
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_16px_44px_rgba(15,23,42,0.055)] backdrop-blur-sm dark:border-white/10 dark:bg-[#1f1f23]/90 dark:shadow-[0_20px_58px_rgba(0,0,0,0.26)] sm:p-6;
+    }
+
+    .admin-panel {
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-zinc-50/90 p-4 shadow-none dark:border-white/10 dark:bg-white/[0.035];
+    }
+
+    .admin-toolbar {
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-zinc-50/90 p-3 dark:border-white/10 dark:bg-white/[0.035] sm:p-4;
     }
 
     .admin-eyebrow {
@@ -331,19 +405,55 @@
     }
 
     .admin-button-primary {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg bg-gold-500 px-4 py-2.5 text-center text-sm font-black text-zinc-950 shadow-[0_14px_34px_rgba(254,172,24,0.28)] transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg bg-gold-500 px-4 py-2.5 text-center text-sm font-black text-zinc-950 shadow-[0_8px_22px_rgba(254,172,24,0.20)] transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500 disabled:shadow-none dark:disabled:bg-white/[0.07] dark:disabled:text-zinc-500 dark:focus-visible:ring-offset-zinc-950;
     }
 
     .admin-button-secondary {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-bold text-zinc-700 shadow-sm transition hover:border-gold-500/60 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-200 dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-bold text-zinc-700 shadow-sm transition hover:border-gold-500/50 hover:bg-zinc-50 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-500 disabled:shadow-none dark:border-white/10 dark:bg-white/[0.055] dark:text-zinc-200 dark:hover:border-white/15 dark:hover:bg-white/[0.075] dark:hover:text-gold-400 dark:disabled:border-white/10 dark:disabled:bg-white/[0.035] dark:disabled:text-zinc-500 dark:focus-visible:ring-offset-zinc-950;
     }
 
     .admin-stat {
-        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.045];
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.035)] dark:border-white/10 dark:bg-white/[0.055];
+    }
+
+    .admin-metric-card {
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.035)] transition hover:border-gold-500/40 hover:shadow-[0_14px_34px_rgba(254,172,24,0.10)] dark:border-white/10 dark:bg-white/[0.055];
+    }
+
+    .admin-action-card {
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-zinc-50/90 p-4 transition hover:border-gold-500/55 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-white/[0.035] dark:hover:border-white/15 dark:hover:bg-white/[0.065];
     }
 
     .admin-soft-panel {
-        @apply rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-zinc-950/45;
+        @apply rounded-lg border border-zinc-200 bg-zinc-50/90 p-4 dark:border-white/10 dark:bg-white/[0.035];
+    }
+
+    .admin-chart-shell {
+        @apply min-w-0 overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(180deg,#ffffff,#f8fafc)] p-3 shadow-inner dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.025))] sm:p-4;
+    }
+
+    .admin-chart-tooltip {
+        @apply min-w-40 rounded-lg border px-3 py-2 text-xs shadow-xl;
+    }
+
+    .admin-chart-tooltip-title {
+        @apply mb-2 text-xs font-black;
+    }
+
+    .admin-chart-tooltip-row {
+        @apply flex min-w-0 items-center gap-2 py-0.5;
+    }
+
+    .admin-chart-tooltip-dot {
+        @apply h-2.5 w-2.5 shrink-0 rounded-full;
+    }
+
+    .admin-chart-tooltip-name {
+        @apply min-w-0 flex-1 truncate font-bold;
+    }
+
+    .admin-chart-tooltip-value {
+        @apply font-black;
     }
 
     .admin-status-pill {
@@ -351,23 +461,23 @@
     }
 
     .admin-status-success {
-        @apply bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300;
+        @apply border border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/15 dark:text-emerald-300;
     }
 
     .admin-status-warning {
-        @apply bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300;
+        @apply border border-amber-500/20 bg-amber-500/10 text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-300;
     }
 
     .admin-status-danger {
-        @apply bg-red-500/10 text-red-700 dark:bg-red-500/15 dark:text-red-300;
+        @apply border border-red-500/20 bg-red-500/10 text-red-700 dark:border-red-400/20 dark:bg-red-500/15 dark:text-red-300;
     }
 
     .admin-status-info {
-        @apply bg-sky-500/10 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300;
+        @apply border border-sky-500/20 bg-sky-500/10 text-sky-700 dark:border-sky-400/20 dark:bg-sky-500/15 dark:text-sky-300;
     }
 
     .admin-status-neutral {
-        @apply bg-zinc-100 text-zinc-700 dark:bg-white/[0.07] dark:text-zinc-300;
+        @apply border border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-white/10 dark:bg-white/[0.07] dark:text-zinc-300;
     }
 
     .admin-button-danger {
@@ -379,18 +489,118 @@
     }
 
     .admin-form-input {
-        @apply min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-950 shadow-sm transition placeholder:text-zinc-400 hover:border-zinc-300 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:placeholder:text-zinc-500 dark:hover:border-white/20;
+        @apply min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-950 shadow-sm transition placeholder:text-zinc-400 hover:border-zinc-300 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-500 dark:border-white/10 dark:bg-white/[0.045] dark:text-white dark:placeholder:text-zinc-500 dark:hover:border-white/20 dark:focus:border-gold-400 dark:disabled:bg-white/[0.035] dark:disabled:text-zinc-500;
     }
 
     .admin-table-search {
-        @apply min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-950 shadow-sm transition placeholder:text-zinc-400 hover:border-zinc-300 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:placeholder:text-zinc-500 dark:hover:border-white/20;
+        @apply min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-950 shadow-sm transition placeholder:text-zinc-400 hover:border-zinc-300 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-500 dark:border-white/10 dark:bg-white/[0.045] dark:text-white dark:placeholder:text-zinc-500 dark:hover:border-white/20 dark:focus:border-gold-400 dark:disabled:bg-white/[0.035] dark:disabled:text-zinc-500;
     }
 
     .admin-table-mobile-card {
-        @apply rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-zinc-950/45;
+        @apply rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.035)] dark:border-white/10 dark:bg-white/[0.045];
     }
 
     .admin-table-wrap {
-        @apply overflow-x-auto rounded-lg border border-zinc-200 dark:border-white/10;
+        @apply min-w-0 overflow-x-auto rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-white/[0.025];
+    }
+
+    .admin-table-head {
+        @apply bg-zinc-100/80 text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-600 dark:bg-white/[0.055] dark:text-zinc-300;
+    }
+
+    .admin-table-body {
+        @apply divide-y divide-zinc-200 bg-white dark:divide-white/10 dark:bg-transparent;
+    }
+
+    .admin-table-row {
+        @apply align-top transition hover:bg-zinc-50/90 dark:hover:bg-white/[0.055];
+    }
+
+    .admin-table-cell {
+        @apply max-w-[18rem] break-words px-4 py-3 font-semibold text-zinc-700 dark:text-zinc-200;
+    }
+
+    .admin-table-label {
+        @apply text-[0.68rem] font-black uppercase tracking-[0.14em] text-zinc-600 dark:text-zinc-400;
+    }
+
+    .admin-table-value {
+        @apply mt-1 break-words text-sm font-bold text-zinc-800 dark:text-zinc-100;
+    }
+
+    .admin-pagination-link {
+        @apply grid min-h-11 min-w-11 place-items-center rounded-lg border border-zinc-200 bg-white px-3 text-sm font-black text-zinc-700 transition hover:border-gold-500/50 hover:bg-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-200 dark:hover:border-white/15 dark:hover:bg-white/[0.075];
+    }
+
+    .admin-pagination-active {
+        @apply grid min-h-11 min-w-11 place-items-center rounded-lg border border-gold-500/35 bg-gold-500 px-3 text-sm font-black text-zinc-950 shadow-[0_8px_20px_rgba(254,172,24,0.18)];
+    }
+
+    .admin-pagination-disabled {
+        @apply inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-zinc-100 px-4 py-2.5 text-center text-sm font-bold text-zinc-500 dark:border-white/10 dark:bg-white/[0.035] dark:text-zinc-500;
+    }
+
+    .admin-nav-link {
+        @apply relative flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-bold text-zinc-600 transition hover:border-zinc-200 hover:bg-zinc-100/80 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/[0.065] dark:hover:text-white dark:focus-visible:ring-offset-zinc-950;
+    }
+
+    .admin-nav-link-active {
+        @apply border-gold-500/35 bg-gold-500/10 text-zinc-950 shadow-sm before:absolute before:bottom-2 before:left-1 before:top-2 before:w-1 before:rounded-full before:bg-gold-500 dark:bg-gold-500/10 dark:text-gold-400;
+    }
+
+    .admin-nav-icon {
+        @apply grid h-8 w-8 shrink-0 place-items-center rounded-md bg-zinc-100 text-zinc-500 transition group-hover:text-gold-600 dark:bg-white/[0.06] dark:text-zinc-400 dark:group-hover:text-gold-400;
+    }
+
+    .admin-nav-icon-active {
+        @apply bg-gold-500/15 text-gold-600 dark:bg-gold-500/15 dark:text-gold-400;
+    }
+
+    .owner-mobile-menu-button {
+        @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-500/45 hover:bg-gold-500/10 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:border-transparent dark:bg-gold-500 dark:text-zinc-950;
+    }
+
+    .owner-card {
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_14px_38px_rgba(15,23,42,0.045)] backdrop-blur-sm dark:border-white/10 dark:bg-[#18181b]/90 dark:shadow-[0_18px_54px_rgba(0,0,0,0.22)] sm:p-6;
+    }
+
+    .owner-page-header {
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_16px_44px_rgba(15,23,42,0.055)] dark:border-white/10 dark:bg-[#1f1f23]/90 sm:p-6;
+    }
+
+    .owner-panel {
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-zinc-50/90 p-4 dark:border-white/10 dark:bg-white/[0.035];
+    }
+
+    .owner-eyebrow {
+        @apply text-xs font-black uppercase tracking-[0.18em] text-gold-600 dark:text-gold-400;
+    }
+
+    .owner-title {
+        @apply text-2xl font-black leading-tight text-zinc-950 dark:text-white sm:text-3xl;
+    }
+
+    .owner-copy {
+        @apply text-sm font-medium leading-7 text-zinc-600 dark:text-zinc-400;
+    }
+
+    .owner-button-primary {
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg bg-gold-500 px-4 py-2.5 text-center text-sm font-black text-zinc-950 shadow-[0_8px_22px_rgba(254,172,24,0.20)] transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:focus-visible:ring-offset-zinc-950;
+    }
+
+    .owner-button-secondary {
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-bold text-zinc-700 shadow-sm transition hover:border-gold-500/50 hover:bg-zinc-50 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.055] dark:text-zinc-200 dark:hover:border-white/15 dark:hover:bg-white/[0.075] dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
+    }
+
+    .owner-form-input {
+        @apply min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-950 shadow-sm transition placeholder:text-zinc-400 hover:border-zinc-300 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:border-white/10 dark:bg-white/[0.045] dark:text-white dark:placeholder:text-zinc-500 dark:hover:border-white/20;
+    }
+
+    .owner-status-pill {
+        @apply inline-flex min-h-7 items-center rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-700 dark:border-white/10 dark:bg-white/[0.07] dark:text-zinc-300;
+    }
+
+    .owner-chart-shell {
+        @apply min-w-0 overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(180deg,#ffffff,#f8fafc)] p-3 shadow-inner dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.025))] sm:p-4;
     }
 }

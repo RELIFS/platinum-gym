@@ -42,7 +42,7 @@ class CreateCashPaymentAction
                 'method' => 'cash',
                 'amount' => $this->packagePrice($package),
                 'status' => 'waiting_confirmation',
-                'note' => $note ?: 'Pembayaran cash dicatat dari admin.',
+                'note' => $note ?: 'Pembayaran tunai dicatat oleh admin.',
             ]);
         });
 

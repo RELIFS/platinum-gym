@@ -84,10 +84,17 @@ class UpsertAdminResourceAction
             'emergency_contact',
             'is_student',
             'student_id_number',
-            'height_cm',
-            'weight_kg',
+            'student_verification_status',
+            'student_verification_note',
             'status',
         ]));
+        if (($data['student_verification_status'] ?? null) === 'verified') {
+            $member->student_verified_at ??= now();
+            $member->student_verification_source ??= 'admin';
+        } elseif (array_key_exists('student_verification_status', $data)) {
+            $member->student_verified_at = null;
+            $member->student_verification_source = 'admin';
+        }
         $member->save();
 
         activity()->performedOn($member)->event($member->wasRecentlyCreated ? 'created' : 'updated')->log('Anggota diperbarui dari admin.');

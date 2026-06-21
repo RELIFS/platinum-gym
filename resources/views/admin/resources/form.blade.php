@@ -5,16 +5,11 @@
 @endphp
 
 <x-admin-layout :portal='$portal' :navigation='$navigation' :title='$title'>
-    <section class='admin-page-header'>
-        <div class='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
-            <div class='min-w-0 max-w-3xl'>
-                <p class='admin-eyebrow'>{{ $definition['title'] }}</p>
-                <h2 class='admin-title mt-3'>{{ $title }}</h2>
-                <p class='mt-3 admin-copy'>{{ $definition['description'] }}</p>
-            </div>
+    <x-admin.page-header :eyebrow="$definition['title']" :title="$title" :description="$definition['description']">
+        <x-slot:actions>
             <a href='{{ route($definition['index_route']) }}' class='admin-button-secondary shrink-0'>Kembali</a>
-        </div>
-    </section>
+        </x-slot:actions>
+    </x-admin.page-header>
     <form method='POST' action='{{ $action }}' enctype='multipart/form-data' class='admin-card mt-6' x-data='{ saving: false }' x-on:submit='saving = true'>
         @csrf
         @if ($isEdit)

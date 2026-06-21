@@ -34,7 +34,7 @@ class AdminPaymentController extends Controller
                 ->withInput();
         }
 
-        return back()->with('status', 'Pembayaran cash '.$payment->payment_code.' berhasil dicatat dan layanan member sudah aktif.');
+        return back()->with('status', 'Pembayaran tunai '.$payment->payment_code.' berhasil dicatat dan layanan member sudah aktif.');
     }
 
     public function approve(Request $request, Payment $payment, FulfillPaidPaymentAction $fulfillPaidPayment): RedirectResponse
