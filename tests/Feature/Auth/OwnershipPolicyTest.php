@@ -131,5 +131,11 @@ test('ownership policies allow members to access only their own records', functi
         ->and($memberUser->can('view', $otherMember))->toBeFalse()
         ->and($otherUser->can('view', $payment))->toBeFalse()
         ->and($admin->can('view', $payment))->toBeTrue()
-        ->and($owner->can('view', $payment))->toBeFalse();
+        ->and($owner->can('viewAny', Payment::class))->toBeTrue()
+        ->and($owner->can('view', $payment))->toBeTrue()
+        ->and($owner->can('update', $payment))->toBeFalse()
+        ->and($owner->can('viewAny', Invoice::class))->toBeTrue()
+        ->and($owner->can('view', $invoice))->toBeTrue()
+        ->and($owner->can('download', $invoice))->toBeTrue()
+        ->and($owner->can('update', $invoice))->toBeFalse();
 });

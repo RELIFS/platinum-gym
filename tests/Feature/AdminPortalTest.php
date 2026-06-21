@@ -5,6 +5,8 @@ use App\Models\ClassSchedule;
 use App\Models\GymCheckIn;
 use App\Models\GymClass;
 use App\Models\Member;
+use App\Models\MemberPackageSession;
+use App\Models\MemberPackageSessionUsage;
 use App\Models\Membership;
 use App\Models\Package as ServicePackage;
 use App\Models\Payment;
@@ -110,6 +112,34 @@ test('admin can access all admin pages', function (string $path, string $title) 
     ['/admin/profil', 'Profil Admin'],
 ]);
 
+test('admin member resource uses nim label', function () {
+    $admin = createAdminPortalUser();
+
+    $this->actingAs($admin)->get(route('admin.resources.create', 'members'))
+        ->assertOk()
+        ->assertSee('NIM')
+        ->assertDontSee('Nomor Identitas Mahasiswa');
+});
+
+test('admin resource forms use production ready field wording', function () {
+    $admin = createAdminPortalUser();
+
+    $this->actingAs($admin)->get(route('admin.resources.create', 'packages'))
+        ->assertOk()
+        ->assertSee('Slug URL')
+        ->assertSee('Batas Jenis Kelamin')
+        ->assertSee('Wajib Membership Aktif')
+        ->assertSee('Manfaat Paket')
+        ->assertDontSee('Butuh Membership Aktif')
+        ->assertDontSee('Benefit');
+
+    $this->actingAs($admin)->get(route('admin.resources.create', 'products'))
+        ->assertOk()
+        ->assertSee('Slug URL')
+        ->assertSee('Deskripsi Foto')
+        ->assertDontSee('Alt Foto');
+});
+
 test('admin dashboard and modules render operational data', function () {
     $admin = createAdminPortalUser();
     [, $member] = createAdminPortalMember('PG-ADMIN-DATA');
@@ -142,6 +172,17 @@ test('admin dashboard and modules render operational data', function () {
         'method' => 'transfer',
         'amount' => 250000,
         'status' => 'waiting_confirmation',
+    ]);
+
+    Payment::create([
+        'payment_code' => 'PAY-ADMIN-PAID-TREND',
+        'member_id' => $member->id,
+        'payable_type' => Membership::class,
+        'payable_id' => $membership->id,
+        'method' => 'cash',
+        'amount' => 250000,
+        'status' => 'paid',
+        'paid_at' => now()->subDay(),
     ]);
 
     $trainer = Trainer::create([
@@ -195,11 +236,34 @@ test('admin dashboard and modules render operational data', function () {
 
     $this->actingAs($admin)->get('/admin')
         ->assertOk()
+        ->assertSee('Ringkasan admin')
+        ->assertSee('Pantau aktivitas gym, pembayaran, booking, check-in, dan data penting lainnya dari satu halaman.')
+        ->assertSee('aria-label="Perlu dicek hari ini"', false)
+        ->assertSee('aria-label="Ringkasan hari ini"', false)
         ->assertSee('Member Aktif')
-        ->assertSee('Pembayaran Pending')
+        ->assertSee('Menunggu Pembayaran')
+        ->assertSee('Booking hari ini')
+        ->assertSee('Tren aktivitas')
+        ->assertSee('Lihat perkembangan check-in, booking, dan pembayaran yang sudah dikonfirmasi selama 14 hari terakhir.')
+        ->assertSee('aria-label="Tren aktivitas 14 hari terakhir"', false)
+        ->assertSee('id="admin-operational-trend-chart"', false)
+        ->assertSee('id="admin-operational-trend-data"', false)
+        ->assertSee('type="application/json"', false)
+        ->assertSee('role="img"', false)
+        ->assertSee('"series"', false)
+        ->assertSee('"labels"', false)
+        ->assertSee('"color"', false)
+        ->assertSee('Pembayaran: 1')
+        ->assertSee('Akses cepat')
+        ->assertSee('Buka laporan')
+        ->assertSee('Aktivitas terbaru')
+        ->assertSee('admin-metric-card', false)
+        ->assertSee('admin-action-card', false)
         ->assertSee('PAY-ADMIN-0001')
-        ->assertSee('Zumba Admin')
-        ->assertSee('Check-in Hari Ini');
+        ->assertDontSee('Zumba Admin')
+        ->assertDontSee('Booking Hari Ini')
+        ->assertDontSee('Check-in Hari Ini')
+        ->assertDontSee('Menu kerja');
 
     $this->actingAs($admin)->get('/admin/produk')
         ->assertOk()
@@ -236,6 +300,268 @@ test('admin settings page masks sensitive values', function () {
         ->assertDontSee('secret-test-value')
         ->assertSee('site_tagline')
         ->assertSee('Gym premium di Padang');
+});
+
+test('admin check-in page renders paginated history with date range filters', function () {
+    $admin = createAdminPortalUser();
+
+    $package = ServicePackage::create([
+        'name' => 'Gym History Test',
+        'slug' => 'gym-history-test',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 250000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    $sessionPackage = ServicePackage::create([
+        'name' => 'Muaythai History Session 4x',
+        'slug' => 'muaythai-history-session-4x',
+        'package_kind' => 'session',
+        'type' => 'muaythai',
+        'price' => 400000,
+        'session_count' => 4,
+        'is_active' => true,
+    ]);
+
+    $extraSessionPackage = ServicePackage::create([
+        'name' => 'Personal Trainer History Session 2x',
+        'slug' => 'personal-trainer-history-session-2x',
+        'package_kind' => 'session',
+        'type' => 'pt',
+        'price' => 300000,
+        'session_count' => 2,
+        'is_active' => true,
+    ]);
+
+    $standaloneSessionPackage = ServicePackage::create([
+        'name' => 'Poundfit Standalone Session 1x',
+        'slug' => 'poundfit-standalone-session-1x',
+        'package_kind' => 'session',
+        'type' => 'poundfit',
+        'price' => 50000,
+        'session_count' => 1,
+        'is_active' => true,
+    ]);
+
+    foreach (range(1, 18) as $index) {
+        [$user, $member] = createAdminPortalMember('PG-HISTORY-'.str_pad((string) $index, 2, '0', STR_PAD_LEFT));
+        $user->forceFill(['name' => 'History Member '.str_pad((string) $index, 2, '0', STR_PAD_LEFT)])->save();
+
+        $membership = Membership::create([
+            'member_id' => $member->id,
+            'package_id' => $package->id,
+            'code' => 'MBR-HISTORY-'.str_pad((string) $index, 4, '0', STR_PAD_LEFT),
+            'start_date' => now()->startOfMonth()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'price' => 250000,
+            'status' => 'active',
+        ]);
+
+        $checkIn = GymCheckIn::create([
+            'member_id' => $member->id,
+            'membership_id' => $membership->id,
+            'check_in_date' => now()->subDays($index % 5)->toDateString(),
+            'check_in_at' => now()->subMinutes($index),
+            'method' => 'qr',
+            'scanned_by' => $admin->id,
+        ]);
+
+        if ($index === 1) {
+            $packageSession = MemberPackageSession::create([
+                'member_id' => $member->id,
+                'package_id' => $sessionPackage->id,
+                'code' => 'MPS-HISTORY-0001',
+                'total_sessions' => 4,
+                'used_sessions' => 1,
+                'remaining_sessions' => 3,
+                'price' => 400000,
+                'started_at' => now()->subDay()->toDateString(),
+                'expired_at' => now()->addMonth()->toDateString(),
+                'status' => 'active',
+            ]);
+
+            MemberPackageSessionUsage::create([
+                'member_package_session_id' => $packageSession->id,
+                'member_id' => $member->id,
+                'gym_check_in_id' => $checkIn->id,
+                'usage_date' => $checkIn->check_in_date,
+                'used_at' => $checkIn->check_in_at,
+                'method' => 'qr',
+                'recorded_by' => $admin->id,
+                'request_key' => 'history-session-usage-0001',
+            ]);
+
+            $extraPackageSession = MemberPackageSession::create([
+                'member_id' => $member->id,
+                'package_id' => $extraSessionPackage->id,
+                'code' => 'MPS-HISTORY-0002',
+                'total_sessions' => 2,
+                'used_sessions' => 1,
+                'remaining_sessions' => 1,
+                'price' => 300000,
+                'started_at' => now()->subDay()->toDateString(),
+                'expired_at' => now()->addMonth()->toDateString(),
+                'status' => 'active',
+            ]);
+
+            MemberPackageSessionUsage::create([
+                'member_package_session_id' => $extraPackageSession->id,
+                'member_id' => $member->id,
+                'gym_check_in_id' => $checkIn->id,
+                'usage_date' => $checkIn->check_in_date,
+                'used_at' => $checkIn->check_in_at,
+                'method' => 'qr',
+                'recorded_by' => $admin->id,
+                'request_key' => 'history-session-usage-0002',
+            ]);
+        }
+    }
+
+    [$oldUser, $oldMember] = createAdminPortalMember('PG-HISTORY-OLD');
+    $oldUser->forceFill(['name' => 'History Old Member'])->save();
+    $oldMembership = Membership::create([
+        'member_id' => $oldMember->id,
+        'package_id' => $package->id,
+        'code' => 'MBR-HISTORY-OLD',
+        'start_date' => now()->subMonths(3)->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 250000,
+        'status' => 'active',
+    ]);
+
+    GymCheckIn::create([
+        'member_id' => $oldMember->id,
+        'membership_id' => $oldMembership->id,
+        'check_in_date' => now()->subMonths(2)->toDateString(),
+        'check_in_at' => now()->subMonths(2),
+        'method' => 'qr',
+        'scanned_by' => $admin->id,
+    ]);
+
+    [$standaloneUser, $standaloneMember] = createAdminPortalMember('PG-HISTORY-STANDALONE');
+    $standaloneUser->forceFill(['name' => 'History Standalone Session Member'])->save();
+    $standalonePackageSession = MemberPackageSession::create([
+        'member_id' => $standaloneMember->id,
+        'package_id' => $standaloneSessionPackage->id,
+        'code' => 'MPS-HISTORY-STANDALONE',
+        'total_sessions' => 1,
+        'used_sessions' => 1,
+        'remaining_sessions' => 0,
+        'price' => 50000,
+        'started_at' => now()->subDay()->toDateString(),
+        'expired_at' => now()->addMonth()->toDateString(),
+        'status' => 'active',
+    ]);
+
+    MemberPackageSessionUsage::create([
+        'member_package_session_id' => $standalonePackageSession->id,
+        'member_id' => $standaloneMember->id,
+        'gym_check_in_id' => null,
+        'usage_date' => now()->toDateString(),
+        'used_at' => now()->addMinute(),
+        'method' => 'qr',
+        'recorded_by' => $admin->id,
+        'request_key' => 'history-standalone-session-usage',
+    ]);
+
+    [$oldStandaloneUser, $oldStandaloneMember] = createAdminPortalMember('PG-HISTORY-OLD-SESSION');
+    $oldStandaloneUser->forceFill(['name' => 'History Old Standalone Session Member'])->save();
+    $oldStandalonePackageSession = MemberPackageSession::create([
+        'member_id' => $oldStandaloneMember->id,
+        'package_id' => $standaloneSessionPackage->id,
+        'code' => 'MPS-HISTORY-OLD-STANDALONE',
+        'total_sessions' => 1,
+        'used_sessions' => 1,
+        'remaining_sessions' => 0,
+        'price' => 50000,
+        'started_at' => now()->subMonths(3)->toDateString(),
+        'expired_at' => now()->addMonth()->toDateString(),
+        'status' => 'active',
+    ]);
+
+    MemberPackageSessionUsage::create([
+        'member_package_session_id' => $oldStandalonePackageSession->id,
+        'member_id' => $oldStandaloneMember->id,
+        'gym_check_in_id' => null,
+        'usage_date' => now()->subMonths(2)->toDateString(),
+        'used_at' => now()->subMonths(2),
+        'method' => 'qr',
+        'recorded_by' => $admin->id,
+        'request_key' => 'history-old-standalone-session-usage',
+    ]);
+
+    $this->actingAs($admin)->get(route('admin.check-in'))
+        ->assertOk()
+        ->assertSee('Riwayat Check-in &amp; Sesi', false)
+        ->assertSee('Data check-in dan penggunaan sesi member dari QR kamera dan aksi admin terkonfirmasi.')
+        ->assertSee('name="date_from"', false)
+        ->assertSee('name="date_to"', false)
+        ->assertSee(now()->startOfMonth()->toDateString())
+        ->assertSee(now()->toDateString())
+        ->assertSee('Menampilkan')
+        ->assertSee('Berikutnya')
+        ->assertSee('Paket')
+        ->assertSee('Sisa Sesi')
+        ->assertSee('Aktivitas')
+        ->assertSee('Gym History Test')
+        ->assertSee('Gym History Test + Muaythai History Session 4x + Personal Trainer History Session 2x')
+        ->assertSee('Muaythai History Session 4x')
+        ->assertSee('Muaythai History Session 4x: 3 sesi')
+        ->assertSee('Personal Trainer History Session 2x: 1 sesi')
+        ->assertSee('Poundfit Standalone Session 1x')
+        ->assertSee('0 sesi')
+        ->assertSee('History Member 01')
+        ->assertSee('History Standalone Session Member')
+        ->assertSee('Check-in + Sesi')
+        ->assertSee('Check-in')
+        ->assertSee('Sesi')
+        ->assertDontSee('History Old Member')
+        ->assertDontSee('History Old Standalone Session Member')
+        ->assertDontSee('Check-in Terbaru')
+        ->assertDontSee('Pemakaian Sesi')
+        ->assertDontSee('Sesi dipakai tanpa check-in')
+        ->assertDontSee('<th scope="col" class="px-4 py-3">Sesi</th>', false)
+        ->assertDontSee('>Metode<', false)
+        ->assertDontSee('>Terbaru<', false);
+
+    $this->actingAs($admin)->get(route('admin.check-in', ['q' => 'Poundfit Standalone Session']))
+        ->assertOk()
+        ->assertSee('History Standalone Session Member')
+        ->assertSee('Poundfit Standalone Session 1x')
+        ->assertSee('0 sesi')
+        ->assertSee('Sesi')
+        ->assertDontSee('History Member 01');
+
+    $this->actingAs($admin)->get(route('admin.check-in', ['q' => 'Muaythai History Session']))
+        ->assertOk()
+        ->assertSee('History Member 01')
+        ->assertSee('Gym History Test + Muaythai History Session 4x + Personal Trainer History Session 2x')
+        ->assertSee('Muaythai History Session 4x')
+        ->assertSee('Muaythai History Session 4x: 3 sesi')
+        ->assertDontSee('History Member 02');
+
+    $this->actingAs($admin)->get(route('admin.check-in', [
+        'date_from' => now()->subMonths(3)->startOfMonth()->toDateString(),
+        'date_to' => now()->toDateString(),
+        'q' => 'History Old Member',
+    ]))
+        ->assertOk()
+        ->assertSee('History Old Member')
+        ->assertDontSee('History Member 01');
+
+    $this->actingAs($admin)->get(route('admin.check-in', [
+        'date_from' => now()->subMonths(3)->startOfMonth()->toDateString(),
+        'date_to' => now()->toDateString(),
+        'q' => 'History Old Standalone Session Member',
+    ]))
+        ->assertOk()
+        ->assertSee('History Old Standalone Session Member')
+        ->assertSee('Poundfit Standalone Session 1x')
+        ->assertSee('0 sesi')
+        ->assertSee('Sesi')
+        ->assertDontSee('History Member 01');
 });
 
 test('admin can approve and reject payments', function () {
@@ -329,6 +655,24 @@ test('admin can record cash payment and activate membership', function () {
     expect($payment->status)->toBe('paid')
         ->and($payment->amount)->toBe('300000.00')
         ->and(Membership::query()->where('member_id', $member->id)->where('status', 'active')->exists())->toBeTrue();
+
+    Payment::create([
+        'payment_code' => 'PAY-ADMIN-PENDING-COPY',
+        'member_id' => $member->id,
+        'payable_type' => Membership::class,
+        'payable_id' => Membership::query()->where('member_id', $member->id)->firstOrFail()->id,
+        'method' => 'transfer',
+        'amount' => 300000,
+        'status' => 'waiting_confirmation',
+    ]);
+
+    $this->actingAs($admin)->get(route('admin.payments'))
+        ->assertOk()
+        ->assertSee('Pembayaran Tunai')
+        ->assertSee('Catat Pembayaran Tunai')
+        ->assertSee('Tulis alasan penolakan')
+        ->assertDontSee('Pembayaran Cash')
+        ->assertDontSee('Catat Cash');
 });
 
 test('admin can update whitelisted public settings without exposing secrets', function () {
@@ -386,7 +730,8 @@ test('admin can filter reports and export csv', function () {
     ]))
         ->assertOk()
         ->assertSee('Periode operasional')
-        ->assertSee('Export CSV');
+        ->assertSee('Unduh CSV')
+        ->assertDontSee('Export CSV');
 
     $response = $this->actingAs($admin)->get(route('admin.reports.export', [
         'date_from' => now()->startOfMonth()->toDateString(),
@@ -399,7 +744,7 @@ test('admin can filter reports and export csv', function () {
     expect($response->streamedContent())->toContain('Metrik');
 });
 
-test('admin can scan active member qr for check in', function () {
+test('admin scan active member qr shows preview before confirm check in', function () {
     $admin = createAdminPortalUser();
     [, $member] = createAdminPortalMember('PG-ADMIN-CHECKIN');
 
@@ -423,6 +768,36 @@ test('admin can scan active member qr for check in', function () {
         'status' => 'active',
     ]);
 
+    $trainer = Trainer::create([
+        'name' => 'Coach Adi',
+        'specialty' => 'Muaythai',
+        'status' => 'active',
+    ]);
+
+    $sessionPackage = ServicePackage::create([
+        'name' => 'Muaythai Admin Preview 4x',
+        'slug' => 'muaythai-admin-preview-4x',
+        'package_kind' => 'session',
+        'type' => 'muaythai',
+        'price' => 400000,
+        'session_count' => 4,
+        'is_active' => true,
+    ]);
+
+    MemberPackageSession::create([
+        'member_id' => $member->id,
+        'package_id' => $sessionPackage->id,
+        'trainer_id' => $trainer->id,
+        'code' => 'MPS-ADMIN-PREVIEW-0001',
+        'total_sessions' => 4,
+        'used_sessions' => 1,
+        'remaining_sessions' => 3,
+        'price' => 400000,
+        'started_at' => now()->subDay()->toDateString(),
+        'expired_at' => now()->addMonth()->toDateString(),
+        'status' => 'active',
+    ]);
+
     $qrToken = QrToken::create([
         'tokenable_type' => Member::class,
         'tokenable_id' => $member->id,
@@ -431,8 +806,33 @@ test('admin can scan active member qr for check in', function () {
         'expires_at' => now()->addMonth(),
     ]);
 
-    $this->actingAs($admin)->post(route('admin.check-in.scan'), [
+    $this->actingAs($admin)->post(route('admin.check-in.preview'), [
         'token' => $qrToken->token,
+    ])->assertRedirect()
+        ->assertSessionHas('check_in_preview');
+
+    expect(GymCheckIn::query()->where('member_id', $member->id)->count())->toBe(0);
+
+    $preview = session('check_in_preview');
+
+    $this->actingAs($admin)->get(route('admin.check-in'))
+        ->assertOk()
+        ->assertSee('Status Check-in Hari Ini')
+        ->assertSee('Gunakan Sesi')
+        ->assertSee('Check-in + Gunakan Sesi')
+        ->assertSee('Pilih paket sesi yang ingin digunakan')
+        ->assertSee('Pilih paket sesi terlebih dahulu sebelum menggunakan sesi.')
+        ->assertSee('name="action" x-bind:value="selectedAction"', false)
+        ->assertSee("x-on:click=\"selectedAction = 'check_in_membership'\"", false)
+        ->assertSee("x-on:click=\"selectedAction = 'use_package_session'\"", false)
+        ->assertSee("x-on:click=\"selectedAction = 'check_in_and_use_session'\"", false)
+        ->assertSee('Muaythai Admin Preview 4x - 3/4 sesi - Coach Adi')
+        ->assertDontSee('Pakai Sesi')
+        ->assertDontSee('Coach Coach Adi');
+
+    $this->actingAs($admin)->post(route('admin.check-in.confirm'), [
+        'preview_key' => $preview['preview_key'],
+        'action' => 'check_in_membership',
     ])->assertRedirect();
 
     $this->assertDatabaseHas('gym_check_ins', [
@@ -441,6 +841,250 @@ test('admin can scan active member qr for check in', function () {
         'method' => 'qr',
         'scanned_by' => $admin->id,
     ]);
+});
+
+test('admin check-in preview disables session actions when member has no active package sessions', function () {
+    $admin = createAdminPortalUser();
+    [, $member] = createAdminPortalMember('PG-ADMIN-NO-SESSIONS');
+
+    $package = ServicePackage::create([
+        'name' => 'Gym No Session Test',
+        'slug' => 'gym-no-session-test',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 250000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    Membership::create([
+        'member_id' => $member->id,
+        'package_id' => $package->id,
+        'code' => 'MBR-NO-SESSIONS-0001',
+        'start_date' => now()->subDay()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 250000,
+        'status' => 'active',
+    ]);
+
+    $qrToken = QrToken::create([
+        'tokenable_type' => Member::class,
+        'tokenable_id' => $member->id,
+        'token' => str_repeat('d', 64),
+        'purpose' => 'member',
+        'expires_at' => now()->addMonth(),
+    ]);
+
+    $this->actingAs($admin)->post(route('admin.check-in.preview'), [
+        'token' => $qrToken->token,
+    ])->assertRedirect()
+        ->assertSessionHas('check_in_preview');
+
+    $this->actingAs($admin)->get(route('admin.check-in'))
+        ->assertOk()
+        ->assertSee('Tidak ada paket sesi aktif yang bisa digunakan.')
+        ->assertSee('value="use_package_session" class="admin-button-secondary w-full"', false)
+        ->assertSee('value="check_in_and_use_session" class="admin-button-secondary w-full"', false)
+        ->assertSee('disabled', false)
+        ->assertDontSee('Pakai Sesi');
+});
+
+test('admin confirm session action without selecting package session is rejected by backend guard', function () {
+    $admin = createAdminPortalUser();
+    [, $member] = createAdminPortalMember('PG-ADMIN-SESSION-GUARD');
+
+    $membershipPackage = ServicePackage::create([
+        'name' => 'Gym Session Guard Membership',
+        'slug' => 'gym-session-guard-membership',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 250000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    Membership::create([
+        'member_id' => $member->id,
+        'package_id' => $membershipPackage->id,
+        'code' => 'MBR-SESSION-GUARD-0001',
+        'start_date' => now()->subDay()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 250000,
+        'status' => 'active',
+    ]);
+
+    $qrToken = QrToken::create([
+        'tokenable_type' => Member::class,
+        'tokenable_id' => $member->id,
+        'token' => str_repeat('e', 64),
+        'purpose' => 'member',
+        'expires_at' => now()->addMonth(),
+    ]);
+
+    $this->actingAs($admin)->post(route('admin.check-in.preview'), [
+        'token' => $qrToken->token,
+    ])->assertRedirect()
+        ->assertSessionHas('check_in_preview');
+
+    $preview = session('check_in_preview');
+
+    $this->actingAs($admin)->post(route('admin.check-in.confirm'), [
+        'preview_key' => $preview['preview_key'],
+        'action' => 'use_package_session',
+    ])->assertSessionHasErrors(['member_package_session_id']);
+});
+
+test('admin can explicitly use one package session after qr preview', function () {
+    $admin = createAdminPortalUser();
+    [, $member] = createAdminPortalMember('PG-ADMIN-SESSION-USAGE');
+
+    $membershipPackage = ServicePackage::create([
+        'name' => 'Gym Session Preview Membership',
+        'slug' => 'gym-session-preview-membership',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 250000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    Membership::create([
+        'member_id' => $member->id,
+        'package_id' => $membershipPackage->id,
+        'code' => 'MBR-SESSION-USAGE-0001',
+        'start_date' => now()->subDay()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 250000,
+        'status' => 'active',
+    ]);
+
+    $sessionPackage = ServicePackage::create([
+        'name' => 'PT Session Usage Test',
+        'slug' => 'pt-session-usage-test',
+        'package_kind' => 'session',
+        'type' => 'personal_training',
+        'price' => 400000,
+        'session_count' => 4,
+        'is_active' => true,
+    ]);
+
+    $packageSession = MemberPackageSession::create([
+        'member_id' => $member->id,
+        'package_id' => $sessionPackage->id,
+        'code' => 'MPS-SESSION-USAGE-0001',
+        'total_sessions' => 4,
+        'used_sessions' => 0,
+        'remaining_sessions' => 4,
+        'price' => 400000,
+        'started_at' => now()->subDay()->toDateString(),
+        'expired_at' => now()->addMonth()->toDateString(),
+        'status' => 'active',
+    ]);
+
+    $qrToken = QrToken::create([
+        'tokenable_type' => Member::class,
+        'tokenable_id' => $member->id,
+        'token' => str_repeat('b', 64),
+        'purpose' => 'member',
+        'expires_at' => now()->addMonth(),
+    ]);
+
+    $this->actingAs($admin)->post(route('admin.check-in.preview'), [
+        'token' => $qrToken->token,
+    ])->assertRedirect()
+        ->assertSessionHas('check_in_preview');
+
+    $preview = session('check_in_preview');
+
+    $this->actingAs($admin)->post(route('admin.check-in.confirm'), [
+        'preview_key' => $preview['preview_key'],
+        'action' => 'use_package_session',
+        'member_package_session_id' => $packageSession->id,
+    ])->assertRedirect();
+
+    expect($packageSession->refresh())
+        ->used_sessions->toBe(1)
+        ->remaining_sessions->toBe(3)
+        ->and(MemberPackageSessionUsage::query()->where('member_package_session_id', $packageSession->id)->count())->toBe(1)
+        ->and(GymCheckIn::query()->where('member_id', $member->id)->count())->toBe(0);
+});
+
+test('admin can check in and use one package session after qr preview', function () {
+    $admin = createAdminPortalUser();
+    [, $member] = createAdminPortalMember('PG-ADMIN-CHECKIN-SESSION');
+
+    $membershipPackage = ServicePackage::create([
+        'name' => 'Gym Check In Session Membership',
+        'slug' => 'gym-check-in-session-membership',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 250000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    Membership::create([
+        'member_id' => $member->id,
+        'package_id' => $membershipPackage->id,
+        'code' => 'MBR-CHECKIN-SESSION-0001',
+        'start_date' => now()->subDay()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 250000,
+        'status' => 'active',
+    ]);
+
+    $sessionPackage = ServicePackage::create([
+        'name' => 'Muaythai Check In Session Test',
+        'slug' => 'muaythai-check-in-session-test',
+        'package_kind' => 'session',
+        'type' => 'muaythai',
+        'price' => 400000,
+        'session_count' => 4,
+        'is_active' => true,
+    ]);
+
+    $packageSession = MemberPackageSession::create([
+        'member_id' => $member->id,
+        'package_id' => $sessionPackage->id,
+        'code' => 'MPS-CHECKIN-SESSION-0001',
+        'total_sessions' => 4,
+        'used_sessions' => 0,
+        'remaining_sessions' => 4,
+        'price' => 400000,
+        'started_at' => now()->subDay()->toDateString(),
+        'expired_at' => now()->addMonth()->toDateString(),
+        'status' => 'active',
+    ]);
+
+    $qrToken = QrToken::create([
+        'tokenable_type' => Member::class,
+        'tokenable_id' => $member->id,
+        'token' => str_repeat('c', 64),
+        'purpose' => 'member',
+        'expires_at' => now()->addMonth(),
+    ]);
+
+    $this->actingAs($admin)->post(route('admin.check-in.preview'), [
+        'token' => $qrToken->token,
+    ])->assertRedirect()
+        ->assertSessionHas('check_in_preview');
+
+    $preview = session('check_in_preview');
+
+    $this->actingAs($admin)->post(route('admin.check-in.confirm'), [
+        'preview_key' => $preview['preview_key'],
+        'action' => 'check_in_and_use_session',
+        'member_package_session_id' => $packageSession->id,
+    ])->assertRedirect();
+
+    $checkIn = GymCheckIn::query()->where('member_id', $member->id)->firstOrFail();
+    $usage = MemberPackageSessionUsage::query()->where('member_package_session_id', $packageSession->id)->firstOrFail();
+
+    expect($packageSession->refresh())
+        ->used_sessions->toBe(1)
+        ->remaining_sessions->toBe(3)
+        ->and($checkIn->method)->toBe('qr')
+        ->and($usage->gym_check_in_id)->toBe($checkIn->id);
 });
 
 test('admin can toggle product active status', function () {

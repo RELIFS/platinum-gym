@@ -125,8 +125,57 @@ test('admin recent payments and members use semantic status pill classes', funct
 
     $this->actingAs($admin)->get('/admin')
         ->assertOk()
+        ->assertSee('Aktivitas terbaru')
+        ->assertSee('Terbaru')
+        ->assertSee('Lihat data terbaru tanpa perlu membuka setiap halaman.')
         ->assertSee('admin-status-warning', false)
         ->assertSee('admin-status-success', false);
+});
+
+test('admin dashboard removes redundant quick menu and uses polished surface tokens', function () {
+    $admin = createAdminImprovementsUser();
+
+    $this->actingAs($admin)->get('/admin')
+        ->assertOk()
+        ->assertSee('Ringkasan admin')
+        ->assertSee('Akses cepat')
+        ->assertSee('Buka laporan')
+        ->assertSee('Tren aktivitas')
+        ->assertSee('aria-label="Tren aktivitas 14 hari terakhir"', false)
+        ->assertSee('aria-label="Perlu dicek hari ini"', false)
+        ->assertSee('aria-label="Ringkasan hari ini"', false)
+        ->assertSee('Belum ada tren operasional pada periode ini.')
+        ->assertDontSee('id="admin-operational-trend-chart"', false)
+        ->assertSee('Aktivitas terbaru')
+        ->assertSee('admin-metric-card', false)
+        ->assertSee('admin-action-card', false)
+        ->assertDontSee('Booking Hari Ini')
+        ->assertDontSee('Check-in Hari Ini')
+        ->assertDontSee('Menu kerja');
+});
+
+test('admin layout and data tables expose color polish utility classes', function () {
+    $admin = createAdminImprovementsUser();
+
+    Product::create([
+        'name' => 'Produk Color Polish',
+        'slug' => 'produk-color-polish',
+        'price' => 95000,
+        'stock' => 4,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($admin)->get('/admin/produk')
+        ->assertOk()
+        ->assertSee('admin-mobile-menu-button', false)
+        ->assertSee('aria-controls="admin-mobile-navigation"', false)
+        ->assertDontSee('bg-zinc-950 text-white shadow-[0_12px_28px_rgba(24,24,27,0.22)]', false)
+        ->assertSee('admin-nav-link-active', false)
+        ->assertSee('admin-table-head', false)
+        ->assertSee('admin-table-row', false)
+        ->assertSee('admin-table-cell', false)
+        ->assertSee('admin-status-neutral', false)
+        ->assertSee('Produk Color Polish');
 });
 
 test('admin booking widget renders status as semantic pill', function () {
@@ -219,7 +268,24 @@ test('admin reports export link reflects filtered period via alpine binding', fu
     $this->actingAs($admin)->get('/admin/laporan?date_from=2026-01-01&date_to=2026-01-31')
         ->assertOk()
         ->assertSee('encodeURIComponent(dateFrom)', false)
-        ->assertSee('Export CSV');
+        ->assertSee('Unduh CSV')
+        ->assertDontSee('Export CSV');
+});
+
+test('admin audit log uses user friendly wording', function () {
+    $admin = createAdminImprovementsUser();
+
+    $this->actingAs($admin)->get('/admin/audit-log')
+        ->assertOk()
+        ->assertSee('Log Aktivitas Terbaru')
+        ->assertSee('Jejak perubahan penting yang tercatat di sistem.')
+        ->assertSee('Jenis Perubahan')
+        ->assertSee('Semua aktivitas')
+        ->assertSee('Admin')
+        ->assertDontSee('Spatie Activitylog')
+        ->assertDontSee('Activity Log Terbaru')
+        ->assertDontSee('Semua event')
+        ->assertDontSee('Semua user');
 });
 
 test('admin pending payment badge is visible with accessible label', function () {
@@ -235,7 +301,12 @@ test('admin settings save form requires confirmation', function () {
 
     $this->actingAs($admin)->get('/admin/pengaturan')
         ->assertOk()
-        ->assertSee('Simpan perubahan pengaturan website', false);
+        ->assertSee('Simpan perubahan pengaturan website', false)
+        ->assertSee('URL Embed Google Maps')
+        ->assertSee('Awalan Nomor Invoice')
+        ->assertSee('Catatan Footer Invoice')
+        ->assertDontSee('URL Embed Maps')
+        ->assertDontSee('Prefix Invoice');
 });
 
 test('admin notifications page renders semantic success status pill', function () {
@@ -280,23 +351,44 @@ test('admin profile edit dispatches to admin account security page using admin l
         ->assertOk()
         ->assertSee('Keamanan Akun Admin')
         ->assertSee('Informasi Akun')
-        ->assertSee('Ubah Password')
+        ->assertSee('Ubah Kata Sandi')
+        ->assertSee('Kata Sandi Saat Ini')
+        ->assertSee('Simpan Kata Sandi')
+        ->assertDontSee('Ubah Password')
         ->assertSee('admin-card', false)
         ->assertSee('admin-form-input', false)
         ->assertSee('Kembali ke Profil Admin');
 });
 
-test('admin check-in page exposes camera scan region and hidden manual token fallback', function () {
+test('admin check-in page exposes camera scan region without manual check in fallback', function () {
     $admin = createAdminImprovementsUser();
 
     $this->actingAs($admin)->get('/admin/check-in')
         ->assertOk()
-        ->assertSee('Check-in member via kamera')
+        ->assertSee('Check-in member dengan kamera')
+        ->assertSee('Status Check-in Hari Ini')
+        ->assertSee('Pindai QR')
+        ->assertSee('Cek Pratinjau')
+        ->assertSee('Riwayat Check-in &amp; Sesi', false)
+        ->assertSee('Cari member, kode, paket, aktivitas...')
+        ->assertSee('name="date_from"', false)
+        ->assertSee('name="date_to"', false)
+        ->assertSee('admin-toolbar', false)
+        ->assertSee('Belum ada riwayat check-in pada periode ini.')
+        ->assertSee('Pantau check-in gym harian dan proses masuk member melalui QR kamera.')
         ->assertSee('id="admin-qr-camera-region"', false)
         ->assertSee('id="admin-qr-camera-start"', false)
         ->assertSee('id="admin-qr-scan-form"', false)
         ->assertSee('id="admin-qr-camera-secure-banner"', false)
         ->assertSee('Mulai Kamera')
-        ->assertSee('Input Token Manual')
-        ->assertSee('Check-in manual');
+        ->assertDontSee('Input Token Manual')
+        ->assertDontSee('input manual')
+        ->assertDontSee('Check-in manual')
+        ->assertDontSee('Check-in Terbaru')
+        ->assertDontSee('>Terbaru<', false)
+        ->assertDontSee('Belum ada check-in hari ini.')
+        ->assertDontSee('Member Aktif')
+        ->assertDontSee('Check-in Manual');
+
+    $this->actingAs($admin)->post('/admin/check-in/manual')->assertNotFound();
 });
