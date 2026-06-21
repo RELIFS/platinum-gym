@@ -55,11 +55,11 @@
                     </div>
                 </div>
 
-                <div class="mt-8 rounded-2xl border border-gold-500/25 bg-zinc-950 p-6 text-white shadow-[0_24px_70px_rgba(254,172,24,0.14)] dark:bg-white/[0.06]" role="status" aria-live="polite" aria-atomic="true">
-                    <p class="text-sm font-bold uppercase tracking-[0.18em] text-gold-400">Hasil BMI</p>
+                <div class="mt-8 rounded-2xl border border-gold-500/30 bg-gradient-to-br from-white via-zinc-50 to-gold-500/10 p-6 text-zinc-950 shadow-[0_24px_70px_rgba(24,24,27,0.08)] dark:border-gold-500/25 dark:bg-none dark:bg-white/[0.06] dark:text-white dark:shadow-[0_24px_70px_rgba(254,172,24,0.14)]" role="status" aria-live="polite" aria-atomic="true">
+                    <p class="text-sm font-bold uppercase tracking-[0.18em] text-gold-700 dark:text-gold-400">Hasil BMI</p>
                     <p class="mt-3 text-6xl font-black text-gold-500" x-text="rounded">-</p>
                     <p class="mt-3 text-2xl font-black" x-text="category">Masukkan data valid</p>
-                    <p class="mt-3 text-sm leading-7 text-zinc-300" x-text="recommendation">Berat 20-300 kg dan tinggi 80-250 cm.</p>
+                    <p class="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300" x-text="recommendation">Berat 20-300 kg dan tinggi 80-250 cm.</p>
                 </div>
 
                 <p class="mt-5 text-xs leading-6 text-zinc-500 dark:text-zinc-400">

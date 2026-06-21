@@ -8,7 +8,7 @@
     <div data-chatbot-overlay hidden class="fixed inset-0 z-40 bg-zinc-950/60 backdrop-blur-sm sm:hidden" aria-hidden="true"></div>
 
     <div class="fixed inset-x-3 bottom-3 z-50 flex flex-col items-end sm:bottom-6 sm:left-auto sm:right-6 sm:w-fit sm:max-w-[calc(100vw-3rem)]" style="padding-bottom: env(safe-area-inset-bottom);">
-        <section data-chatbot-panel hidden tabindex="-1" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="chatbot-title" class="mx-auto flex h-[min(620px,calc(100dvh-1.5rem))] w-full flex-col overflow-hidden overscroll-contain rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 sm:h-[min(560px,calc(100dvh-6rem))] sm:w-[25rem]">
+        <section data-chatbot-panel hidden tabindex="-1" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="chatbot-title" class="mx-auto h-[min(620px,calc(100dvh-1.5rem))] w-full flex-col overflow-hidden overscroll-contain rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 sm:h-[min(560px,calc(100dvh-6rem))] sm:w-[25rem]">
             <header class="flex shrink-0 items-center justify-between gap-3 bg-gold-500 px-4 py-3 text-zinc-950">
                 <div class="flex min-w-0 items-center gap-3">
                     <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-950/10" aria-hidden="true">

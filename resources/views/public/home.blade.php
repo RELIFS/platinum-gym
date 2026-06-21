@@ -163,16 +163,18 @@
     @endif
     <section class="public-section public-section-muted">
         <div class="public-container">
-            <div class="overflow-hidden rounded-[2rem] bg-zinc-950 p-6 text-white shadow-2xl sm:p-10 lg:p-12">
-                <div class="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
-                    <div>
-                        <p class="public-eyebrow">Mulai Hari Ini</p>
-                        <h2 class="public-heading-balance mt-3 text-3xl font-black sm:text-4xl">Siap mulai latihan di Platinum Gym Padang?</h2>
-                        <p class="mt-4 max-w-2xl text-sm leading-7 text-zinc-300">Daftar akun untuk masuk ke dashboard member, melihat layanan, dan mengikuti proses membership secara lebih rapi.</p>
-                    </div>
-                    <div class="flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
-                        <a href="{{ route('register') }}" class="public-button-primary">Daftar Member</a>
-                        <a href="{{ route('public.location') }}" class="public-button-secondary border-white/10 bg-white/5 text-white hover:text-gold-400">Lihat Lokasi</a>
+            <div class="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white/95 p-4 shadow-[0_24px_80px_rgba(24,24,27,0.10)] dark:border-white/10 dark:bg-white/[0.045] sm:p-5">
+                <div class="rounded-[1.5rem] border border-gold-500/25 bg-[linear-gradient(135deg,rgba(254,172,24,0.14),rgba(255,255,255,0.92)_42%,rgba(244,244,245,0.96))] p-6 dark:border-gold-400/20 dark:bg-[linear-gradient(135deg,rgba(254,172,24,0.14),rgba(9,9,11,0.92)_42%,rgba(24,24,27,0.96))] sm:p-8 lg:p-10">
+                    <div class="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+                        <div>
+                            <p class="public-eyebrow">Mulai Hari Ini</p>
+                            <h2 class="public-heading-balance mt-3 text-3xl font-black text-zinc-950 dark:text-white sm:text-4xl">Siap mulai latihan di Platinum Gym Padang?</h2>
+                            <p class="mt-4 max-w-2xl text-sm leading-7 text-zinc-600 dark:text-zinc-300">Daftar akun untuk masuk ke dashboard member, melihat layanan, dan mengikuti proses membership secara lebih rapi.</p>
+                        </div>
+                        <div class="flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
+                            <a href="{{ route('register') }}" class="public-button-primary">Daftar Member</a>
+                            <a href="{{ route('public.location') }}" class="public-button-secondary">Lihat Lokasi</a>
+                        </div>
                     </div>
                 </div>
             </div>

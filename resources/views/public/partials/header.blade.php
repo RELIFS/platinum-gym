@@ -45,7 +45,7 @@
 
             <div class="flex items-center gap-2 xl:hidden">
                 <x-theme-toggle />
-                <button type="button" class="inline-flex h-11 w-11 touch-manipulation items-center justify-center rounded-full bg-zinc-950 text-white shadow-[0_12px_28px_rgba(24,24,27,0.24)] transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:bg-gold-500 dark:text-zinc-950 dark:focus-visible:ring-offset-zinc-950" x-on:click="open = !open" x-bind:aria-expanded="open.toString()" aria-controls="mobile-navigation" x-bind:aria-label="open ? 'Tutup navigasi' : 'Buka navigasi'">
+                <button type="button" class="public-mobile-menu-button" x-on:click="open = !open" x-bind:aria-expanded="open.toString()" aria-controls="mobile-navigation" x-bind:aria-label="open ? 'Tutup navigasi' : 'Buka navigasi'">
                     <svg x-show="!open" class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                         <path d="M3 5.5H17M3 10H17M3 14.5H17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
                     </svg>
