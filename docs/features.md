@@ -86,6 +86,9 @@ Fitur public website digunakan sebagai company profile digital untuk calon membe
 - Mobile navigation memiliki scroll containment untuk device pendek.
 - Dynamic content pada paket, kelas, produk, galeri, testimoni, kontak, dan chatbot diberi wrapping guard agar tidak overflow.
 - Home hero mobile memakai visual gym/strength umum sebagai visual utama; Muaythai tetap menjadi visual pendukung pada collage desktop.
+- Halaman layanan mengurutkan paket dari query layer agar konsisten: membership dimulai dari Gym/Senam umum, lalu Gym/Senam mahasiswa; Muaythai dimulai dari 1x, Umum 4x/8x, lalu Mahasiswa 4x/8x; setelah itu Personal Trainer dan Session.
+- Halaman kelas dikelompokkan menjadi section Aerobic, Zumba, Muaythai, dan Poundfit dengan filter jenis yang tetap kompatibel dengan data jadwal lama.
+- `page-hero` public dipoles sebagai partial reusable compact-premium dengan ukuran teks responsif, dekorasi ringan, dan animasi masuk CSS-only yang menghormati reduced motion.
 - Halaman produk memakai CTA umum `Lihat Lokasi`; tidak ada CTA per produk, cart, checkout, pembayaran produk, invoice produk, atau transaksi produk online.
 - Halaman produk menampilkan foto produk WebP jika tersedia dan memakai fallback visual untuk produk tanpa foto.
 - Ringkasan audit responsive sudah dikonsolidasikan pada catatan UX fitur public website.
@@ -281,8 +284,9 @@ Gymmi membantu pengunjung dan member menemukan informasi layanan lewat Gemini AP
 - Public dan member memakai floating chatbot Gemini-backed melalui endpoint `POST /gymmi/chat`, dengan fallback intention-based lokal.
 - Message log memakai `role="log"` dan `aria-live="polite"`.
 - Pesan user tampil di kanan tanpa avatar visual `AN`.
-- FAQ quick reply tampil sebagai chip kanan yang ringkas.
-- Pesan bot tampil di kiri dengan initial `GY` yang tidak ikut dibaca screen reader.
+- FAQ quick reply tampil sebagai rail horizontal yang bisa discroll, keyboard-focusable, dan tidak membuat halaman overflow.
+- Pesan bot tampil di kiri dengan avatar gambar Gymmi light/dark; fallback initial `GY` tetap tersedia jika asset tidak termuat.
+- Warna Gymmi public dan member mengikuti tema light/dark aktif untuk panel, input, bubble, quick reply, typing state, dan action link.
 - Saat Gymmi mengetik, send button dan quick replies dinonaktifkan agar pesan tidak dobel.
 - Prompt Gymmi memakai konteks aman dari data publik dan data member sendiri jika login. Conversation log disimpan ke `ai_conversations`/`ai_messages`, route memakai throttle `gymmi`, dan provider failure tidak merusak UI.
 

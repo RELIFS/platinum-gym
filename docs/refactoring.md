@@ -348,6 +348,7 @@ Perubahan utama:
 ```text
 resources/views/public/partials/header.blade.php
 resources/views/public/partials/footer.blade.php
+resources/views/public/partials/page-hero.blade.php
 resources/views/public/home.blade.php
 resources/views/public/location.blade.php
 resources/views/public/partials/chatbot.blade.php
@@ -363,7 +364,10 @@ resources/js/public-chatbot.js
 - Dynamic content diberi wrapping guard untuk mencegah horizontal overflow.
 - Chatbot memakai focus return, `aria-live`, dan scroll containment ringan.
 - Home hero mobile dibuat compact dengan visual gym/strength umum sebagai visual utama; Muaythai tetap menjadi visual pendukung di desktop collage.
+- `page-hero` public dipusatkan sebagai partial compact-premium dengan token CSS reusable, animasi masuk halus, dan guard `prefers-reduced-motion`.
 - Image public statis diberi dimensi eksplisit, dan hero image above-the-fold memakai `fetchpriority="high"`.
+- Urutan paket layanan dijaga di `PublicServicesQuery`, bukan Blade, sehingga ranking membership, Muaythai, Personal Trainer, dan Session tetap stabil untuk data seed maupun database production.
+- `PublicClassScheduleQuery` mengelompokkan jadwal ke section Aerobic, Zumba, Muaythai, dan Poundfit dengan resolver yang tetap menerima data lama bertipe `senam`.
 
 ### Dampak
 
@@ -441,7 +445,9 @@ Controller tetap tipis, query data terpusat, Blade fokus pada presentasi, dan ak
 
 ### Perubahan
 
-Chatbot public dan member diberi identitas produk `Gymmi` melalui ViewModel, Blade shell, dan renderer pusat di `resources/js/public-chatbot.js`. Initial bot berubah ke `GY`, user bubble kanan tidak lagi memakai avatar `AN`, FAQ quick reply menjadi chip kanan, action link bot wrap aman, dan export JS lama tetap dipertahankan untuk kompatibilitas.
+Chatbot public dan member diberi identitas produk `Gymmi` melalui ViewModel, Blade shell, dan renderer pusat di `resources/js/public-chatbot.js`. Initial bot berubah ke `GY`, user bubble kanan tidak lagi memakai avatar `AN`, FAQ quick reply menjadi rail horizontal, action link bot wrap aman, dan export JS lama tetap dipertahankan untuk kompatibilitas.
+
+Avatar Gymmi memakai asset gambar light/dark dari `public/images/gymmi/` dengan fallback initial jika gambar gagal termuat. Theme public disamakan dengan member: light mode memakai panel terang, dark mode memakai panel gelap, sementara bubble, typing state, quick reply, dan action link mengikuti kontras tema aktif.
 
 Tailwind scan mencakup `resources/js/**/*.js` karena beberapa class bubble Gymmi dibuat dari JavaScript.
 

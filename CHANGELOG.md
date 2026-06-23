@@ -22,6 +22,12 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 
 ### Changed
 
+- Mengurutkan paket layanan publik dengan prioritas baru: Gym/Senam umum lebih dulu, paket mahasiswa setelahnya, Muaythai 1x lalu Muaythai Umum/Mahasiswa per jumlah sesi, diikuti Personal Trainer dan Session.
+- Memoles `page-hero` public menjadi compact-premium dengan ukuran teks lebih stabil dan animasi masuk CSS-only yang menghormati reduced motion.
+- Menyamakan warna Gymmi public dengan pola light/dark Gymmi member agar panel, input, quick reply, bubble, dan action link tidak lagi terkunci tema gelap.
+- Mengubah halaman `/kelas` menjadi section Aerobic, Zumba, Muaythai, dan Poundfit dengan filter jenis yang tetap aman serta kompatibel dengan data kelas lama bertipe `senam`.
+- Mengubah quick replies Gymmi public/member menjadi rail horizontal yang bisa discroll, keyboard-focusable, dan tidak membuat overflow halaman.
+- Mengganti avatar bubble Gymmi dari teks `GY` menjadi asset gambar light/dark dari sumber data proyek, dengan fallback initial tetap tersedia.
 - Memoles caption dan error validasi login/register agar memakai Bahasa Indonesia production yang aman, ramah user, dan tidak membocorkan detail akun.
 - Mengubah lifecycle QR member menjadi stabil per member; pembelian membership baru tidak lagi mengganti QR yang sudah aktif.
 - Merapikan tampilan dan microcopy portal admin agar lebih ringkas, profesional, dan tidak terlalu berulang.
@@ -148,7 +154,7 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Menambahkan `PublicImagePerformanceTest` untuk memastikan asset public tetap berada dalam budget performa.
 - Menambahkan coverage test untuk scope produk katalog/stok/lokasi dan budget performa gambar produk.
 - Menambahkan workflow GitHub Actions CI lokal untuk Composer, Pint, Vite build, dan Pest test.
-- Menambahkan screenshot evidence public home desktop dan katalog produk mobile pada workspace konteks private.
+- Menambahkan screenshot evidence public home desktop dan katalog produk mobile untuk pendukung QA visual.
 - Menambahkan member portal operasional untuk edit profil, checkout membership/paket sesi, booking/cancel kelas, transaksi/detail/pay Midtrans, QR visual, notifikasi read/read-all, dan Gymmi global.
 - Menambahkan admin portal operasional berbasis Blade/Tailwind untuk dashboard, check-in, booking, notifikasi, anggota, paket, kelas, pembayaran, produk, galeri, testimoni, promo, trainer, laporan, audit log, pengaturan, dan profil admin.
 - Menambahkan admin workbench dengan status strip, KPI ringkas, quick links, grouped sidebar, payment approve/reject, booking confirm/cancel, QR check-in, toggle status/tayang, masked settings, dan tabel data real dengan search/filter/mobile cards.
