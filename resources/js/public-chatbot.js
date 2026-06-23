@@ -384,9 +384,7 @@ function renderQuickReplies(container, replies, variant = 'public', onClick) {
         const button = document.createElement('button');
         button.type = 'button';
         button.dataset.chatbotQuickReply = 'true';
-        button.className = variant === 'member'
-            ? 'inline-flex min-h-10 min-w-0 max-w-full touch-manipulation items-center whitespace-normal break-words rounded-full border border-zinc-200 bg-zinc-50 px-3 py-2 text-left text-xs font-bold leading-4 text-zinc-700 transition hover:border-gold-500/60 hover:text-gold-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/30 disabled:cursor-not-allowed disabled:opacity-45 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:text-gold-400'
-            : 'inline-flex min-h-10 min-w-0 max-w-full touch-manipulation items-center whitespace-normal break-words rounded-full border border-zinc-700 bg-zinc-900 px-3 py-2 text-left text-xs font-bold leading-4 text-zinc-300 transition hover:border-gold-500/60 hover:text-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/30 disabled:cursor-not-allowed disabled:opacity-45';
+        button.className = 'inline-flex min-h-10 shrink-0 snap-start touch-manipulation items-center whitespace-nowrap rounded-full border border-zinc-200 bg-zinc-50 px-3 py-2 text-left text-xs font-bold leading-4 text-zinc-700 transition hover:border-gold-500/60 hover:text-gold-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/30 disabled:cursor-not-allowed disabled:opacity-45 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:text-gold-400';
         button.textContent = reply;
         button.addEventListener('click', () => {
             if (button.disabled) {
@@ -420,9 +418,7 @@ function renderMessage(container, from, reply, variant = 'public', config = {}, 
     if (reply.actionUrl && reply.actionLabel) {
         const action = document.createElement('a');
         action.href = reply.actionUrl;
-        action.className = variant === 'member'
-            ? 'mt-2 inline-flex min-h-10 max-w-full items-center justify-center whitespace-normal break-words rounded-lg border border-gold-500/35 bg-gold-500/10 px-3 py-2 text-center text-xs font-black leading-5 text-gold-700 transition hover:border-gold-500 hover:text-gold-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:text-gold-400 dark:hover:text-gold-400'
-            : 'mt-2 inline-flex min-h-10 max-w-full items-center justify-center whitespace-normal break-words rounded-lg border border-gold-500/40 px-3 py-2 text-center text-xs font-black leading-5 text-gold-400 transition hover:border-gold-500 hover:text-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40';
+        action.className = 'mt-2 inline-flex min-h-10 max-w-full items-center justify-center whitespace-normal break-words rounded-lg border border-gold-500/35 bg-gold-500/10 px-3 py-2 text-center text-xs font-black leading-5 text-gold-700 transition hover:border-gold-500 hover:text-gold-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:text-gold-400 dark:hover:text-gold-400';
         action.textContent = reply.actionLabel;
         bubbleWrap.append(action);
     }
@@ -430,13 +426,7 @@ function renderMessage(container, from, reply, variant = 'public', config = {}, 
     if (isUser) {
         item.append(bubbleWrap);
     } else {
-        const avatar = document.createElement('span');
-        avatar.className = variant === 'member'
-            ? 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-500/15 text-xs font-black text-gold-700 dark:bg-zinc-800 dark:text-zinc-200'
-            : 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-xs font-black text-zinc-200';
-        avatar.textContent = config.botInitials ?? 'GY';
-        avatar.setAttribute('aria-hidden', 'true');
-        item.append(avatar, bubbleWrap);
+        item.append(renderBotAvatar(config), bubbleWrap);
     }
 
     container.append(item);
@@ -447,17 +437,8 @@ function renderTyping(container, config = {}, variant = 'public') {
     item.className = 'flex min-w-0 items-start gap-2';
     item.setAttribute('aria-label', config.typingLabel ?? 'Gymmi sedang mengetik');
 
-    const avatar = document.createElement('span');
-    avatar.className = variant === 'member'
-        ? 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-500/15 text-xs font-black text-gold-700 dark:bg-zinc-800 dark:text-zinc-200'
-        : 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-xs font-black text-zinc-200';
-    avatar.textContent = config.botInitials ?? 'GY';
-    avatar.setAttribute('aria-hidden', 'true');
-
     const bubble = document.createElement('div');
-    bubble.className = variant === 'member'
-        ? 'flex items-center gap-1 rounded-2xl rounded-tl-sm border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-transparent dark:bg-zinc-800'
-        : 'flex items-center gap-1 rounded-2xl rounded-tl-sm bg-zinc-800 px-4 py-3';
+    bubble.className = 'flex items-center gap-1 rounded-2xl rounded-tl-sm border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-transparent dark:bg-zinc-800';
     bubble.setAttribute('role', 'status');
     bubble.setAttribute('aria-label', config.typingLabel ?? 'Gymmi sedang mengetik');
 
@@ -469,10 +450,56 @@ function renderTyping(container, config = {}, variant = 'public') {
         bubble.append(dot);
     });
 
-    item.append(avatar, bubble);
+    item.append(renderBotAvatar(config), bubble);
     container.append(item);
 
     return item;
+}
+
+function renderBotAvatar(config = {}) {
+    const avatar = document.createElement('span');
+    avatar.className = 'gymmi-avatar';
+    avatar.setAttribute('aria-hidden', 'true');
+
+    const lightUrl = config.avatarLightUrl ?? null;
+    const darkUrl = config.avatarDarkUrl ?? lightUrl;
+
+    if (!lightUrl && !darkUrl) {
+        avatar.textContent = config.botInitials ?? 'GY';
+
+        return avatar;
+    }
+
+    const showFallback = () => {
+        if (!avatar.querySelector('img')) {
+            avatar.textContent = config.botInitials ?? 'GY';
+        }
+    };
+
+    if (lightUrl) {
+        avatar.append(createAvatarImage(lightUrl, darkUrl && darkUrl !== lightUrl ? 'block h-full w-full object-cover dark:hidden' : 'h-full w-full object-cover', showFallback));
+    }
+
+    if (darkUrl && darkUrl !== lightUrl) {
+        avatar.append(createAvatarImage(darkUrl, 'hidden h-full w-full object-cover dark:block', showFallback));
+    }
+
+    return avatar;
+}
+
+function createAvatarImage(src, className, onError) {
+    const image = document.createElement('img');
+    image.src = src;
+    image.alt = '';
+    image.loading = 'lazy';
+    image.decoding = 'async';
+    image.className = className;
+    image.addEventListener('error', () => {
+        image.remove();
+        onError();
+    });
+
+    return image;
 }
 
 function messageBubbleClass(isUser, quickReply, variant = 'public') {
@@ -484,11 +511,7 @@ function messageBubbleClass(isUser, quickReply, variant = 'public') {
         return 'max-w-full break-words rounded-2xl rounded-tr-sm bg-gold-500 px-3.5 py-2.5 text-sm font-semibold leading-6 text-zinc-950 shadow-sm';
     }
 
-    if (variant === 'member') {
-        return 'max-w-full break-words rounded-2xl rounded-tl-sm border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm leading-6 text-zinc-700 dark:border-transparent dark:bg-zinc-800 dark:text-zinc-200';
-    }
-
-    return 'max-w-full break-words rounded-2xl rounded-tl-sm bg-zinc-800 px-3.5 py-2.5 text-sm leading-6 text-zinc-200';
+    return 'max-w-full break-words rounded-2xl rounded-tl-sm border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm leading-6 text-zinc-700 dark:border-transparent dark:bg-zinc-800 dark:text-zinc-200';
 }
 
 function syncSendState(input, send, typing = false) {

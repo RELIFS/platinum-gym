@@ -13,6 +13,8 @@ class MemberChatbotViewModel
         return [
             'name' => 'Gymmi',
             'botInitials' => 'GY',
+            'avatarLightUrl' => asset('images/gymmi/avatar-gymmi-light.png'),
+            'avatarDarkUrl' => asset('images/gymmi/avatar-gymmi-dark.png'),
             'typingLabel' => 'Gymmi sedang mengetik',
             'context' => 'member',
             'endpoint' => route('gymmi.chat'),

@@ -36,7 +36,7 @@
             <div data-chatbot-messages-end></div>
 
             <div class="shrink-0 border-t border-zinc-200 px-3 py-3 dark:border-zinc-800">
-                <div data-chatbot-quick-replies class="mb-3 flex flex-wrap gap-2 pb-1"></div>
+                <div data-chatbot-quick-replies class="gymmi-quick-reply-rail mb-3" aria-label="Pertanyaan cepat Gymmi" tabindex="0"></div>
                 <div class="flex gap-2">
                     <input type="text" name="gymmi_member_message" data-chatbot-input class="member-form-input h-11 min-w-0 flex-1 text-base" placeholder="Ketik pertanyaan..." aria-label="Ketik pertanyaan untuk Gymmi" autocomplete="off" spellcheck="true">
                     <button type="button" data-chatbot-send class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full bg-gold-500 text-zinc-950 transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Kirim pesan Gymmi" disabled>
