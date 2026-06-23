@@ -1,37 +1,39 @@
 <?php
 
-namespace App\Http\Controllers\Member;
+namespace App\Http\Controllers\Admin;
 
+use App\Features\Admin\Queries\AdminDashboardQuery;
 use App\Features\Invoices\Actions\RenderInvoicePdfAction;
 use App\Features\Invoices\Queries\InvoiceDocumentQuery;
-use App\Features\MemberPortal\Queries\MemberDashboardQuery;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class MemberInvoiceController extends Controller
+class AdminInvoiceController extends Controller
 {
-    public function show(Request $request, Invoice $invoice, InvoiceDocumentQuery $invoiceQuery, MemberDashboardQuery $memberQuery): View
+    public function show(Request $request, Invoice $invoice, InvoiceDocumentQuery $invoiceQuery, AdminDashboardQuery $adminQuery): View
     {
         $this->authorize('view', $invoice);
 
         return view('invoices.show', [
-            'layout' => 'member',
-            'portal' => $memberQuery->forUser($request->user()),
+            'layout' => 'admin',
+            'portal' => $adminQuery->forUser($request->user(), [], 'payments'),
+            'navigation' => $adminQuery->navigation(),
             'document' => $this->document($invoiceQuery, $invoice),
             'title' => 'Invoice Transaksi',
         ]);
     }
 
-    public function receipt(Request $request, Invoice $invoice, InvoiceDocumentQuery $invoiceQuery, MemberDashboardQuery $memberQuery): View
+    public function receipt(Request $request, Invoice $invoice, InvoiceDocumentQuery $invoiceQuery, AdminDashboardQuery $adminQuery): View
     {
         $this->authorize('view', $invoice);
 
         return view('invoices.receipt', [
-            'layout' => 'member',
-            'portal' => $memberQuery->forUser($request->user()),
+            'layout' => 'admin',
+            'portal' => $adminQuery->forUser($request->user(), [], 'payments'),
+            'navigation' => $adminQuery->navigation(),
             'document' => $this->document($invoiceQuery, $invoice),
             'title' => 'Struk Transaksi',
         ]);
@@ -49,12 +51,12 @@ class MemberInvoiceController extends Controller
     /** @return array<string, mixed> */
     private function document(InvoiceDocumentQuery $invoiceQuery, Invoice $invoice): array
     {
-        return array_replace($invoiceQuery->forInvoice($invoice, 'Member'), [
+        return array_replace($invoiceQuery->forInvoice($invoice, 'Admin'), [
             'actions' => [
-                'show' => route('member.invoices.show', $invoice),
-                'receipt' => route('member.invoices.receipt', $invoice),
-                'download' => route('member.invoices.download', $invoice),
-                'receipt_download' => route('member.invoices.download', ['invoice' => $invoice, 'type' => 'receipt']),
+                'show' => route('admin.invoices.show', $invoice),
+                'receipt' => route('admin.invoices.receipt', $invoice),
+                'download' => route('admin.invoices.download', $invoice),
+                'receipt_download' => route('admin.invoices.download', ['invoice' => $invoice, 'type' => 'receipt']),
             ],
         ]);
     }

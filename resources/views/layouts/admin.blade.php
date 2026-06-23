@@ -4,6 +4,10 @@
     $adminName = (string) ($admin?->name ?? 'Admin');
     $adminInitial = mb_strtoupper(mb_substr($adminName, 0, 1));
     $adminRoleLabel = $admin?->getRoleNames()->implode(', ') ?: 'Admin';
+    $adminAvatar = (string) ($admin?->avatar ?? '');
+    $adminAvatarUrl = filled($adminAvatar)
+        ? (str_starts_with($adminAvatar, 'storage/') ? asset($adminAvatar) : $adminAvatar)
+        : null;
     $pendingBadgeAria = ((int) $pendingPaymentCount > 0)
         ? $pendingPaymentCount.' pembayaran menunggu verifikasi'
         : 'Tidak ada pembayaran menunggu verifikasi';
@@ -59,7 +63,13 @@
 
                 <div class="border-t border-zinc-200 p-4 dark:border-white/10">
                     <div class="mb-3 flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50/90 p-3 dark:border-white/10 dark:bg-white/[0.045]" aria-label="Identitas admin">
-                        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold-500 text-sm font-black text-zinc-950" aria-hidden="true">{{ $adminInitial }}</span>
+                        <span class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-gold-500 text-sm font-black text-zinc-950" aria-hidden="true">
+                            @if ($adminAvatarUrl)
+                                <img src="{{ $adminAvatarUrl }}" alt="" class="h-full w-full object-cover">
+                            @else
+                                {{ $adminInitial }}
+                            @endif
+                        </span>
                         <div class="min-w-0">
                             <p class="truncate text-sm font-black text-zinc-950 dark:text-white">{{ $adminName }}</p>
                             <p class="mt-0.5 truncate text-[0.7rem] font-bold uppercase tracking-[0.1em] text-gold-600 dark:text-gold-400">{{ $adminRoleLabel }}</p>
@@ -102,7 +112,13 @@
 
                 <div class="border-t border-zinc-200 p-4 dark:border-white/10">
                     <div class="mb-3 flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50/90 p-3 dark:border-white/10 dark:bg-white/[0.045]" aria-label="Identitas admin">
-                        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold-500 text-sm font-black text-zinc-950" aria-hidden="true">{{ $adminInitial }}</span>
+                        <span class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-gold-500 text-sm font-black text-zinc-950" aria-hidden="true">
+                            @if ($adminAvatarUrl)
+                                <img src="{{ $adminAvatarUrl }}" alt="" class="h-full w-full object-cover">
+                            @else
+                                {{ $adminInitial }}
+                            @endif
+                        </span>
                         <div class="min-w-0">
                             <p class="truncate text-sm font-black text-zinc-950 dark:text-white">{{ $adminName }}</p>
                             <p class="mt-0.5 truncate text-[0.7rem] font-bold uppercase tracking-[0.1em] text-gold-600 dark:text-gold-400">{{ $adminRoleLabel }}</p>

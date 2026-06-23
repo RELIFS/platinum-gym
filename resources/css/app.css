@@ -74,7 +74,7 @@
     }
 
     .auth-link {
-        @apply font-semibold text-gold-600 transition hover:text-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:text-gold-500 dark:hover:text-gold-400;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center rounded-md py-1 align-middle font-semibold text-gold-600 transition hover:text-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:text-gold-500 dark:hover:text-gold-400;
     }
 
     .auth-divider {
@@ -94,7 +94,7 @@
     }
 
     .auth-password-toggle {
-        @apply absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white;
+        @apply absolute right-2 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 touch-manipulation items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white;
     }
 
     .public-container {
@@ -504,6 +504,20 @@
         @apply min-w-0 overflow-x-auto rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-white/[0.025];
     }
 
+    .owner-report-table-wrap {
+        @apply shadow-[inset_-18px_0_20px_-24px_rgba(15,23,42,0.55)] dark:shadow-[inset_-18px_0_20px_-24px_rgba(255,255,255,0.38)] xl:shadow-none;
+    }
+
+    .owner-report-scroll-hint {
+        display: none;
+    }
+
+    @media (min-width: 768px) and (max-width: 1280px) {
+        .owner-report-scroll-hint {
+            display: block;
+        }
+    }
+
     .admin-table-head {
         @apply bg-zinc-100/80 text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-600 dark:bg-white/[0.055] dark:text-zinc-300;
     }
@@ -601,6 +615,6 @@
     }
 
     .owner-chart-shell {
-        @apply min-w-0 overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(180deg,#ffffff,#f8fafc)] p-3 shadow-inner dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.025))] sm:p-4;
+        @apply min-w-0 overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(180deg,#ffffff,#f8fafc)] p-2 shadow-inner dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.025))] sm:p-4;
     }
 }

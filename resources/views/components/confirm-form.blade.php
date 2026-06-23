@@ -25,7 +25,7 @@
     <form
         method="{{ $formMethod }}"
         action="{{ $action }}"
-        @if ($hasMessage) x-on:submit.prevent="if (! submitting) open = true" @else x-on:submit="if (submitting) { $event.preventDefault() } else { submitting = true }" @endif
+        @if ($hasMessage) x-on:submit.prevent="if (submitting) return; if (! $event.target.checkValidity()) { $event.target.reportValidity(); return; } open = true" @else x-on:submit="if (submitting) { $event.preventDefault() } else { submitting = true }" @endif
         {{ $attributes }}
     >
         @if ($formMethod === 'POST')

@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Admin\AdminBookingController;
 use App\Http\Controllers\Admin\AdminCheckInController;
+use App\Http\Controllers\Admin\AdminInvoiceController;
 use App\Http\Controllers\Admin\AdminPaymentController;
+use App\Http\Controllers\Admin\AdminProfilePhotoController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminResourceController;
 use App\Http\Controllers\Admin\AdminResourceStatusController;
@@ -17,6 +19,7 @@ use App\Http\Controllers\Member\MemberProfileController;
 use App\Http\Controllers\MemberPortalController;
 use App\Http\Controllers\Owner\OwnerDashboardController;
 use App\Http\Controllers\Owner\OwnerInvoiceController;
+use App\Http\Controllers\Owner\OwnerProfilePhotoController;
 use App\Http\Controllers\Owner\OwnerReportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicWebsiteController;
@@ -63,6 +66,8 @@ Route::middleware(['auth', 'verified', 'role:member', 'member.profile.complete']
         Route::get('/transaksi/{payment}', [MemberCheckoutController::class, 'show'])->name('transactions.show');
         Route::post('/transaksi/{payment}/bayar', [MemberCheckoutController::class, 'pay'])->name('transactions.pay');
         Route::get('/invoice/{invoice}', [MemberInvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('/invoice/{invoice}/struk', [MemberInvoiceController::class, 'receipt'])->name('invoices.receipt');
+        Route::get('/invoice/{invoice}/download', [MemberInvoiceController::class, 'download'])->name('invoices.download');
         Route::get('/qr', [MemberPortalController::class, 'qr'])->name('qr');
         Route::get('/qr/download', [MemberPortalController::class, 'downloadQr'])->name('qr.download');
         Route::get('/notifikasi', [MemberPortalController::class, 'notifications'])->name('notifications');
@@ -96,6 +101,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::post('/pembayaran/cash', [AdminPaymentController::class, 'storeCash'])->name('payments.cash');
         Route::post('/pembayaran/{payment}/approve', [AdminPaymentController::class, 'approve'])->name('payments.approve');
         Route::post('/pembayaran/{payment}/reject', [AdminPaymentController::class, 'reject'])->name('payments.reject');
+        Route::get('/invoice/{invoice}', [AdminInvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('/invoice/{invoice}/struk', [AdminInvoiceController::class, 'receipt'])->name('invoices.receipt');
+        Route::get('/invoice/{invoice}/download', [AdminInvoiceController::class, 'download'])->name('invoices.download');
         Route::get('/produk', [AdminPortalController::class, 'products'])->name('products');
         Route::get('/galeri', [AdminPortalController::class, 'gallery'])->name('gallery');
         Route::get('/testimoni', [AdminPortalController::class, 'testimonials'])->name('testimonials');
@@ -107,6 +115,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/pengaturan', [AdminPortalController::class, 'settings'])->name('settings');
         Route::patch('/pengaturan', [AdminSettingsController::class, 'update'])->name('settings.update');
         Route::get('/profil', [AdminPortalController::class, 'profile'])->name('profile');
+        Route::patch('/profil/foto', AdminProfilePhotoController::class)->name('profile-photo.update');
     });
 
 Route::middleware(['auth', 'verified', 'role:owner'])
@@ -120,6 +129,9 @@ Route::middleware(['auth', 'verified', 'role:owner'])
         Route::get('/laporan/booking-kelas', [OwnerReportController::class, 'classes'])->name('reports.classes');
         Route::get('/laporan/export', [OwnerReportController::class, 'export'])->name('reports.export');
         Route::get('/invoice/{invoice}', [OwnerInvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('/invoice/{invoice}/struk', [OwnerInvoiceController::class, 'receipt'])->name('invoices.receipt');
+        Route::get('/invoice/{invoice}/download', [OwnerInvoiceController::class, 'download'])->name('invoices.download');
+        Route::patch('/profil/foto', OwnerProfilePhotoController::class)->name('profile-photo.update');
     });
 
 Route::middleware('auth')->group(function () {

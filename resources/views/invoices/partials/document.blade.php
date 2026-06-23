@@ -11,6 +11,13 @@
     $cardClass = ($document['viewerRole'] ?? '') === 'Member' ? 'member-card' : 'owner-card';
     $panelClass = ($document['viewerRole'] ?? '') === 'Member' ? 'member-soft-panel' : 'owner-panel';
     $eyebrowClass = ($document['viewerRole'] ?? '') === 'Member' ? 'member-eyebrow' : 'owner-eyebrow';
+    if (($document['viewerRole'] ?? '') === 'Admin') {
+        $buttonClass = 'admin-button-secondary';
+        $cardClass = 'admin-card';
+        $panelClass = 'admin-panel';
+        $eyebrowClass = 'admin-eyebrow';
+    }
+    $actions = $document['actions'] ?? [];
 @endphp
 
 <section class="{{ $cardClass }} relative overflow-hidden">
@@ -23,12 +30,21 @@
         </div>
         <div class="flex flex-col gap-2 sm:items-end">
             <span class="admin-status-pill admin-status-success">{{ $labels['invoiceStatus'] }}</span>
-            <a href="{{ $backUrl }}" class="{{ $buttonClass }}">Kembali</a>
+            <div class="grid w-full gap-2 sm:w-auto sm:grid-cols-2">
+                @if ($actions['receipt'] ?? null)
+                    <a href="{{ $actions['receipt'] }}" class="{{ $buttonClass }} justify-center">Lihat Struk</a>
+                @endif
+                @if ($actions['download'] ?? null)
+                    <a href="{{ $actions['download'] }}" class="{{ $buttonClass }} justify-center">Unduh PDF</a>
+                @endif
+                <button type="button" onclick="window.print()" class="{{ $buttonClass }} justify-center">Cetak</button>
+                <a href="{{ $backUrl }}" class="{{ $buttonClass }} justify-center">Kembali</a>
+            </div>
         </div>
     </div>
 </section>
 
-<section class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+<section class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
     <div class="{{ $cardClass }}">
         <div class="grid gap-5 md:grid-cols-2">
             <div>
@@ -53,7 +69,25 @@
             </div>
         </div>
 
-        <div class="mt-6 overflow-hidden rounded-lg border border-zinc-200 dark:border-white/10">
+        <div class="{{ $panelClass }} mt-6 xl:hidden">
+            <p class="{{ $eyebrowClass }}">Detail layanan</p>
+            <dl class="mt-4 space-y-3 text-sm">
+                <div>
+                    <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Layanan</dt>
+                    <dd class="mt-1 break-words font-black text-zinc-950 dark:text-white">{{ $service['name'] }}</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Jenis</dt>
+                    <dd class="mt-1 font-black text-zinc-950 dark:text-white">{{ $service['kind'] }}</dd>
+                </div>
+                <div class="flex items-center justify-between gap-4 border-t border-zinc-200 pt-3 dark:border-white/10">
+                    <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Nominal</dt>
+                    <dd class="text-right font-black text-zinc-950 dark:text-white">{{ $amounts['subtotal'] }}</dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="mt-6 hidden overflow-hidden rounded-lg border border-zinc-200 dark:border-white/10 xl:block">
             <table class="min-w-full text-left text-sm">
                 <caption class="sr-only">Detail layanan invoice</caption>
                 <thead class="admin-table-head">
@@ -81,7 +115,7 @@
         <dl class="mt-4 space-y-3 text-sm">
             <div class="flex justify-between gap-4">
                 <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Kode pembayaran</dt>
-                <dd class="text-right font-mono font-black text-zinc-950 dark:text-white">{{ $payment?->payment_code ?? '-' }}</dd>
+                <dd class="break-all text-right font-mono font-black text-zinc-950 dark:text-white">{{ $payment?->payment_code ?? '-' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
                 <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Tanggal invoice</dt>

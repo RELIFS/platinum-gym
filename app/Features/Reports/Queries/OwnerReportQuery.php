@@ -10,6 +10,7 @@ use App\Models\MemberPackageSession;
 use App\Models\Membership;
 use App\Models\Package;
 use App\Models\Payment;
+use Generator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -25,10 +26,10 @@ class OwnerReportQuery
         return [
             ['label' => 'Bisnis', 'items' => [
                 ['label' => 'Dashboard', 'route' => 'owner.dashboard', 'active' => 'owner.dashboard', 'icon' => 'dashboard'],
-                ['label' => 'Laporan', 'route' => 'owner.reports.index', 'active' => 'owner.reports.*', 'icon' => 'chart'],
+                ['label' => 'Pusat Laporan', 'route' => 'owner.reports.index', 'active' => 'owner.reports.index', 'icon' => 'chart'],
             ]],
             ['label' => 'Laporan', 'items' => [
-                ['label' => 'Keuangan', 'route' => 'owner.reports.finance', 'active' => 'owner.reports.finance', 'icon' => 'receipt'],
+                ['label' => 'Keuangan', 'route' => 'owner.reports.finance', 'active' => ['owner.reports.finance', 'owner.invoices.*'], 'icon' => 'receipt'],
                 ['label' => 'Member & Membership', 'route' => 'owner.reports.members', 'active' => 'owner.reports.members', 'icon' => 'members'],
                 ['label' => 'Booking & Kelas', 'route' => 'owner.reports.classes', 'active' => 'owner.reports.classes', 'icon' => 'calendar'],
             ]],
@@ -63,11 +64,25 @@ class OwnerReportQuery
 
     public function exportRows(ReportFilters $filters): Collection
     {
-        return match ($filters->reportType) {
-            'members' => $this->membershipRows($filters, false),
-            'classes' => $this->classRows($filters, false),
-            default => $this->financeRows($filters, false),
-        };
+        return collect(iterator_to_array($this->exportRowsGenerator($filters), false));
+    }
+
+    /** @return Generator<int, array<int, string>> */
+    public function exportRowsGenerator(ReportFilters $filters): Generator
+    {
+        if ($filters->reportType === 'members') {
+            yield from $this->membershipRowsGenerator($filters);
+
+            return;
+        }
+
+        if ($filters->reportType === 'classes') {
+            yield from $this->classRowsGenerator($filters);
+
+            return;
+        }
+
+        yield from $this->financeRowsGenerator($filters);
     }
 
     public function paidPaymentsQuery(ReportFilters $filters): Builder
@@ -189,7 +204,19 @@ class OwnerReportQuery
     private function financeRows(ReportFilters $filters, bool $paginate): Collection|LengthAwarePaginator
     {
         $query = $this->paidPaymentsQuery($filters);
-        $mapper = fn (Payment $payment): array => [
+        $mapper = fn (Payment $payment): array => $this->financeRow($payment);
+
+        if ($paginate) {
+            return $query->paginate(self::PER_PAGE)->withQueryString()->through($mapper);
+        }
+
+        return collect($this->financeRowsGenerator($filters));
+    }
+
+    /** @return array<int|string, string|null> */
+    private function financeRow(Payment $payment, bool $withInvoiceUrl = true): array
+    {
+        $row = [
             $payment->paid_at?->translatedFormat('d M Y') ?? $payment->created_at?->translatedFormat('d M Y') ?? '-',
             $payment->payment_code,
             $payment->invoice?->invoice_number ?? '-',
@@ -197,17 +224,92 @@ class OwnerReportQuery
             $this->paymentServiceName($payment),
             str((string) $payment->method)->headline()->toString(),
             $this->money($payment->amount),
-            'invoice_url' => $payment->invoice ? route('owner.invoices.show', $payment->invoice) : null,
         ];
+
+        if ($withInvoiceUrl) {
+            $row['invoice_url'] = $payment->invoice ? route('owner.invoices.show', $payment->invoice) : null;
+        }
+
+        return $row;
+    }
+
+    /** @return Generator<int, array<int, string>> */
+    private function financeRowsGenerator(ReportFilters $filters): Generator
+    {
+        foreach ($this->paidPaymentsQuery($filters)->reorder()->lazyById(500) as $payment) {
+            yield $this->financeRow($payment, false);
+        }
+    }
+
+    private function membershipRows(ReportFilters $filters, bool $paginate): Collection|LengthAwarePaginator
+    {
+        $query = $this->membershipRowsQuery($filters);
+        $mapper = fn (Membership $membership): array => $this->membershipRow($membership);
 
         if ($paginate) {
             return $query->paginate(self::PER_PAGE)->withQueryString()->through($mapper);
         }
 
-        return $query->limit(1000)->get()->map($mapper)->map(fn (array $row): array => array_slice($row, 0, 7))->values();
+        return collect($this->membershipRowsGenerator($filters));
     }
 
-    private function membershipRows(ReportFilters $filters, bool $paginate): Collection|LengthAwarePaginator
+    /** @return array<int, string> */
+    private function membershipRow(Membership $membership): array
+    {
+        return [
+            $membership->member?->user?->name ?? $membership->member?->member_code ?? '-',
+            $membership->code,
+            $membership->package?->name ?? 'Membership',
+            ($membership->start_date?->translatedFormat('d M Y') ?? '-').' - '.($membership->end_date?->translatedFormat('d M Y') ?? '-'),
+            $this->statusLabel($membership->status),
+        ];
+    }
+
+    /** @return Generator<int, array<int, string>> */
+    private function membershipRowsGenerator(ReportFilters $filters): Generator
+    {
+        $query = $this->membershipRowsQuery($filters);
+
+        foreach ($query->reorder()->lazyById(500) as $membership) {
+            yield $this->membershipRow($membership);
+        }
+    }
+
+    private function classRows(ReportFilters $filters, bool $paginate): Collection|LengthAwarePaginator
+    {
+        $query = $this->classRowsQuery($filters);
+        $mapper = fn (ClassEnrollment $enrollment): array => $this->classRow($enrollment);
+
+        if ($paginate) {
+            return $query->paginate(self::PER_PAGE)->withQueryString()->through($mapper);
+        }
+
+        return collect($this->classRowsGenerator($filters));
+    }
+
+    /** @return array<int, string> */
+    private function classRow(ClassEnrollment $enrollment): array
+    {
+        return [
+            $enrollment->session_date?->translatedFormat('d M Y') ?? '-',
+            $enrollment->schedule?->gymClass?->name ?? 'Kelas Platinum Gym',
+            $enrollment->member?->user?->name ?? $enrollment->member?->member_code ?? '-',
+            substr((string) $enrollment->schedule?->start_time, 0, 5),
+            $this->statusLabel($enrollment->status),
+        ];
+    }
+
+    /** @return Generator<int, array<int, string>> */
+    private function classRowsGenerator(ReportFilters $filters): Generator
+    {
+        $query = $this->classRowsQuery($filters);
+
+        foreach ($query->reorder()->lazyById(500) as $enrollment) {
+            yield $this->classRow($enrollment);
+        }
+    }
+
+    private function membershipRowsQuery(ReportFilters $filters): Builder
     {
         $query = Membership::query()
             ->with(['member.user', 'package'])
@@ -234,22 +336,10 @@ class OwnerReportQuery
                     ->orWhereHas('user', fn (Builder $userQuery) => $userQuery->where('name', 'like', $like)->orWhere('email', 'like', $like))));
         }
 
-        $mapper = fn (Membership $membership): array => [
-            $membership->member?->user?->name ?? $membership->member?->member_code ?? '-',
-            $membership->code,
-            $membership->package?->name ?? 'Membership',
-            ($membership->start_date?->translatedFormat('d M Y') ?? '-').' - '.($membership->end_date?->translatedFormat('d M Y') ?? '-'),
-            $this->statusLabel($membership->status),
-        ];
-
-        if ($paginate) {
-            return $query->paginate(self::PER_PAGE)->withQueryString()->through($mapper);
-        }
-
-        return $query->limit(1000)->get()->map($mapper)->values();
+        return $query;
     }
 
-    private function classRows(ReportFilters $filters, bool $paginate): Collection|LengthAwarePaginator
+    private function classRowsQuery(ReportFilters $filters): Builder
     {
         $query = ClassEnrollment::query()
             ->with(['member.user', 'schedule.gymClass', 'schedule.trainer'])
@@ -273,19 +363,7 @@ class OwnerReportQuery
                 ->orWhereHas('schedule.gymClass', fn (Builder $classQuery) => $classQuery->where('name', 'like', $like)));
         }
 
-        $mapper = fn (ClassEnrollment $enrollment): array => [
-            $enrollment->session_date?->translatedFormat('d M Y') ?? '-',
-            $enrollment->schedule?->gymClass?->name ?? 'Kelas Platinum Gym',
-            $enrollment->member?->user?->name ?? $enrollment->member?->member_code ?? '-',
-            substr((string) $enrollment->schedule?->start_time, 0, 5),
-            $this->statusLabel($enrollment->status),
-        ];
-
-        if ($paginate) {
-            return $query->paginate(self::PER_PAGE)->withQueryString()->through($mapper);
-        }
-
-        return $query->limit(1000)->get()->map($mapper)->values();
+        return $query;
     }
 
     private function applyPaidDateRange(Builder $query, ReportFilters $filters): void

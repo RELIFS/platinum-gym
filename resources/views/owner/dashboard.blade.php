@@ -91,7 +91,7 @@
                         @forelse ($methodBreakdown as $item)
                             <div class="flex items-center justify-between gap-3">
                                 <div class="min-w-0">
-                                    <p class="truncate text-sm font-black text-zinc-950 dark:text-white">{{ $item['label'] }}</p>
+                                    <p class="truncate text-sm font-black text-zinc-950 dark:text-white" title="{{ $item['label'] }}">{{ $item['label'] }}</p>
                                     <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400">{{ $item['count'] }} transaksi</p>
                                 </div>
                                 <p class="shrink-0 text-sm font-black text-gold-600 dark:text-gold-400">{{ $item['total'] }}</p>
@@ -108,7 +108,7 @@
                         @forelse ($serviceBreakdown as $item)
                             <div class="flex items-center justify-between gap-3">
                                 <div class="min-w-0">
-                                    <p class="truncate text-sm font-black text-zinc-950 dark:text-white">{{ $item['label'] }}</p>
+                                    <p class="truncate text-sm font-black text-zinc-950 dark:text-white" title="{{ $item['label'] }}">{{ $item['label'] }}</p>
                                     <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400">{{ $item['count'] }} transaksi</p>
                                 </div>
                                 <p class="shrink-0 text-sm font-black text-gold-600 dark:text-gold-400">{{ $item['total'] }}</p>
@@ -134,7 +134,7 @@
                     <article class="rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.04]">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <p class="truncate font-mono text-sm font-black text-zinc-950 dark:text-white">{{ $payment->payment_code }}</p>
+                                <p class="truncate font-mono text-sm font-black text-zinc-950 dark:text-white" title="{{ $payment->payment_code }}">{{ $payment->payment_code }}</p>
                                 <p class="mt-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400">{{ $payment->member?->user?->name ?? $payment->member?->member_code ?? '-' }}</p>
                             </div>
                             <p class="shrink-0 text-sm font-black tabular-nums text-gold-600 dark:text-gold-400">Rp {{ number_format((float) $payment->amount, 0, ',', '.') }}</p>

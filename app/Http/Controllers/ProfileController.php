@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Features\Admin\Queries\AdminDashboardQuery;
 use App\Features\MemberPortal\Queries\MemberDashboardQuery;
+use App\Features\Reports\Queries\OwnerReportQuery;
 use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,12 +21,22 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasAnyRole(['admin', 'owner'])) {
+        if ($user->hasRole('admin')) {
             $query = app(AdminDashboardQuery::class);
 
             return view('admin.pages.account-security', [
                 'user' => $user,
                 'portal' => $query->forUser($user),
+                'navigation' => $query->navigation(),
+            ]);
+        }
+
+        if ($user->hasRole('owner')) {
+            $query = app(OwnerReportQuery::class);
+
+            return view('owner.account-security', [
+                'user' => $user,
+                'portal' => ['owner' => $user],
                 'navigation' => $query->navigation(),
             ]);
         }

@@ -5,6 +5,8 @@
     $rows = $report['rows'];
     $options = $report['options'];
     $headings = collect($report['headings']);
+    $currentReportRoute = request()->route()?->getName() ?? 'owner.reports.index';
+    $showTabletScrollHint = $filters->reportType === 'finance';
 @endphp
 
 <x-owner-layout :portal="$portal" :navigation="$navigation" :title="$title">
@@ -16,13 +18,23 @@
                 <p class="mt-3 owner-copy">{{ $report['description'] }}</p>
             </div>
 
-            <a href="{{ route('owner.reports.export', $filters->query()) }}" class="owner-button-primary">
-                @include('admin.partials.icon', ['name' => 'download', 'class' => 'h-4 w-4'])
-                Unduh CSV
-            </a>
+            <div class="grid w-full gap-2 sm:w-auto sm:grid-cols-3 sm:items-start xl:flex">
+                <a href="{{ route('owner.reports.export', $filters->query()) }}" class="owner-button-secondary justify-center whitespace-nowrap sm:min-w-36">
+                    @include('admin.partials.icon', ['name' => 'download', 'class' => 'h-4 w-4'])
+                    Unduh CSV
+                </a>
+                <a href="{{ route('owner.reports.export', array_merge($filters->query(), ['format' => 'xlsx'])) }}" class="owner-button-secondary justify-center whitespace-nowrap sm:min-w-36">
+                    @include('admin.partials.icon', ['name' => 'download', 'class' => 'h-4 w-4'])
+                    Unduh Excel
+                </a>
+                <a href="{{ route('owner.reports.export', array_merge($filters->query(), ['format' => 'pdf'])) }}" class="owner-button-primary justify-center whitespace-nowrap sm:min-w-36">
+                    @include('admin.partials.icon', ['name' => 'download', 'class' => 'h-4 w-4'])
+                    Unduh PDF
+                </a>
+            </div>
         </div>
 
-        <form method="GET" action="{{ route('owner.reports.index') }}" class="owner-panel mt-5">
+        <form method="GET" action="{{ route($currentReportRoute) }}" class="owner-panel mt-5">
             <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                 <div>
                     <label for="report_type" class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Jenis laporan</label>
@@ -55,7 +67,7 @@
                 </div>
             </div>
             <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
-                <a href="{{ route('owner.reports.index') }}" class="owner-button-secondary">Reset</a>
+                <a href="{{ route($currentReportRoute) }}" class="owner-button-secondary">Reset</a>
                 <button type="submit" class="owner-button-primary">Terapkan filter</button>
             </div>
         </form>
@@ -76,7 +88,7 @@
             <div>
                 <p class="owner-eyebrow">Preview</p>
                 <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">{{ $report['title'] }}</h2>
-                <p class="mt-2 owner-copy">Periode {{ $filters->periodLabel() }}. Export CSV memakai filter yang sama.</p>
+                <p class="mt-2 owner-copy">Periode {{ $filters->periodLabel() }}. File CSV, Excel, dan PDF memakai filter yang sama.</p>
             </div>
         </div>
 
@@ -97,8 +109,14 @@
                 @endforeach
             </div>
 
-            <div class="admin-table-wrap mt-5 hidden md:block">
-                <table class="min-w-full text-left text-sm">
+            @if ($showTabletScrollHint)
+                <p class="owner-report-scroll-hint mt-5 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-bold text-zinc-500 dark:border-white/10 dark:bg-white/[0.035] dark:text-zinc-400">
+                    Geser tabel untuk melihat kolom lainnya.
+                </p>
+            @endif
+
+            <div class="admin-table-wrap {{ $showTabletScrollHint ? 'owner-report-table-wrap mt-3 lg:mt-5 xl:mt-5' : 'mt-5' }} hidden md:block">
+                <table class="{{ $filters->reportType === 'finance' ? 'min-w-[54rem]' : 'min-w-full' }} text-left text-sm">
                     <caption class="sr-only">{{ $report['title'] }}</caption>
                     <thead class="admin-table-head">
                         <tr>

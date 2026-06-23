@@ -59,7 +59,11 @@ class AdminDashboardQuery
             'moduleSummaries' => $this->moduleSummaries($today),
             'modules' => $this->modules($today, $user, $filters, $activeModule),
             'settings' => $this->settings(),
-            'editableSettings' => ['fields' => $this->editableSettings->fields(), 'values' => $this->editableSettings->values()],
+            'editableSettings' => [
+                'fields' => $this->editableSettings->fields(),
+                'groups' => $this->editableSettings->groups(),
+                'values' => $this->editableSettings->values(),
+            ],
             'activityLogs' => $this->latestActivityLogs(),
             'activityUsers' => $this->activityUsers(),
         ];
@@ -194,6 +198,7 @@ class AdminDashboardQuery
     {
         return ClassEnrollment::query()
             ->with(['member.user', 'schedule.gymClass', 'schedule.trainer'])
+            ->withExists('attendance')
             ->whereDate('session_date', $today)
             ->whereNotIn('status', ['cancelled', 'canceled'])
             ->latest('created_at')
@@ -294,7 +299,11 @@ class AdminDashboardQuery
             return $module;
         }
 
-        $query = ClassEnrollment::query()->with(['member.user', 'schedule.gymClass', 'schedule.trainer'])->whereDate('session_date', $today)->latest('created_at');
+        $query = ClassEnrollment::query()
+            ->with(['member.user', 'schedule.gymClass', 'schedule.trainer'])
+            ->withExists('attendance')
+            ->whereDate('session_date', $today)
+            ->latest('created_at');
         $this->applyBookingSearch($query, $filters['q']);
         $this->applyExactStatusFilter($query, $filters['status'], array_keys($options));
 
@@ -534,7 +543,7 @@ class AdminDashboardQuery
         }
 
         $query = Setting::query()->orderBy('group')->orderBy('key');
-        $this->applySimpleSearch($query, $filters['q'], ['key', 'group', 'type', 'value']);
+        $this->applySettingsSearch($query, $filters['q']);
 
         return $this->withPaginatedRows($module, $query, fn (Setting $setting): array => ['cells' => [
             $setting->key,
@@ -551,6 +560,7 @@ class AdminDashboardQuery
                 ['Nama', $user->name, 'Akun yang sedang login.'],
                 ['Email', $user->email, 'Digunakan untuk masuk ke akun admin.'],
                 ['Telepon', $user->phone ?? '-', 'Opsional.'],
+                ['Foto profil', filled($user->avatar) ? 'Tersedia' : 'Belum diunggah', 'Ditampilkan hanya di portal admin.'],
                 ['Peran', $user->getRoleNames()->implode(', ') ?: '-', 'Akses admin dibatasi sesuai peran pengguna.'],
                 ['Login terakhir', $user->last_login_at?->translatedFormat('d M Y H:i') ?? '-', 'Diisi saat login berhasil.'],
             ]),
@@ -795,10 +805,17 @@ class AdminDashboardQuery
         }
 
         $actions = [];
-        if ($enrollment->status !== 'confirmed') {
+        if (in_array($enrollment->status, ['booked', 'active'], true)) {
             $actions[] = ['label' => 'Konfirmasi', 'url' => route('admin.booking.confirm', $enrollment), 'method' => 'POST', 'variant' => 'primary'];
         }
-        $actions[] = ['label' => 'Batalkan Booking', 'url' => route('admin.booking.cancel', $enrollment), 'method' => 'POST', 'variant' => 'secondary'];
+
+        if (
+            ! in_array($enrollment->status, ['attended'], true)
+            && ! (bool) $enrollment->getAttribute('attendance_exists')
+            && ! ($enrollment->session_date?->isPast() && ! $enrollment->session_date?->isToday())
+        ) {
+            $actions[] = ['label' => 'Batalkan Booking', 'url' => route('admin.booking.cancel', $enrollment), 'method' => 'POST', 'variant' => 'secondary'];
+        }
 
         return $actions;
     }
@@ -928,6 +945,29 @@ class AdminDashboardQuery
             foreach ($columns as $column) {
                 $query->orWhere($column, 'like', $like);
             }
+        });
+    }
+
+    private function applySettingsSearch(EloquentBuilder $query, string $search): void
+    {
+        if (blank($search)) {
+            return;
+        }
+
+        $like = $this->like($search);
+        $query->where(function (EloquentBuilder $query) use ($like): void {
+            $query->where('key', 'like', $like)
+                ->orWhere('group', 'like', $like)
+                ->orWhere('type', 'like', $like)
+                ->orWhere(function (EloquentBuilder $query) use ($like): void {
+                    foreach (['secret', 'token', 'password', 'credential', 'client_secret', 'qr_secret', 'prompt', 'oauth', 'api_key'] as $needle) {
+                        $query->where('key', 'not like', '%'.$needle.'%');
+                    }
+
+                    $query->where('key', 'not like', '%\_key')
+                        ->where('key', 'not like', '%key\_%')
+                        ->where('value', 'like', $like);
+                });
         });
     }
 
