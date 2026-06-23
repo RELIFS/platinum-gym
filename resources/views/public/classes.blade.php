@@ -36,15 +36,39 @@
                 Menampilkan {{ $schedules->count() }} jadwal{{ $selectedDay ? ' untuk hari '.$dayLabels[$dayOptions[$selectedDay]] : '' }}{{ $selectedType ? ' jenis '.$classTypeOptions[$selectedType] : '' }}.
             </p>
 
-            <div class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                @forelse ($schedules as $schedule)
-                    @include('public.partials.schedule-card', ['schedule' => $schedule, 'dayLabels' => $dayLabels, 'settings' => $settings])
-                @empty
-                    <div class="public-card md:col-span-2 xl:col-span-3">
+            <div class="mt-10 space-y-12">
+                @foreach ($classSections as $section)
+                    <section aria-labelledby="kelas-{{ $section['key'] }}" class="scroll-mt-24">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <p class="public-eyebrow">{{ $section['label'] }}</p>
+                                <h2 id="kelas-{{ $section['key'] }}" class="public-heading-balance mt-3 text-3xl font-black text-zinc-950 dark:text-white">{{ $section['label'] }}</h2>
+                                <p class="mt-3 max-w-2xl text-sm leading-7 text-zinc-600 dark:text-zinc-400">{{ $section['description'] }}</p>
+                            </div>
+                            <span class="inline-flex min-h-10 w-fit items-center rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-zinc-600 shadow-sm dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-300">
+                                {{ $section['schedules']->count() }} jadwal
+                            </span>
+                        </div>
+
+                        <div class="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                            @forelse ($section['schedules'] as $schedule)
+                                @include('public.partials.schedule-card', ['schedule' => $schedule, 'dayLabels' => $dayLabels, 'settings' => $settings])
+                            @empty
+                                <div class="public-card md:col-span-2 xl:col-span-3">
+                                    <h3 class="text-xl font-black text-zinc-950 dark:text-white">Jadwal tidak ditemukan.</h3>
+                                    <p class="mt-2 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Jadwal {{ $section['label'] }} belum tersedia. Coba ubah filter hari atau jenis kelas.</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </section>
+                @endforeach
+
+                @if ($classSections->isEmpty())
+                    <div class="public-card">
                         <h2 class="text-xl font-black text-zinc-950 dark:text-white">Jadwal tidak ditemukan.</h2>
                         <p class="mt-2 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Coba ubah filter hari atau jenis kelas.</p>
                     </div>
-                @endforelse
+                @endif
             </div>
         </div>
     </section>
