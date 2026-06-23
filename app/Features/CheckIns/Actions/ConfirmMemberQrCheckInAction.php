@@ -36,10 +36,6 @@ class ConfirmMemberQrCheckInAction
                 throw new RuntimeException('QR member tidak valid.');
             }
 
-            if ($qrToken->expires_at?->isPast()) {
-                throw new RuntimeException('QR member sudah kedaluwarsa.');
-            }
-
             $member = Member::query()->with('user')->lockForUpdate()->findOrFail($qrToken->tokenable_id);
             $membership = $this->activeMembership($member);
 

@@ -25,10 +25,6 @@ class ScanMemberQrAction
                 throw new RuntimeException('QR member tidak valid.');
             }
 
-            if ($qrToken->expires_at && $qrToken->expires_at->isPast()) {
-                throw new RuntimeException('QR member sudah kedaluwarsa.');
-            }
-
             $member = $qrToken->tokenable;
             $membership = $this->activeMembership($member);
 

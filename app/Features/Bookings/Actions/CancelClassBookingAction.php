@@ -18,7 +18,7 @@ class CancelClassBookingAction
                 return $enrollment;
             }
 
-            if ($enrollment->session_date?->isPast()) {
+            if ($enrollment->session_date?->isPast() && ! $enrollment->session_date?->isToday()) {
                 throw new RuntimeException('Booking kelas yang sudah lewat tidak dapat dibatalkan.');
             }
 

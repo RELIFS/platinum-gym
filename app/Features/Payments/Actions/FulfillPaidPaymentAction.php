@@ -76,7 +76,7 @@ class FulfillPaidPaymentAction
             'approved_at' => now(),
         ])->save();
 
-        $this->ensureQrToken($payment->member, $membership);
+        $this->ensureQrToken($payment->member);
     }
 
     private function activatePackageSession(Payment $payment, MemberPackageSession $session, ?int $verifiedBy): void
@@ -90,25 +90,38 @@ class FulfillPaidPaymentAction
         ])->save();
     }
 
-    private function ensureQrToken(?Member $member, Membership $membership): void
+    private function ensureQrToken(?Member $member): void
     {
         if (! $member) {
             return;
         }
 
-        QrToken::query()
+        $activeQrToken = QrToken::query()
             ->where('tokenable_type', Member::class)
             ->where('tokenable_id', $member->id)
             ->where('purpose', 'member')
             ->where('is_revoked', false)
-            ->update(['is_revoked' => true]);
+            ->lockForUpdate()
+            ->latest('created_at')
+            ->first();
+
+        if ($activeQrToken) {
+            QrToken::query()
+                ->where('tokenable_type', Member::class)
+                ->where('tokenable_id', $member->id)
+                ->where('purpose', 'member')
+                ->where('is_revoked', false)
+                ->whereNotNull('expires_at')
+                ->update(['expires_at' => null]);
+
+            return;
+        }
 
         QrToken::create([
             'tokenable_type' => Member::class,
             'tokenable_id' => $member->id,
             'token' => hash('sha256', $member->member_code.'|'.Str::random(48).'|'.microtime(true)),
             'purpose' => 'member',
-            'expires_at' => $membership->end_date?->endOfDay(),
         ]);
     }
 }

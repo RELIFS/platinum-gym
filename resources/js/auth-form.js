@@ -2,6 +2,7 @@ export function initAuthFormFeedback() {
     bindPasswordToggles();
     bindPasswordFeedback();
     bindPhoneFeedback();
+    focusFirstInvalidField();
 }
 
 function bindPasswordToggles() {
@@ -25,6 +26,20 @@ function bindPasswordToggles() {
             button.querySelector('[data-eye-open]')?.classList.toggle('hidden', shouldShow);
             button.querySelector('[data-eye-closed]')?.classList.toggle('hidden', !shouldShow);
         });
+    });
+}
+
+function focusFirstInvalidField() {
+    const invalidField = document.querySelector('input[aria-invalid="true"]:not([type="hidden"]), select[aria-invalid="true"], textarea[aria-invalid="true"]');
+
+    if (!invalidField) {
+        return;
+    }
+
+    invalidField.focus({ preventScroll: true });
+    invalidField.scrollIntoView({
+        block: 'center',
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
     });
 }
 

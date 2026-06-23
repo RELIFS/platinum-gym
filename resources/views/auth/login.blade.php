@@ -11,6 +11,12 @@
 
         <x-auth-session-status class="mb-5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm font-medium text-emerald-700 dark:text-emerald-400" :status="session('status')" />
 
+        @if ($errors->any())
+            <div class="mb-5 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm font-medium leading-relaxed text-red-700 dark:text-red-300" role="alert" aria-live="assertive">
+                Periksa kembali data yang ditandai di bawah ini.
+            </div>
+        @endif
+
         @include('auth.partials.google-button', [
             'label' => 'Masuk dengan Google',
             'divider' => 'atau masuk dengan email',
@@ -21,8 +27,8 @@
 
             <div>
                 <label for="email" class="auth-label">Alamat Email</label>
-                <input id="email" class="auth-input" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="nama@email.com" @error('email') aria-invalid="true" @enderror>
-                <x-input-error :messages="$errors->get('email')" class="auth-error" />
+                <input id="email" class="auth-input" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="nama@email.com" @error('email') aria-invalid="true" aria-describedby="email-error" @enderror>
+                <x-input-error id="email-error" :messages="$errors->get('email')" class="auth-error" />
             </div>
 
             <div>
@@ -33,7 +39,7 @@
                     @endif
                 </div>
                 <div class="relative">
-                    <input id="password" class="auth-input pr-12" type="password" name="password" required autocomplete="current-password" placeholder="Masukkan kata sandi" @error('password') aria-invalid="true" @enderror>
+                    <input id="password" class="auth-input pr-16" type="password" name="password" required autocomplete="current-password" placeholder="Masukkan kata sandi" @error('password') aria-invalid="true" aria-describedby="password-error" @enderror>
                     <button type="button" class="auth-password-toggle" data-password-toggle="password" aria-label="Tampilkan kata sandi" aria-pressed="false">
                         <svg data-eye-open class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M2.75 12C4.85 7.85 8.05 5.75 12 5.75C15.95 5.75 19.15 7.85 21.25 12C19.15 16.15 15.95 18.25 12 18.25C8.05 18.25 4.85 16.15 2.75 12Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
@@ -47,7 +53,7 @@
                         </svg>
                     </button>
                 </div>
-                <x-input-error :messages="$errors->get('password')" class="auth-error" />
+                <x-input-error id="password-error" :messages="$errors->get('password')" class="auth-error" />
             </div>
 
             <label for="remember_me" class="flex cursor-pointer items-center gap-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">

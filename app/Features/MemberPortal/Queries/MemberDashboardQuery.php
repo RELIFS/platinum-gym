@@ -131,8 +131,8 @@ class MemberDashboardQuery
             'recentCheckIns' => $recentCheckIns,
             'recentCheckInRows' => $this->recentCheckInRows($recentCheckIns, $recentStandaloneSessionUsages),
             'qrToken' => $qrToken,
-            'qrTokenIsActive' => $this->qrTokenIsActive($qrToken),
-            'qrStatusLabel' => $this->qrStatusLabel($qrToken),
+            'qrTokenIsActive' => $this->qrTokenIsActive($qrToken, $activeMembership),
+            'qrStatusLabel' => $this->qrStatusLabel($qrToken, $activeMembership),
             'packages' => $packages,
             'packageGroups' => $this->packageGroups($packages),
             'hasActiveGymMembership' => $hasActiveGymMembership,
@@ -756,18 +756,18 @@ class MemberDashboardQuery
         };
     }
 
-    private function qrTokenIsActive(?QrToken $qrToken): bool
+    private function qrTokenIsActive(?QrToken $qrToken, mixed $activeMembership): bool
     {
         if (! $qrToken || $qrToken->is_revoked) {
             return false;
         }
 
-        return is_null($qrToken->expires_at) || $qrToken->expires_at->isFuture();
+        return filled($activeMembership);
     }
 
-    private function qrStatusLabel(?QrToken $qrToken): string
+    private function qrStatusLabel(?QrToken $qrToken, mixed $activeMembership): string
     {
-        if ($this->qrTokenIsActive($qrToken)) {
+        if ($this->qrTokenIsActive($qrToken, $activeMembership)) {
             return 'Aktif';
         }
 
@@ -775,8 +775,8 @@ class MemberDashboardQuery
             return 'Dicabut';
         }
 
-        if ($qrToken?->expires_at?->isPast()) {
-            return 'Kedaluwarsa';
+        if ($qrToken) {
+            return 'Belum aktif';
         }
 
         return 'Belum diterbitkan';

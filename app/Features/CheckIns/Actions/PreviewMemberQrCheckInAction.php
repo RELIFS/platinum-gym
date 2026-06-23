@@ -25,10 +25,6 @@ class PreviewMemberQrCheckInAction
             throw new RuntimeException('QR member tidak valid.');
         }
 
-        if ($qrToken->expires_at?->isPast()) {
-            throw new RuntimeException('QR member sudah kedaluwarsa.');
-        }
-
         $member = $qrToken->tokenable->loadMissing('user');
         $membership = $this->activeMembership($member);
 
@@ -68,7 +64,7 @@ class PreviewMemberQrCheckInAction
             ],
             'qr' => [
                 'status' => 'Aktif',
-                'expires_at' => $qrToken->expires_at?->translatedFormat('d M Y H:i'),
+                'expires_at' => null,
                 'last_used_at' => $qrToken->last_used_at?->translatedFormat('d M Y H:i'),
             ],
             'today_check_in' => $todayCheckIn ? [

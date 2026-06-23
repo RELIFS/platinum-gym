@@ -8,20 +8,30 @@
     'value' => null,
 ])
 
+@php
+    $feedbackId = $id.'-feedback';
+    $errorId = $id.'-error';
+    $describedBy = collect([
+        $strength ? $feedbackId : null,
+        $errors->get($name) ? $errorId : null,
+    ])->filter()->implode(' ');
+@endphp
+
 <div>
     <label for="{{ $id }}" class="auth-label">{{ $label }}</label>
     <div class="relative">
         <input
             id="{{ $id }}"
-            class="auth-input pr-12"
+            class="auth-input pr-16"
             type="password"
             name="{{ $name }}"
             @if (! is_null($value)) value="{{ $value }}" @endif
             required
             autocomplete="{{ $autocomplete }}"
             placeholder="{{ $placeholder }}"
-            @if ($strength) data-password-feedback-input aria-describedby="{{ $id }}-feedback" @endif
-            @error($name) aria-invalid="true" @enderror
+            @if ($strength) data-password-feedback-input @endif
+            @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
+            @if ($errors->get($name)) aria-invalid="true" @endif
         >
         <button type="button" class="auth-password-toggle" data-password-toggle="{{ $id }}" aria-label="Tampilkan kata sandi" aria-pressed="false">
             <svg data-eye-open class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -38,10 +48,10 @@
     </div>
 
     @if ($strength)
-        <p id="{{ $id }}-feedback" class="mt-1.5 hidden text-xs font-medium text-red-600 dark:text-red-400" data-password-feedback>
+        <p id="{{ $feedbackId }}" class="mt-1.5 hidden text-xs font-medium text-red-600 dark:text-red-400" data-password-feedback>
             Kata sandi minimal 8 karakter.
         </p>
     @endif
 
-    <x-input-error :messages="$errors->get($name)" class="auth-error" />
+    <x-input-error id="{{ $errorId }}" :messages="$errors->get($name)" class="auth-error" />
 </div>

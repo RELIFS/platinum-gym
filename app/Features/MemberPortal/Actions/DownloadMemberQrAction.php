@@ -25,7 +25,7 @@ class DownloadMemberQrAction
             ->latest('created_at')
             ->first();
 
-        if (! $qrToken || $qrToken->is_revoked || $qrToken->expires_at?->isPast()) {
+        if (! $qrToken || $qrToken->is_revoked) {
             throw new RuntimeException('QR member belum aktif untuk diunduh.');
         }
 

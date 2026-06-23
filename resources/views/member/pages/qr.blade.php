@@ -4,13 +4,14 @@
     $qrStatusClass = $qrTokenIsActive ? 'member-status-success' : 'member-status-warning';
     $pendingPayment = collect($payments)->first(fn ($payment) => in_array((string) $payment->status, ['waiting_payment', 'pending', 'unpaid', 'waiting_confirmation'], true));
     $inactiveTitle = match ($qrStatusLabel) {
-        'Kedaluwarsa' => 'QR tidak aktif',
         'Dicabut' => 'QR dicabut',
         default => 'QR belum aktif',
     };
-    $inactiveBody = $pendingPayment
-        ? 'Selesaikan pembayaran yang masih menunggu agar QR member bisa diterbitkan setelah membership aktif.'
-        : 'QR member diterbitkan otomatis setelah membership berhasil dibayar dan aktif.';
+    $inactiveBody = match (true) {
+        (bool) $pendingPayment => 'Selesaikan pembayaran yang masih menunggu agar QR member bisa digunakan kembali.',
+        (bool) $qrToken => 'Aktifkan membership untuk menggunakan QR saat check-in.',
+        default => 'QR member diterbitkan otomatis setelah membership berhasil dibayar dan aktif.',
+    };
     $inactiveCtaRoute = $pendingPayment ? route('member.transactions.show', $pendingPayment) : route('member.membership');
     $inactiveCtaLabel = $pendingPayment ? 'Lanjutkan Pembayaran' : 'Pilih Membership';
     $recentCheckInRows = collect($portal['recentCheckInRows'] ?? []);
@@ -31,7 +32,7 @@
         </div>
         <p class="mt-5 break-words text-xs font-black uppercase tracking-[0.2em] text-gold-600 dark:text-gold-400">{{ $member->member_code }}</p>
         <h3 class="mt-2 break-words text-2xl font-black text-zinc-950 dark:text-white">{{ $user->name }}</h3>
-        <p class="mt-3 text-sm font-semibold leading-6 text-zinc-600 dark:text-zinc-300">{{ $qrTokenIsActive ? 'QR aktif dan dapat dipindai admin untuk check-in.' : $inactiveBody }}</p>
+        <p class="mt-3 text-sm font-semibold leading-6 text-zinc-600 dark:text-zinc-300">{{ $qrTokenIsActive ? 'QR ini tetap sama selama akun member aktif. Tunjukkan ke admin saat check-in.' : $inactiveBody }}</p>
         @if ($qrTokenIsActive)
             <a href="{{ route('member.qr.download') }}" class="member-button-primary mx-auto mt-5 w-full sm:max-w-xs">Download QR</a>
         @else
@@ -45,7 +46,7 @@
         <div class="member-soft-panel mt-5 flex-1">
             <dl class="grid gap-3 text-sm">
                 <div class="member-data-row"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Status</dt><dd><span class="member-status-pill {{ $qrStatusClass }}">{{ $qrStatusLabel }}</span></dd></div>
-                <div class="member-data-row"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Berlaku Sampai</dt><dd class="max-w-full break-words font-black text-zinc-950 dark:text-white">{{ $qrToken?->expires_at?->translatedFormat('d M Y H:i') ?? '-' }}</dd></div>
+                <div class="member-data-row"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Berlaku Selama</dt><dd class="max-w-full break-words font-black text-zinc-950 dark:text-white">{{ $qrTokenIsActive ? 'Membership aktif' : '-' }}</dd></div>
                 <div class="member-data-row"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Terakhir Dipakai</dt><dd class="max-w-full break-words font-black text-zinc-950 dark:text-white">{{ $qrToken?->last_used_at?->translatedFormat('d M Y H:i') ?? '-' }}</dd></div>
             </dl>
         </div>

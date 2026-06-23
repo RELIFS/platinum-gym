@@ -11,6 +11,7 @@
 
 @php
     $displayName = $name.'_display';
+    $errorId = $id.'-error';
     $rawValue = old($name, $value);
     $rawDisplayValue = old($displayName);
 
@@ -126,10 +127,10 @@
             placeholder="dd/mm/yyyy"
             inputmode="numeric"
             maxlength="10"
-            class="{{ $selectClass }} min-h-12 w-full pr-14"
+            class="{{ $selectClass }} min-h-12 w-full pr-16"
             autocomplete="bday"
             @if ($required) required @endif
-            @error($name) aria-invalid="true" @enderror
+            @error($name) aria-invalid="true" aria-describedby="{{ $errorId }}" @enderror
         >
         <input type="hidden" name="{{ $name }}" x-bind:value="isoValue">
         <input
@@ -137,19 +138,19 @@
             type="date"
             min="{{ $minDate }}"
             max="{{ $maxDate }}"
-            class="pointer-events-none absolute inset-y-0 right-0 h-full w-11 opacity-0"
+            class="pointer-events-none absolute inset-y-0 right-0 h-full w-12 opacity-0"
             tabindex="-1"
             aria-hidden="true"
             x-on:change="syncFromCalendar"
         >
         <button
             type="button"
-            class="absolute inset-y-1.5 right-1.5 inline-flex min-h-10 w-10 items-center justify-center rounded-md border border-transparent text-zinc-500 transition hover:border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:text-zinc-400 dark:hover:border-white/10 dark:hover:bg-white/[0.06] dark:hover:text-white"
+            class="absolute inset-y-1 right-1 inline-flex h-11 w-11 touch-manipulation items-center justify-center rounded-md border border-transparent text-zinc-500 transition hover:border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:text-zinc-400 dark:hover:border-white/10 dark:hover:bg-white/[0.06] dark:hover:text-white"
             aria-label="Pilih tanggal lahir"
             x-on:click="openPicker"
         >
             @include('member.partials.icon', ['name' => 'calendar', 'class' => 'h-5 w-5'])
         </button>
     </div>
-    <x-input-error :messages="$errors->get($name)" class="{{ $errorClass }}" />
+    <x-input-error id="{{ $errorId }}" :messages="$errors->get($name)" class="{{ $errorClass }}" />
 </fieldset>
