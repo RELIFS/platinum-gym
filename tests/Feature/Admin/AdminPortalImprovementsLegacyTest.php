@@ -3,53 +3,20 @@
 use App\Models\ClassEnrollment;
 use App\Models\ClassSchedule;
 use App\Models\GymClass;
-use App\Models\Member;
 use App\Models\Membership;
 use App\Models\Package as ServicePackage;
 use App\Models\Payment;
 use App\Models\Product;
-use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
+use Tests\Feature\Admin\Support\AdminPortalFixtures as AdminFixtures;
 
 beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
 });
 
-function createAdminImprovementsUser(): User
-{
-    $user = User::factory()->create([
-        'name' => 'Admin Improvements',
-        'email' => 'admin.improvements@example.com',
-    ]);
-    $user->assignRole('admin');
-
-    return $user;
-}
-
-function createAdminImprovementsMember(string $code = 'PG-ADMIN-IMP-0001'): array
-{
-    $user = User::factory()->create([
-        'name' => 'Member Improvements Admin',
-        'email' => fake()->unique()->safeEmail(),
-        'phone' => '0812'.fake()->unique()->numerify('########'),
-    ]);
-    $user->assignRole('member');
-
-    $member = Member::create([
-        'user_id' => $user->id,
-        'member_code' => $code,
-        'gender' => 'male',
-        'birth_date' => '2000-01-01',
-        'joined_at' => now()->subMonth()->toDateString(),
-        'status' => 'active',
-    ]);
-
-    return [$user, $member];
-}
-
 test('admin reject payment form exposes accessible label and confirmation', function () {
-    $admin = createAdminImprovementsUser();
-    [, $member] = createAdminImprovementsMember('PG-ADMIN-IMP-REJECT');
+    $admin = AdminFixtures::improvementsAdmin();
+    [, $member] = AdminFixtures::improvementsMember('PG-ADMIN-IMP-REJECT');
 
     $package = ServicePackage::create([
         'name' => 'Gym Reject Improvements',
@@ -90,8 +57,8 @@ test('admin reject payment form exposes accessible label and confirmation', func
 });
 
 test('admin recent payments and members use semantic status pill classes', function () {
-    $admin = createAdminImprovementsUser();
-    [, $member] = createAdminImprovementsMember('PG-ADMIN-IMP-PILL');
+    $admin = AdminFixtures::improvementsAdmin();
+    [, $member] = AdminFixtures::improvementsMember('PG-ADMIN-IMP-PILL');
 
     $package = ServicePackage::create([
         'name' => 'Gym Pill Improvements',
@@ -133,7 +100,7 @@ test('admin recent payments and members use semantic status pill classes', funct
 });
 
 test('admin dashboard removes redundant quick menu and uses polished surface tokens', function () {
-    $admin = createAdminImprovementsUser();
+    $admin = AdminFixtures::improvementsAdmin();
 
     $this->actingAs($admin)->get('/admin')
         ->assertOk()
@@ -155,7 +122,7 @@ test('admin dashboard removes redundant quick menu and uses polished surface tok
 });
 
 test('admin layout and data tables expose color polish utility classes', function () {
-    $admin = createAdminImprovementsUser();
+    $admin = AdminFixtures::improvementsAdmin();
 
     Product::create([
         'name' => 'Produk Color Polish',
@@ -179,8 +146,8 @@ test('admin layout and data tables expose color polish utility classes', functio
 });
 
 test('admin booking widget renders status as semantic pill', function () {
-    $admin = createAdminImprovementsUser();
-    [, $member] = createAdminImprovementsMember('PG-ADMIN-IMP-BOOKING');
+    $admin = AdminFixtures::improvementsAdmin();
+    [, $member] = AdminFixtures::improvementsMember('PG-ADMIN-IMP-BOOKING');
 
     $gymClass = GymClass::create([
         'name' => 'Aerobic Pill Admin',
@@ -217,7 +184,7 @@ test('admin booking widget renders status as semantic pill', function () {
 });
 
 test('admin product edit form shows current image preview and aria-invalid on error', function () {
-    $admin = createAdminImprovementsUser();
+    $admin = AdminFixtures::improvementsAdmin();
 
     $product = Product::create([
         'name' => 'Produk Preview Admin',
@@ -245,7 +212,7 @@ test('admin product edit form shows current image preview and aria-invalid on er
 });
 
 test('admin sidebar shows account identity block', function () {
-    $admin = createAdminImprovementsUser();
+    $admin = AdminFixtures::improvementsAdmin();
 
     $this->actingAs($admin)->get('/admin')
         ->assertOk()
@@ -254,16 +221,17 @@ test('admin sidebar shows account identity block', function () {
 });
 
 test('admin profile page links to account security edit', function () {
-    $admin = createAdminImprovementsUser();
+    $admin = AdminFixtures::improvementsAdmin();
 
     $this->actingAs($admin)->get('/admin/profil')
         ->assertOk()
-        ->assertSee('Edit Akun Saya')
+        ->assertSee('Kelola Keamanan Akun')
+        ->assertSee('Foto profil admin')
         ->assertSee(route('profile.edit'), false);
 });
 
 test('admin reports export link reflects filtered period via alpine binding', function () {
-    $admin = createAdminImprovementsUser();
+    $admin = AdminFixtures::improvementsAdmin();
 
     $this->actingAs($admin)->get('/admin/laporan?date_from=2026-01-01&date_to=2026-01-31')
         ->assertOk()
@@ -273,7 +241,7 @@ test('admin reports export link reflects filtered period via alpine binding', fu
 });
 
 test('admin audit log uses user friendly wording', function () {
-    $admin = createAdminImprovementsUser();
+    $admin = AdminFixtures::improvementsAdmin();
 
     $this->actingAs($admin)->get('/admin/audit-log')
         ->assertOk()
@@ -289,7 +257,7 @@ test('admin audit log uses user friendly wording', function () {
 });
 
 test('admin pending payment badge is visible with accessible label', function () {
-    $admin = createAdminImprovementsUser();
+    $admin = AdminFixtures::improvementsAdmin();
 
     $this->actingAs($admin)->get('/admin')
         ->assertOk()
@@ -297,20 +265,24 @@ test('admin pending payment badge is visible with accessible label', function ()
 });
 
 test('admin settings save form requires confirmation', function () {
-    $admin = createAdminImprovementsUser();
+    $admin = AdminFixtures::improvementsAdmin();
 
     $this->actingAs($admin)->get('/admin/pengaturan')
         ->assertOk()
         ->assertSee('Simpan perubahan pengaturan website', false)
-        ->assertSee('URL Embed Google Maps')
+        ->assertSee('Informasi Umum')
+        ->assertSee('Kontak Publik')
+        ->assertSee('Media Sosial &amp; Peta', false)
+        ->assertSee('Link embed peta Google')
         ->assertSee('Awalan Nomor Invoice')
         ->assertSee('Catatan Footer Invoice')
+        ->assertSee('Konfigurasi sensitif')
         ->assertDontSee('URL Embed Maps')
         ->assertDontSee('Prefix Invoice');
 });
 
 test('admin notifications page renders semantic success status pill', function () {
-    $admin = createAdminImprovementsUser();
+    $admin = AdminFixtures::improvementsAdmin();
 
     $this->actingAs($admin)->get('/admin/notifikasi')
         ->assertOk()
@@ -321,7 +293,7 @@ test('admin notifications page renders semantic success status pill', function (
 });
 
 test('admin layout renders success flash banner with emerald palette and polite live region', function () {
-    $admin = createAdminImprovementsUser();
+    $admin = AdminFixtures::improvementsAdmin();
 
     $this->actingAs($admin)
         ->withSession(['status' => 'Aksi tersimpan dengan baik.', 'status_kind' => 'success'])
@@ -333,7 +305,7 @@ test('admin layout renders success flash banner with emerald palette and polite 
 });
 
 test('admin layout renders error flash banner with red palette and assertive live region', function () {
-    $admin = createAdminImprovementsUser();
+    $admin = AdminFixtures::improvementsAdmin();
 
     $this->actingAs($admin)
         ->withSession(['status' => 'Aksi gagal diproses.', 'status_kind' => 'error'])
@@ -345,7 +317,7 @@ test('admin layout renders error flash banner with red palette and assertive liv
 });
 
 test('admin profile edit dispatches to admin account security page using admin layout', function () {
-    $admin = createAdminImprovementsUser();
+    $admin = AdminFixtures::improvementsAdmin();
 
     $this->actingAs($admin)->get(route('profile.edit'))
         ->assertOk()
@@ -361,7 +333,7 @@ test('admin profile edit dispatches to admin account security page using admin l
 });
 
 test('admin check-in page exposes camera scan region without manual check in fallback', function () {
-    $admin = createAdminImprovementsUser();
+    $admin = AdminFixtures::improvementsAdmin();
 
     $this->actingAs($admin)->get('/admin/check-in')
         ->assertOk()

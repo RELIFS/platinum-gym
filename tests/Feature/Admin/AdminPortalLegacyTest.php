@@ -1,9 +1,11 @@
 <?php
 
+use App\Models\ClassAttendance;
 use App\Models\ClassEnrollment;
 use App\Models\ClassSchedule;
 use App\Models\GymCheckIn;
 use App\Models\GymClass;
+use App\Models\Invoice;
 use App\Models\Member;
 use App\Models\MemberPackageSession;
 use App\Models\MemberPackageSessionUsage;
@@ -16,41 +18,11 @@ use App\Models\Setting;
 use App\Models\Trainer;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
+use Tests\Feature\Admin\Support\AdminPortalFixtures as AdminFixtures;
 
 beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
 });
-
-function createAdminPortalUser(): User
-{
-    $user = User::factory()->create([
-        'name' => 'Admin Portal',
-        'email' => 'admin.portal@example.com',
-    ]);
-    $user->assignRole('admin');
-
-    return $user;
-}
-
-function createAdminPortalMember(string $code = 'PG-ADMIN-0001'): array
-{
-    $user = User::factory()->create([
-        'name' => 'Member Admin Test',
-        'email' => fake()->unique()->safeEmail(),
-    ]);
-    $user->assignRole('member');
-
-    $member = Member::create([
-        'user_id' => $user->id,
-        'member_code' => $code,
-        'gender' => 'male',
-        'birth_date' => '2000-01-01',
-        'joined_at' => now()->subMonth()->toDateString(),
-        'status' => 'active',
-    ]);
-
-    return [$user, $member];
-}
 
 test('admin portal routes require authentication', function (string $path) {
     $this->get($path)->assertRedirect('/login');
@@ -82,7 +54,7 @@ test('non admin roles cannot access admin portal', function (string $role) {
 })->with(['member', 'owner']);
 
 test('admin can access all admin pages', function (string $path, string $title) {
-    $admin = createAdminPortalUser();
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
 
     $this->actingAs($admin)->get($path)
         ->assertOk()
@@ -113,7 +85,7 @@ test('admin can access all admin pages', function (string $path, string $title) 
 ]);
 
 test('admin member resource uses nim label', function () {
-    $admin = createAdminPortalUser();
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
 
     $this->actingAs($admin)->get(route('admin.resources.create', 'members'))
         ->assertOk()
@@ -122,7 +94,7 @@ test('admin member resource uses nim label', function () {
 });
 
 test('admin resource forms use production ready field wording', function () {
-    $admin = createAdminPortalUser();
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
 
     $this->actingAs($admin)->get(route('admin.resources.create', 'packages'))
         ->assertOk()
@@ -141,8 +113,8 @@ test('admin resource forms use production ready field wording', function () {
 });
 
 test('admin dashboard and modules render operational data', function () {
-    $admin = createAdminPortalUser();
-    [, $member] = createAdminPortalMember('PG-ADMIN-DATA');
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
+    [, $member] = AdminFixtures::member('PG-ADMIN-DATA');
 
     $package = ServicePackage::create([
         'name' => 'Gym Admin Test',
@@ -277,7 +249,7 @@ test('admin dashboard and modules render operational data', function () {
 });
 
 test('admin settings page masks sensitive values', function () {
-    $admin = createAdminPortalUser();
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
 
     Setting::create([
         'key' => 'gemini_api_key',
@@ -303,7 +275,7 @@ test('admin settings page masks sensitive values', function () {
 });
 
 test('admin check-in page renders paginated history with date range filters', function () {
-    $admin = createAdminPortalUser();
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
 
     $package = ServicePackage::create([
         'name' => 'Gym History Test',
@@ -346,7 +318,7 @@ test('admin check-in page renders paginated history with date range filters', fu
     ]);
 
     foreach (range(1, 18) as $index) {
-        [$user, $member] = createAdminPortalMember('PG-HISTORY-'.str_pad((string) $index, 2, '0', STR_PAD_LEFT));
+        [$user, $member] = AdminFixtures::member('PG-HISTORY-'.str_pad((string) $index, 2, '0', STR_PAD_LEFT));
         $user->forceFill(['name' => 'History Member '.str_pad((string) $index, 2, '0', STR_PAD_LEFT)])->save();
 
         $membership = Membership::create([
@@ -419,7 +391,7 @@ test('admin check-in page renders paginated history with date range filters', fu
         }
     }
 
-    [$oldUser, $oldMember] = createAdminPortalMember('PG-HISTORY-OLD');
+    [$oldUser, $oldMember] = AdminFixtures::member('PG-HISTORY-OLD');
     $oldUser->forceFill(['name' => 'History Old Member'])->save();
     $oldMembership = Membership::create([
         'member_id' => $oldMember->id,
@@ -440,7 +412,7 @@ test('admin check-in page renders paginated history with date range filters', fu
         'scanned_by' => $admin->id,
     ]);
 
-    [$standaloneUser, $standaloneMember] = createAdminPortalMember('PG-HISTORY-STANDALONE');
+    [$standaloneUser, $standaloneMember] = AdminFixtures::member('PG-HISTORY-STANDALONE');
     $standaloneUser->forceFill(['name' => 'History Standalone Session Member'])->save();
     $standalonePackageSession = MemberPackageSession::create([
         'member_id' => $standaloneMember->id,
@@ -466,7 +438,7 @@ test('admin check-in page renders paginated history with date range filters', fu
         'request_key' => 'history-standalone-session-usage',
     ]);
 
-    [$oldStandaloneUser, $oldStandaloneMember] = createAdminPortalMember('PG-HISTORY-OLD-SESSION');
+    [$oldStandaloneUser, $oldStandaloneMember] = AdminFixtures::member('PG-HISTORY-OLD-SESSION');
     $oldStandaloneUser->forceFill(['name' => 'History Old Standalone Session Member'])->save();
     $oldStandalonePackageSession = MemberPackageSession::create([
         'member_id' => $oldStandaloneMember->id,
@@ -565,8 +537,8 @@ test('admin check-in page renders paginated history with date range filters', fu
 });
 
 test('admin can approve and reject payments', function () {
-    $admin = createAdminPortalUser();
-    [, $member] = createAdminPortalMember('PG-ADMIN-PAYMENT-ACTION');
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
+    [, $member] = AdminFixtures::member('PG-ADMIN-PAYMENT-ACTION');
 
     $package = ServicePackage::create([
         'name' => 'Gym Payment Action Test',
@@ -631,8 +603,8 @@ test('admin can approve and reject payments', function () {
 });
 
 test('admin can record cash payment and activate membership', function () {
-    $admin = createAdminPortalUser();
-    [, $member] = createAdminPortalMember('PG-ADMIN-CASH');
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
+    [, $member] = AdminFixtures::member('PG-ADMIN-CASH');
 
     $package = ServicePackage::create([
         'name' => 'Cash Membership Test',
@@ -675,8 +647,151 @@ test('admin can record cash payment and activate membership', function () {
         ->assertDontSee('Catat Cash');
 });
 
+test('admin booking page only exposes actions allowed by booking status', function () {
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
+    [, $member] = AdminFixtures::member('PG-ADMIN-BOOKING-ACTIONS');
+
+    [, , $confirmed] = AdminFixtures::classBooking($member, 'confirmed');
+
+    $this->actingAs($admin)->get(route('admin.booking'))
+        ->assertOk()
+        ->assertSee('Booking sudah siap untuk proses check-in.')
+        ->assertDontSee('action="'.route('admin.booking.confirm', $confirmed).'"', false);
+
+    [, , $pendingPayment] = AdminFixtures::classBooking($member, 'pending_payment');
+
+    $this->actingAs($admin)->get(route('admin.booking'))
+        ->assertOk()
+        ->assertSee('Menunggu pembayaran lunas sebelum bisa dikonfirmasi.')
+        ->assertDontSee('action="'.route('admin.booking.confirm', $pendingPayment).'"', false);
+});
+
+test('admin booking confirm uses guarded domain action', function () {
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
+    [, $member] = AdminFixtures::member('PG-ADMIN-BOOKING-CONFIRM');
+
+    [, , $booked] = AdminFixtures::classBooking($member, 'booked');
+
+    $this->actingAs($admin)->post(route('admin.booking.confirm', $booked))
+        ->assertRedirect()
+        ->assertSessionHas('status', 'Booking kelas berhasil dikonfirmasi.');
+
+    expect($booked->refresh()->status)->toBe('confirmed');
+
+    [, , $pendingPayment] = AdminFixtures::classBooking($member, 'pending_payment');
+
+    $this->actingAs($admin)->post(route('admin.booking.confirm', $pendingPayment))
+        ->assertRedirect()
+        ->assertSessionHas('status_kind', 'error')
+        ->assertSessionHas('status', 'Booking berbayar masih menunggu pembayaran. Konfirmasi dilakukan otomatis setelah pembayaran lunas.');
+
+    expect($pendingPayment->refresh()->status)->toBe('pending_payment');
+
+    [, , $attended] = AdminFixtures::classBooking($member, 'attended');
+
+    $this->actingAs($admin)->post(route('admin.booking.confirm', $attended))
+        ->assertRedirect()
+        ->assertSessionHas('status_kind', 'error')
+        ->assertSessionHas('status', 'Booking yang sudah tercatat hadir tidak perlu dikonfirmasi ulang.');
+
+    expect($attended->refresh()->status)->toBe('attended');
+});
+
+test('admin booking cancel uses safe cancellation action', function () {
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
+    [, $member] = AdminFixtures::member('PG-ADMIN-BOOKING-CANCEL');
+    [, , $enrollment] = AdminFixtures::classBooking($member, 'pending_payment');
+
+    $payment = Payment::create([
+        'payment_code' => 'PAY-ADMIN-BOOKING-CANCEL',
+        'member_id' => $member->id,
+        'payable_type' => ClassEnrollment::class,
+        'payable_id' => $enrollment->id,
+        'method' => 'midtrans',
+        'amount' => 50000,
+        'status' => 'waiting_payment',
+    ]);
+
+    $enrollment->forceFill(['payment_id' => $payment->id])->save();
+
+    $invoice = Invoice::create([
+        'payment_id' => $payment->id,
+        'invoice_number' => 'INV-ADMIN-BOOKING-CANCEL',
+        'issued_at' => now()->toDateString(),
+        'due_date' => now()->addDay()->toDateString(),
+        'subtotal' => 50000,
+        'discount' => 0,
+        'tax' => 0,
+        'total' => 50000,
+        'status' => 'pending',
+    ]);
+
+    $this->actingAs($admin)->post(route('admin.booking.cancel', $enrollment))
+        ->assertRedirect()
+        ->assertSessionHas('status', 'Booking kelas berhasil dibatalkan.');
+
+    expect($enrollment->refresh())
+        ->status->toBe('cancelled')
+        ->cancel_reason->toBe('Dibatalkan oleh admin.')
+        ->and($payment->refresh()->status)->toBe('cancelled')
+        ->and($invoice->refresh()->status)->toBe('cancelled');
+});
+
+test('admin booking cancel rejects attended and past bookings', function () {
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
+    [, $member] = AdminFixtures::member('PG-ADMIN-BOOKING-CANCEL-GUARD');
+
+    [, $schedule, $attended] = AdminFixtures::classBooking($member, 'booked');
+    ClassAttendance::create([
+        'enrollment_id' => $attended->id,
+        'schedule_id' => $schedule->id,
+        'member_id' => $member->id,
+        'attendance_date' => now()->toDateString(),
+        'attended_at' => now(),
+        'method' => 'manual',
+        'status' => 'present',
+        'scanned_by' => $admin->id,
+    ]);
+
+    $this->actingAs($admin)->post(route('admin.booking.cancel', $attended))
+        ->assertRedirect()
+        ->assertSessionHas('status_kind', 'error')
+        ->assertSessionHas('status', 'Booking yang sudah memiliki kehadiran tidak dapat dibatalkan.');
+
+    expect($attended->refresh()->status)->toBe('booked');
+
+    [, , $past] = AdminFixtures::classBooking($member, 'booked', now()->subDay()->toDateString());
+
+    $this->actingAs($admin)->post(route('admin.booking.cancel', $past))
+        ->assertRedirect()
+        ->assertSessionHas('status_kind', 'error')
+        ->assertSessionHas('status', 'Booking kelas yang sudah lewat tidak dapat dibatalkan.');
+
+    expect($past->refresh()->status)->toBe('booked');
+});
+
+test('admin booking form shows synced schedule date metadata and indonesian validation', function () {
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
+    [, $member] = AdminFixtures::member('PG-ADMIN-BOOKING-FORM');
+    [, $schedule] = AdminFixtures::classBooking($member);
+
+    $this->actingAs($admin)->get(route('admin.booking'))
+        ->assertOk()
+        ->assertSee('Tanggal otomatis disesuaikan dengan hari jadwal kelas.')
+        ->assertSee('data-day-of-week="'.((int) $schedule->day_of_week).'"', false)
+        ->assertSee('adminBookingForm', false);
+
+    $this->actingAs($admin)->post(route('admin.booking.store'), [
+        'member_id' => $member->id,
+        'schedule_id' => $schedule->id,
+        'session_date' => now()->subDay()->toDateString(),
+    ])
+        ->assertRedirect()
+        ->assertSessionHasErrors(['session_date' => 'Tanggal kelas tidak boleh lebih awal dari hari ini.']);
+});
+
 test('admin can update whitelisted public settings without exposing secrets', function () {
-    $admin = createAdminPortalUser();
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
 
     Setting::create([
         'key' => 'qr_secret',
@@ -722,7 +837,7 @@ test('admin can update whitelisted public settings without exposing secrets', fu
 });
 
 test('admin can filter reports and export csv', function () {
-    $admin = createAdminPortalUser();
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
 
     $this->actingAs($admin)->get(route('admin.reports', [
         'date_from' => now()->startOfMonth()->toDateString(),
@@ -731,6 +846,8 @@ test('admin can filter reports and export csv', function () {
         ->assertOk()
         ->assertSee('Periode operasional')
         ->assertSee('Unduh CSV')
+        ->assertSee('Unduh Excel')
+        ->assertSee('Unduh PDF')
         ->assertDontSee('Export CSV');
 
     $response = $this->actingAs($admin)->get(route('admin.reports.export', [
@@ -742,11 +859,29 @@ test('admin can filter reports and export csv', function () {
         ->assertHeader('content-type', 'text/csv; charset=UTF-8');
 
     expect($response->streamedContent())->toContain('Metrik');
+
+    $xlsx = $this->actingAs($admin)->get(route('admin.reports.export', [
+        'format' => 'xlsx',
+        'date_from' => now()->startOfMonth()->toDateString(),
+        'date_to' => now()->toDateString(),
+    ]));
+
+    $xlsx->assertOk();
+    expect((string) $xlsx->headers->get('content-disposition'))->toContain('.xlsx');
+
+    $pdf = $this->actingAs($admin)->get(route('admin.reports.export', [
+        'format' => 'pdf',
+        'date_from' => now()->startOfMonth()->toDateString(),
+        'date_to' => now()->toDateString(),
+    ]));
+
+    $pdf->assertOk();
+    expect((string) $pdf->headers->get('content-disposition'))->toContain('.pdf');
 });
 
 test('admin scan active member qr shows preview before confirm check in', function () {
-    $admin = createAdminPortalUser();
-    [, $member] = createAdminPortalMember('PG-ADMIN-CHECKIN');
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
+    [, $member] = AdminFixtures::member('PG-ADMIN-CHECKIN');
 
     $package = ServicePackage::create([
         'name' => 'Gym Check In Test',
@@ -844,8 +979,8 @@ test('admin scan active member qr shows preview before confirm check in', functi
 });
 
 test('admin check-in preview disables session actions when member has no active package sessions', function () {
-    $admin = createAdminPortalUser();
-    [, $member] = createAdminPortalMember('PG-ADMIN-NO-SESSIONS');
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
+    [, $member] = AdminFixtures::member('PG-ADMIN-NO-SESSIONS');
 
     $package = ServicePackage::create([
         'name' => 'Gym No Session Test',
@@ -890,8 +1025,8 @@ test('admin check-in preview disables session actions when member has no active 
 });
 
 test('admin confirm session action without selecting package session is rejected by backend guard', function () {
-    $admin = createAdminPortalUser();
-    [, $member] = createAdminPortalMember('PG-ADMIN-SESSION-GUARD');
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
+    [, $member] = AdminFixtures::member('PG-ADMIN-SESSION-GUARD');
 
     $membershipPackage = ServicePackage::create([
         'name' => 'Gym Session Guard Membership',
@@ -935,8 +1070,8 @@ test('admin confirm session action without selecting package session is rejected
 });
 
 test('admin can explicitly use one package session after qr preview', function () {
-    $admin = createAdminPortalUser();
-    [, $member] = createAdminPortalMember('PG-ADMIN-SESSION-USAGE');
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
+    [, $member] = AdminFixtures::member('PG-ADMIN-SESSION-USAGE');
 
     $membershipPackage = ServicePackage::create([
         'name' => 'Gym Session Preview Membership',
@@ -1010,8 +1145,8 @@ test('admin can explicitly use one package session after qr preview', function (
 });
 
 test('admin can check in and use one package session after qr preview', function () {
-    $admin = createAdminPortalUser();
-    [, $member] = createAdminPortalMember('PG-ADMIN-CHECKIN-SESSION');
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
+    [, $member] = AdminFixtures::member('PG-ADMIN-CHECKIN-SESSION');
 
     $membershipPackage = ServicePackage::create([
         'name' => 'Gym Check In Session Membership',
@@ -1088,7 +1223,7 @@ test('admin can check in and use one package session after qr preview', function
 });
 
 test('admin can toggle product active status', function () {
-    $admin = createAdminPortalUser();
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
 
     $product = Product::create([
         'name' => 'Toggle Product Test',
@@ -1104,7 +1239,7 @@ test('admin can toggle product active status', function () {
 });
 
 test('admin can create and update product resource', function () {
-    $admin = createAdminPortalUser();
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
 
     $this->actingAs($admin)->get(route('admin.resources.create', 'products'))
         ->assertOk()
@@ -1138,7 +1273,7 @@ test('admin can create and update product resource', function () {
 });
 
 test('admin product table uses server side pagination', function () {
-    $admin = createAdminPortalUser();
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
 
     foreach (range(1, 14) as $index) {
         Product::create([
@@ -1165,7 +1300,7 @@ test('admin product table uses server side pagination', function () {
 });
 
 test('admin product search is applied before pagination and preserves query string', function () {
-    $admin = createAdminPortalUser();
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
 
     Product::create([
         'name' => 'Outside Search Product',
@@ -1200,7 +1335,7 @@ test('admin product search is applied before pagination and preserves query stri
 });
 
 test('admin product status filter is server side', function () {
-    $admin = createAdminPortalUser();
+    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
 
     Product::create([
         'name' => 'Visible Product Filter',

@@ -111,6 +111,22 @@ test('registration requires member fields and terms', function () {
     $this->assertGuest();
 });
 
+test('registration validation uses production indonesian copy', function () {
+    $response = $this->post('/register', []);
+
+    $response->assertSessionHasErrors([
+        'name' => 'Nama lengkap wajib diisi.',
+        'birth_date' => 'Tanggal lahir wajib diisi.',
+        'gender' => 'Jenis kelamin wajib dipilih.',
+        'phone' => 'No. WhatsApp wajib diisi.',
+        'email' => 'Alamat email wajib diisi.',
+        'password' => 'Kata sandi wajib diisi.',
+        'terms' => 'Anda perlu menyetujui Syarat & Ketentuan dan Kebijakan Privasi.',
+    ]);
+
+    $this->assertGuest();
+});
+
 test('registration normalizes indonesian whatsapp number', function () {
     $this->post('/register', [
         'name' => 'Test Member',
@@ -140,7 +156,29 @@ test('registration rejects duplicate whatsapp number', function () {
         'terms' => '1',
     ]);
 
-    $response->assertSessionHasErrors('phone');
+    $response->assertSessionHasErrors([
+        'phone' => 'No. WhatsApp sudah terdaftar.',
+    ]);
+    $this->assertGuest();
+});
+
+test('registration rejects duplicate email with production copy', function () {
+    User::factory()->create(['email' => 'duplicate-email@example.com']);
+
+    $response = $this->post('/register', [
+        'name' => 'Test Member',
+        'birth_date' => '2000-01-15',
+        'gender' => 'male',
+        'phone' => '081234567890',
+        'email' => 'duplicate-email@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasErrors([
+        'email' => 'Alamat email sudah terdaftar. Silakan masuk atau gunakan email lain.',
+    ]);
     $this->assertGuest();
 });
 
@@ -156,7 +194,11 @@ test('registration rejects invalid member fields', function () {
         'terms' => '1',
     ]);
 
-    $response->assertSessionHasErrors(['birth_date', 'gender', 'phone']);
+    $response->assertSessionHasErrors([
+        'birth_date' => 'Tanggal lahir harus sebelum hari ini.',
+        'gender' => 'Pilih jenis kelamin yang tersedia.',
+        'phone' => 'Gunakan format No. WhatsApp 08xxxxxxxxxx.',
+    ]);
     $this->assertGuest();
 });
 
@@ -174,7 +216,9 @@ test('registration rejects invalid separated birth date fields', function () {
         'terms' => '1',
     ]);
 
-    $response->assertSessionHasErrors(['birth_date']);
+    $response->assertSessionHasErrors([
+        'birth_date' => 'Tanggal lahir belum valid. Gunakan format dd/mm/yyyy.',
+    ]);
     $this->assertGuest();
 });
 
@@ -190,6 +234,46 @@ test('registration rejects invalid dd mm yyyy birth date display', function () {
         'terms' => '1',
     ]);
 
-    $response->assertSessionHasErrors(['birth_date']);
+    $response->assertSessionHasErrors([
+        'birth_date' => 'Tanggal lahir belum valid. Gunakan format dd/mm/yyyy.',
+    ]);
+    $this->assertGuest();
+});
+
+test('registration rejects password confirmation mismatch with production copy', function () {
+    $response = $this->post('/register', [
+        'name' => 'Mismatch Password Member',
+        'birth_date_display' => '15/01/2000',
+        'gender' => 'male',
+        'phone' => '081234567896',
+        'email' => 'mismatch-password@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'different-password',
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasErrors([
+        'password' => 'Konfirmasi kata sandi belum sama.',
+    ]);
+
+    $this->assertGuest();
+});
+
+test('registration rejects short password with production copy', function () {
+    $response = $this->post('/register', [
+        'name' => 'Short Password Member',
+        'birth_date_display' => '15/01/2000',
+        'gender' => 'male',
+        'phone' => '081234567897',
+        'email' => 'short-password@example.com',
+        'password' => 'short',
+        'password_confirmation' => 'short',
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasErrors([
+        'password' => 'Kata sandi minimal 8 karakter.',
+    ]);
+
     $this->assertGuest();
 });

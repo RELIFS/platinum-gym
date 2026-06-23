@@ -22,97 +22,20 @@ use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Tests\Feature\Member\Support\MemberPortalFixtures as MemberFixtures;
 
 beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
 });
 
-function createPortalMember(string $code = 'PG-PORTAL-0001', ?string $email = null, ?string $phone = null): array
-{
-    $user = User::factory()->create([
-        'name' => 'Andi Portal',
-        'email' => $email ?? 'andi.portal@example.com',
-        'phone' => $phone ?? '081234567890',
-    ]);
-    $user->assignRole('member');
-
-    $member = Member::create([
-        'user_id' => $user->id,
-        'member_code' => $code,
-        'gender' => 'male',
-        'birth_date' => '2000-01-01',
-        'joined_at' => now()->subMonth()->toDateString(),
-        'status' => 'active',
-    ]);
-
-    return [$user, $member];
-}
-
-function makePortalMemberCheckoutEligible(User $user): void
-{
-    $user->forceFill(['avatar' => 'storage/member/avatars/test-avatar.jpg'])->save();
-}
-
-test('member portal routes require authentication', function (string $path) {
-    $this->get($path)->assertRedirect('/login');
-})->with([
-    '/member/dashboard',
-    '/member/profil',
-    '/member/profil/edit',
-    '/member/membership',
-    '/member/booking-kelas',
-    '/member/riwayat-booking',
-    '/member/transaksi',
-    '/member/qr',
-    '/member/qr/download',
-    '/member/notifikasi',
-]);
-
 test('member ai assistant page route is removed', function () {
-    [$user] = createPortalMember('PG-PORTAL-NO-AI-PAGE');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-NO-AI-PAGE');
 
     $this->actingAs($user)->get('/member/ai-assistant')->assertNotFound();
 });
 
-test('member portal routes require complete member profile', function () {
-    $user = User::factory()->create();
-    $user->assignRole('member');
-
-    $this->actingAs($user)->get('/member/membership')
-        ->assertRedirect('/member/complete-profile');
-});
-
-test('admin and owner cannot access member portal', function (string $role) {
-    $user = User::factory()->create();
-    $user->assignRole($role);
-
-    $this->actingAs($user)->get('/member/dashboard')->assertForbidden();
-})->with(['admin', 'owner']);
-
-test('complete member can access all member portal pages', function (string $path, string $text) {
-    [$user] = createPortalMember('PG-PORTAL-ACCESS');
-
-    $this->actingAs($user)->get($path)
-        ->assertOk()
-        ->assertSee($text)
-        ->assertDontSee('Member Area')
-        ->assertDontSee('Akun Login')
-        ->assertDontSee('>Website<', false)
-        ->assertDontSee('Midtrans Sandbox');
-})->with([
-    ['/member/dashboard', 'Dashboard Member'],
-    ['/member/profil', 'Profil Member'],
-    ['/member/profil/edit', 'Edit Profil'],
-    ['/member/membership', 'Membership'],
-    ['/member/booking-kelas', 'Booking Kelas'],
-    ['/member/riwayat-booking', 'Riwayat Booking'],
-    ['/member/transaksi', 'Transaksi'],
-    ['/member/qr', 'QR Member'],
-    ['/member/notifikasi', 'Notifikasi'],
-]);
-
 test('member mobile navigation keeps neutral hamburger styling', function () {
-    [$user] = createPortalMember('PG-PORTAL-HAMBURGER');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-HAMBURGER');
 
     $this->actingAs($user)->get('/member/dashboard')
         ->assertOk()
@@ -122,7 +45,7 @@ test('member mobile navigation keeps neutral hamburger styling', function () {
 });
 
 test('member profile uses nim wording and system check helper', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-NIM-COPY');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-NIM-COPY');
     $member->forceFill([
         'is_student' => true,
         'student_id_number' => '2200012345',
@@ -144,7 +67,7 @@ test('member profile uses nim wording and system check helper', function () {
 });
 
 test('student profile validation uses nim attribute', function () {
-    [$user] = createPortalMember('PG-PORTAL-NIM-VALIDATION');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-NIM-VALIDATION');
 
     $this->actingAs($user)->from(route('member.profile.edit'))->patch(route('member.profile.update'), [
         'name' => 'Andi Portal',
@@ -158,7 +81,7 @@ test('student profile validation uses nim attribute', function () {
 });
 
 test('member can update profile from member portal', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-UPDATE');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-UPDATE');
 
     $this->actingAs($user)->patch(route('member.profile.update'), [
         'name' => 'Andi Updated',
@@ -190,7 +113,7 @@ test('member can update profile from member portal', function () {
 });
 
 test('member profile update rejects duplicate whatsapp number', function () {
-    [$user] = createPortalMember('PG-PORTAL-DUPLICATE-PHONE');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-DUPLICATE-PHONE');
     User::factory()->create(['phone' => '081277778888']);
 
     $this->actingAs($user)->from(route('member.profile'))->patch(route('member.profile.update'), [
@@ -204,7 +127,7 @@ test('member profile update rejects duplicate whatsapp number', function () {
 });
 
 test('dashboard renders real member data and empty operational states', function () {
-    [$user] = createPortalMember('PG-PORTAL-REAL');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-REAL');
 
     $response = $this->actingAs($user)->get('/member/dashboard');
 
@@ -236,7 +159,7 @@ test('dashboard renders real member data and empty operational states', function
 });
 
 test('member light theme uses balanced soft surfaces without dominant dark cards', function () {
-    [$user] = createPortalMember('PG-PORTAL-LIGHT-CONTRAST');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-LIGHT-CONTRAST');
 
     $dashboard = $this->actingAs($user)->get('/member/dashboard');
 
@@ -296,7 +219,7 @@ test('member light theme uses balanced soft surfaces without dominant dark cards
 });
 
 test('member portal hides exhausted and expired package sessions', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-SESSIONS');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-SESSIONS');
 
     $trainer = Trainer::create([
         'name' => 'Coach Adi',
@@ -387,8 +310,8 @@ test('member portal hides exhausted and expired package sessions', function () {
 });
 
 test('membership page shows all active memberships in horizontal rail without qr shortcut', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-ACTIVE-RAIL');
-    makePortalMemberCheckoutEligible($user);
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-ACTIVE-RAIL');
+    MemberFixtures::makeCheckoutEligible($user);
 
     $gymPackage = ServicePackage::create([
         'name' => 'Gym Aktif Rail Test',
@@ -465,7 +388,7 @@ test('membership page shows all active memberships in horizontal rail without qr
 });
 
 test('member transactions use server side pagination search and status filter', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-PAGINATED-PAYMENTS');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-PAGINATED-PAYMENTS');
 
     $otherUser = User::factory()->create(['email' => 'other.payment@example.com', 'phone' => '081299999901']);
     $otherUser->assignRole('member');
@@ -571,8 +494,8 @@ test('member transactions use server side pagination search and status filter', 
 });
 
 test('member package catalog uses server side pagination and filters', function () {
-    [$user] = createPortalMember('PG-PORTAL-PAGINATED-PACKAGES');
-    makePortalMemberCheckoutEligible($user);
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-PAGINATED-PACKAGES');
+    MemberFixtures::makeCheckoutEligible($user);
 
     foreach (range(1, 7) as $index) {
         ServicePackage::create([
@@ -619,8 +542,8 @@ test('member package catalog uses server side pagination and filters', function 
 });
 
 test('membership page groups packages and hides empty poundfit section', function () {
-    [$user] = createPortalMember('PG-PORTAL-MEMBERSHIP-GROUPS');
-    makePortalMemberCheckoutEligible($user);
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-MEMBERSHIP-GROUPS');
+    MemberFixtures::makeCheckoutEligible($user);
 
     ServicePackage::create([
         'name' => 'Gym Umum Group Test',
@@ -678,7 +601,7 @@ test('poundfit package appears in membership catalog and activates as package se
         ], 201),
     ]);
 
-    [$user, $member] = createPortalMember('PG-PORTAL-POUNDFIT-PACKAGE');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-POUNDFIT-PACKAGE');
 
     $package = ServicePackage::create([
         'name' => 'Poundfit 1x',
@@ -726,11 +649,11 @@ test('gym plus senam package is disabled for male members and available for fema
         ], 201),
     ]);
 
-    [$maleUser, $maleMember] = createPortalMember('PG-PORTAL-INCLUDE-MALE', 'include.male@example.com', '081211110001');
-    makePortalMemberCheckoutEligible($maleUser);
+    [$maleUser, $maleMember] = MemberFixtures::portalMember('PG-PORTAL-INCLUDE-MALE', 'include.male@example.com', '081211110001');
+    MemberFixtures::makeCheckoutEligible($maleUser);
 
-    [$femaleUser, $femaleMember] = createPortalMember('PG-PORTAL-INCLUDE-FEMALE', 'include.female@example.com', '081211110002');
-    makePortalMemberCheckoutEligible($femaleUser);
+    [$femaleUser, $femaleMember] = MemberFixtures::portalMember('PG-PORTAL-INCLUDE-FEMALE', 'include.female@example.com', '081211110002');
+    MemberFixtures::makeCheckoutEligible($femaleUser);
     $femaleMember->forceFill(['gender' => 'female'])->save();
 
     $package = ServicePackage::create([
@@ -769,9 +692,9 @@ test('personal trainer package requires active gym or include membership', funct
         ], 201),
     ]);
 
-    [$noGymUser, $noGymMember] = createPortalMember('PG-PORTAL-PT-NO-GYM', 'pt.no.gym@example.com', '081222220001');
-    [$senamUser, $senamMember] = createPortalMember('PG-PORTAL-PT-SENAM', 'pt.senam@example.com', '081222220002');
-    [$gymUser, $gymMember] = createPortalMember('PG-PORTAL-PT-GYM', 'pt.gym@example.com', '081222220003');
+    [$noGymUser, $noGymMember] = MemberFixtures::portalMember('PG-PORTAL-PT-NO-GYM', 'pt.no.gym@example.com', '081222220001');
+    [$senamUser, $senamMember] = MemberFixtures::portalMember('PG-PORTAL-PT-SENAM', 'pt.senam@example.com', '081222220002');
+    [$gymUser, $gymMember] = MemberFixtures::portalMember('PG-PORTAL-PT-GYM', 'pt.gym@example.com', '081222220003');
 
     $senamPackage = ServicePackage::create([
         'name' => 'Senam PT Guard Test',
@@ -852,7 +775,7 @@ test('personal trainer package requires active gym or include membership', funct
 });
 
 test('member class schedule uses server side pagination and filters', function () {
-    [$user] = createPortalMember('PG-PORTAL-PAGINATED-SCHEDULES');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-PAGINATED-SCHEDULES');
 
     foreach (range(1, 25) as $index) {
         $accessType = $index >= 24 ? 'paid' : 'included';
@@ -905,7 +828,7 @@ test('member class schedule uses server side pagination and filters', function (
 });
 
 test('member class schedule groups by class type sections', function () {
-    [$user] = createPortalMember('PG-PORTAL-SCHEDULE-GROUPS');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-SCHEDULE-GROUPS');
 
     $classes = [
         ['Aerobic Group Test', 'senam', 'included', 'senam', 1, '17:00:00'],
@@ -948,7 +871,7 @@ test('member class schedule groups by class type sections', function () {
 });
 
 test('member booking history uses server side pagination and own data filters', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-PAGINATED-BOOKINGS');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-PAGINATED-BOOKINGS');
 
     $gymClass = GymClass::create([
         'name' => 'History Class Member',
@@ -1015,7 +938,7 @@ test('member booking history uses server side pagination and own data filters', 
 });
 
 test('member notifications use server side pagination and read filters', function () {
-    [$user] = createPortalMember('PG-PORTAL-PAGINATED-NOTIFICATIONS');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-PAGINATED-NOTIFICATIONS');
 
     foreach (range(1, 8) as $index) {
         DatabaseNotification::query()->create([
@@ -1080,7 +1003,7 @@ test('member notifications use server side pagination and read filters', functio
         ->assertDontSee('Notif Dibaca 09');
 });
 test('expired qr token is not shown as active', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-QR-EXPIRED');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-QR-EXPIRED');
 
     QrToken::create([
         'tokenable_type' => Member::class,
@@ -1092,12 +1015,12 @@ test('expired qr token is not shown as active', function () {
 
     $this->actingAs($user)->get('/member/dashboard')
         ->assertOk()
-        ->assertSee('Kedaluwarsa')
+        ->assertSee('Belum aktif')
         ->assertDontSee('Status QR aktif');
 });
 
 test('revoked qr token is not shown as active', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-QR-REVOKED');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-QR-REVOKED');
 
     QrToken::create([
         'tokenable_type' => Member::class,
@@ -1114,7 +1037,7 @@ test('revoked qr token is not shown as active', function () {
 });
 
 test('dashboard renders membership payment booking and qr summaries', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-DATA');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-DATA');
 
     $package = ServicePackage::create([
         'name' => 'Gym Umum Test',
@@ -1191,7 +1114,7 @@ test('dashboard renders membership payment booking and qr summaries', function (
 test('member can view transaction detail and continue midtrans payment', function () {
     config(['services.midtrans.server_key' => null]);
 
-    [$user, $member] = createPortalMember('PG-PORTAL-PAYMENT-DETAIL');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-PAYMENT-DETAIL');
 
     $package = ServicePackage::create([
         'name' => 'Gym Detail Payment Test',
@@ -1237,7 +1160,7 @@ test('member can view transaction detail and continue midtrans payment', functio
 });
 
 test('member chatbot config includes safe internal fallbacks for extra topics', function () {
-    [$user] = createPortalMember('PG-PORTAL-CHATBOT');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-CHATBOT');
 
     $this->actingAs($user)->get('/member/dashboard')
         ->assertOk()
@@ -1258,8 +1181,8 @@ test('member can checkout membership with midtrans sandbox token', function () {
         ], 201),
     ]);
 
-    [$user, $member] = createPortalMember('PG-PORTAL-CHECKOUT');
-    makePortalMemberCheckoutEligible($user);
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-CHECKOUT');
+    MemberFixtures::makeCheckoutEligible($user);
 
     $package = ServicePackage::create([
         'name' => 'Gym Checkout Test',
@@ -1287,7 +1210,7 @@ test('membership checkout requires complete profile avatar before creating payme
     config(['services.midtrans.server_key' => 'server-test-key']);
     Http::fake();
 
-    [$user, $member] = createPortalMember('PG-PORTAL-CHECKOUT-NEEDS-AVATAR');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-CHECKOUT-NEEDS-AVATAR');
 
     $package = ServicePackage::create([
         'name' => 'Gym Needs Avatar Test',
@@ -1315,8 +1238,8 @@ test('student membership checkout opens after nim profile and avatar are complet
         ], 201),
     ]);
 
-    [$user, $member] = createPortalMember('PG-PORTAL-STUDENT-CHECKOUT');
-    makePortalMemberCheckoutEligible($user);
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-STUDENT-CHECKOUT');
+    MemberFixtures::makeCheckoutEligible($user);
     $member->forceFill([
         'birth_date' => now()->subYears(20)->toDateString(),
         'is_student' => true,
@@ -1356,8 +1279,8 @@ test('student membership checkout accepts unverified status when nim is present'
         ], 201),
     ]);
 
-    [$user, $member] = createPortalMember('PG-PORTAL-STUDENT-UNVERIFIED');
-    makePortalMemberCheckoutEligible($user);
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-STUDENT-UNVERIFIED');
+    MemberFixtures::makeCheckoutEligible($user);
     $member->forceFill([
         'birth_date' => now()->subYears(20)->toDateString(),
         'is_student' => true,
@@ -1386,8 +1309,8 @@ test('student membership checkout still requires nim and valid age', function ()
     config(['services.midtrans.server_key' => 'server-test-key']);
     Http::fake();
 
-    [$user, $member] = createPortalMember('PG-PORTAL-STUDENT-NIM-AGE');
-    makePortalMemberCheckoutEligible($user);
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-STUDENT-NIM-AGE');
+    MemberFixtures::makeCheckoutEligible($user);
     $member->forceFill([
         'birth_date' => now()->subYears(20)->toDateString(),
         'is_student' => true,
@@ -1430,7 +1353,7 @@ test('student membership checkout still requires nim and valid age', function ()
 test('midtrans webhook activates membership and issues qr token', function () {
     config(['services.midtrans.server_key' => 'server-test-key']);
 
-    [, $member] = createPortalMember('PG-PORTAL-WEBHOOK');
+    [, $member] = MemberFixtures::portalMember('PG-PORTAL-WEBHOOK');
 
     $package = ServicePackage::create([
         'name' => 'Gym Webhook Test',
@@ -1480,8 +1403,186 @@ test('midtrans webhook activates membership and issues qr token', function () {
         ->and(QrToken::query()->where('tokenable_id', $member->id)->where('purpose', 'member')->exists())->toBeTrue();
 });
 
+test('member qr token stays stable when buying another active membership', function () {
+    [, $member] = MemberFixtures::portalMember('PG-PORTAL-QR-STABLE');
+
+    $studentPackage = ServicePackage::create([
+        'name' => 'Gym Mahasiswa QR Stable Test',
+        'slug' => 'gym-mahasiswa-qr-stable-test',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'category' => 'mahasiswa',
+        'price' => 199000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    $studentMembership = Membership::create([
+        'member_id' => $member->id,
+        'package_id' => $studentPackage->id,
+        'code' => 'MBR-QR-STABLE-0001',
+        'start_date' => now()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 199000,
+        'status' => 'pending_payment',
+    ]);
+
+    $studentPayment = Payment::create([
+        'payment_code' => 'PAY-QR-STABLE-0001',
+        'member_id' => $member->id,
+        'payable_type' => Membership::class,
+        'payable_id' => $studentMembership->id,
+        'method' => 'cash',
+        'amount' => 199000,
+        'status' => 'waiting_payment',
+    ]);
+
+    app(FulfillPaidPaymentAction::class)->handle($studentPayment);
+
+    $firstQrToken = QrToken::query()
+        ->where('tokenable_type', Member::class)
+        ->where('tokenable_id', $member->id)
+        ->where('purpose', 'member')
+        ->firstOrFail();
+
+    $generalPackage = ServicePackage::create([
+        'name' => 'Gym Umum QR Stable Test',
+        'slug' => 'gym-umum-qr-stable-test',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'category' => 'umum',
+        'price' => 249000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    $generalMembership = Membership::create([
+        'member_id' => $member->id,
+        'package_id' => $generalPackage->id,
+        'code' => 'MBR-QR-STABLE-0002',
+        'start_date' => now()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 249000,
+        'status' => 'pending_payment',
+    ]);
+
+    $generalPayment = Payment::create([
+        'payment_code' => 'PAY-QR-STABLE-0002',
+        'member_id' => $member->id,
+        'payable_type' => Membership::class,
+        'payable_id' => $generalMembership->id,
+        'method' => 'cash',
+        'amount' => 249000,
+        'status' => 'waiting_payment',
+    ]);
+
+    app(FulfillPaidPaymentAction::class)->handle($generalPayment);
+
+    $qrTokens = QrToken::query()
+        ->where('tokenable_type', Member::class)
+        ->where('tokenable_id', $member->id)
+        ->where('purpose', 'member')
+        ->get();
+
+    expect($qrTokens)->toHaveCount(1)
+        ->and($qrTokens->first()->token)->toBe($firstQrToken->token)
+        ->and($qrTokens->first()->is_revoked)->toBeFalse()
+        ->and($qrTokens->first()->expires_at)->toBeNull();
+});
+
+test('legacy expiring qr token is reused and cleared on membership renewal', function () {
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-QR-LEGACY');
+    $legacyToken = Str::random(64);
+
+    QrToken::create([
+        'tokenable_type' => Member::class,
+        'tokenable_id' => $member->id,
+        'token' => $legacyToken,
+        'purpose' => 'member',
+        'expires_at' => now()->subDay(),
+    ]);
+
+    $package = ServicePackage::create([
+        'name' => 'Gym Renewal QR Stable Test',
+        'slug' => 'gym-renewal-qr-stable-test',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 250000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    $membership = Membership::create([
+        'member_id' => $member->id,
+        'package_id' => $package->id,
+        'code' => 'MBR-QR-LEGACY-0001',
+        'start_date' => now()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'price' => 250000,
+        'status' => 'pending_payment',
+    ]);
+
+    $payment = Payment::create([
+        'payment_code' => 'PAY-QR-LEGACY-0001',
+        'member_id' => $member->id,
+        'payable_type' => Membership::class,
+        'payable_id' => $membership->id,
+        'method' => 'cash',
+        'amount' => 250000,
+        'status' => 'waiting_payment',
+    ]);
+
+    app(FulfillPaidPaymentAction::class)->handle($payment);
+
+    $qrToken = QrToken::query()
+        ->where('tokenable_type', Member::class)
+        ->where('tokenable_id', $member->id)
+        ->where('purpose', 'member')
+        ->firstOrFail();
+
+    expect($qrToken->token)->toBe($legacyToken)
+        ->and($qrToken->is_revoked)->toBeFalse()
+        ->and($qrToken->expires_at)->toBeNull();
+
+    $this->actingAs($user)->get(route('member.qr'))
+        ->assertOk()
+        ->assertSee('QR ini tetap sama selama akun member aktif. Tunjukkan ke admin saat check-in.')
+        ->assertSee('Berlaku Selama')
+        ->assertSee('Membership aktif');
+});
+
+test('member qr token without active membership is not usable for admin check in', function () {
+    $admin = User::factory()->create([
+        'name' => 'Admin QR Stable',
+        'email' => 'admin.qr.stable@example.com',
+    ]);
+    $admin->assignRole('admin');
+
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-QR-NO-ACTIVE');
+    $token = Str::random(64);
+
+    QrToken::create([
+        'tokenable_type' => Member::class,
+        'tokenable_id' => $member->id,
+        'token' => $token,
+        'purpose' => 'member',
+    ]);
+
+    $this->actingAs($user)->get(route('member.qr'))
+        ->assertOk()
+        ->assertSee('Belum aktif')
+        ->assertSee('Aktifkan membership untuk menggunakan QR saat check-in.')
+        ->assertDontSee('Download QR');
+
+    $this->actingAs($admin)->post(route('admin.check-in.preview'), [
+        'token' => $token,
+    ])->assertRedirect()
+        ->assertSessionHas('status', 'Membership aktif tidak ditemukan.')
+        ->assertSessionHas('status_kind', 'error');
+});
+
 test('member can book included class with active matching membership', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-BOOKING');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-BOOKING');
 
     $package = ServicePackage::create([
         'name' => 'Senam Booking Test',
@@ -1537,7 +1638,7 @@ test('member can book included class with active matching membership', function 
 });
 
 test('poundfit booking requires active poundfit package session and does not consume session on booking', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-POUNDFIT-BOOKING');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-POUNDFIT-BOOKING');
 
     $package = ServicePackage::create([
         'name' => 'Poundfit 1x Booking Test',
@@ -1622,7 +1723,7 @@ test('poundfit booking requires active poundfit package session and does not con
 });
 
 test('member can cancel own class booking', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-CANCEL-BOOKING');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-CANCEL-BOOKING');
 
     $gymClass = GymClass::create([
         'name' => 'Cancel Booking Test',
@@ -1668,8 +1769,8 @@ test('member membership checkout reuses open payment on repeated submit', functi
         ], 201),
     ]);
 
-    [$user, $member] = createPortalMember('PG-PORTAL-IDEMPOTENT-MBR');
-    makePortalMemberCheckoutEligible($user);
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-IDEMPOTENT-MBR');
+    MemberFixtures::makeCheckoutEligible($user);
 
     $package = ServicePackage::create([
         'name' => 'Gym Idempotent Test',
@@ -1703,7 +1804,7 @@ test('member package session checkout reuses open payment on repeated submit', f
         ], 201),
     ]);
 
-    [$user, $member] = createPortalMember('PG-PORTAL-IDEMPOTENT-SESSION');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-IDEMPOTENT-SESSION');
 
     $package = ServicePackage::create([
         'name' => 'Sesi Gym Idempotent',
@@ -1733,8 +1834,8 @@ test('failed midtrans checkout does not leave orphan membership payment or invoi
         'app.sandbox.midtrans.com/*' => Http::response(['error_messages' => ['temporary error']], 500),
     ]);
 
-    [$user, $member] = createPortalMember('PG-PORTAL-MIDTRANS-FAIL');
-    makePortalMemberCheckoutEligible($user);
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-MIDTRANS-FAIL');
+    MemberFixtures::makeCheckoutEligible($user);
 
     $package = ServicePackage::create([
         'name' => 'Gym Failure Rollback',
@@ -1763,7 +1864,7 @@ test('paid class repeated booking reuses open payment and enrollment', function 
         ], 201),
     ]);
 
-    [$user, $member] = createPortalMember('PG-PORTAL-PAID-CLASS-IDEMPOTENT');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-PAID-CLASS-IDEMPOTENT');
 
     $gymClass = GymClass::create([
         'name' => 'Paid Class Idempotent',
@@ -1800,7 +1901,7 @@ test('paid class repeated booking reuses open payment and enrollment', function 
 test('member profile view is separate from edit form and avatar can be uploaded', function () {
     Storage::fake('public');
 
-    [$user] = createPortalMember('PG-PORTAL-PROFILE-EDIT');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-PROFILE-EDIT');
 
     $this->actingAs($user)->get(route('member.profile'))
         ->assertOk()
@@ -1851,7 +1952,7 @@ test('member profile view is separate from edit form and avatar can be uploaded'
 });
 
 test('member profile can update birth date from dd mm yyyy display', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-BIRTH-DISPLAY');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-BIRTH-DISPLAY');
 
     $this->actingAs($user)->patch(route('member.profile.update'), [
         'name' => 'Andi Portal',
@@ -1865,7 +1966,7 @@ test('member profile can update birth date from dd mm yyyy display', function ()
 });
 
 test('member profile can update birth date from separated fields', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-BIRTH-PARTS');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-BIRTH-PARTS');
 
     $this->actingAs($user)->patch(route('member.profile.update'), [
         'name' => 'Andi Portal',
@@ -1881,7 +1982,7 @@ test('member profile can update birth date from separated fields', function () {
 });
 
 test('member profile rejects invalid separated birth date fields', function () {
-    [$user] = createPortalMember('PG-PORTAL-BIRTH-PARTS-INVALID');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-BIRTH-PARTS-INVALID');
 
     $this->actingAs($user)->from(route('member.profile.edit'))->patch(route('member.profile.update'), [
         'name' => 'Andi Portal',
@@ -1896,7 +1997,7 @@ test('member profile rejects invalid separated birth date fields', function () {
 });
 
 test('member profile rejects invalid dd mm yyyy birth date display', function () {
-    [$user] = createPortalMember('PG-PORTAL-BIRTH-DISPLAY-INVALID');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-BIRTH-DISPLAY-INVALID');
 
     $this->actingAs($user)->from(route('member.profile.edit'))->patch(route('member.profile.update'), [
         'name' => 'Andi Portal',
@@ -1911,7 +2012,7 @@ test('member profile rejects invalid dd mm yyyy birth date display', function ()
 test('member profile avatar validation rejects oversized image', function () {
     Storage::fake('public');
 
-    [$user] = createPortalMember('PG-PORTAL-AVATAR-INVALID');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-AVATAR-INVALID');
 
     $this->actingAs($user)->from(route('member.profile.edit'))->patch(route('member.profile.update'), [
         'name' => 'Andi Portal',
@@ -1929,7 +2030,7 @@ test('member profile avatar validation rejects oversized image', function () {
 test('member profile upload cleans new avatar if profile update fails', function () {
     Storage::fake('public');
 
-    [$user, $member] = createPortalMember('PG-PORTAL-AVATAR-ROLLBACK');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-AVATAR-ROLLBACK');
     User::factory()->create(['email' => 'taken-avatar@example.com']);
 
     $thrown = false;
@@ -1956,7 +2057,7 @@ test('member profile upload cleans new avatar if profile update fails', function
 test('member profile upload can replace oauth avatar url safely', function () {
     Storage::fake('public');
 
-    [$user] = createPortalMember('PG-PORTAL-AVATAR-OAUTH');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-AVATAR-OAUTH');
     $user->forceFill(['avatar' => 'https://lh3.googleusercontent.com/avatar.png'])->save();
 
     $this->actingAs($user)->get(route('member.dashboard'))
@@ -1979,7 +2080,7 @@ test('member profile upload can replace oauth avatar url safely', function () {
 });
 
 test('inactive qr page shows unavailable state instead of large scannable qr placeholder', function () {
-    [$user] = createPortalMember('PG-PORTAL-QR-INACTIVE-STATE');
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-QR-INACTIVE-STATE');
 
     $this->actingAs($user)->get(route('member.qr'))
         ->assertOk()
@@ -1999,7 +2100,7 @@ test('inactive qr page shows unavailable state instead of large scannable qr pla
 });
 
 test('qr page renders recent check ins as a compact table', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-QR-CHECKINS');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-QR-CHECKINS');
 
     $membershipPackage = ServicePackage::create([
         'name' => 'Gym QR Check-in Test',
@@ -2081,7 +2182,7 @@ test('qr page renders recent check ins as a compact table', function () {
         'notes' => 'Standalone sesi tidak masuk tabel check-in.',
     ]);
 
-    [$otherUser, $otherMember] = createPortalMember('PG-PORTAL-QR-OTHER', 'other.qr.checkin@example.com', '081234567891');
+    [$otherUser, $otherMember] = MemberFixtures::portalMember('PG-PORTAL-QR-OTHER', 'other.qr.checkin@example.com', '081234567891');
     $otherPackage = ServicePackage::create([
         'name' => 'Other QR Membership Test',
         'slug' => 'other-qr-membership-test',
@@ -2141,7 +2242,7 @@ test('qr page renders recent check ins as a compact table', function () {
 });
 
 test('active member can download own qr as png attachment', function () {
-    [$user, $member] = createPortalMember('PG-PORTAL-QR-DOWNLOAD');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-QR-DOWNLOAD');
     $user->forceFill(['name' => 'Budi Santoso'])->save();
 
     $package = ServicePackage::create([

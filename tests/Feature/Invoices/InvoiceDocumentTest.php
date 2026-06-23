@@ -97,6 +97,9 @@ test('member can view only own invoice document', function () {
         ->assertSee('PAY-INVOICE-'.$member->id)
         ->assertSee('Invoice Membership')
         ->assertSee('Rp 300.000')
+        ->assertSee('Lihat Struk')
+        ->assertSee('Unduh PDF')
+        ->assertSee('Cetak')
         ->assertDontSee('secret-snap-token')
         ->assertDontSee('payment.example.test')
         ->assertDontSee('raw-secret')
@@ -105,6 +108,25 @@ test('member can view only own invoice document', function () {
 
     $this->actingAs($memberUser)->get(route('member.invoices.show', $otherInvoice))->assertForbidden();
     $this->actingAs($otherUser)->get(route('member.invoices.show', $invoice))->assertForbidden();
+
+    $this->actingAs($memberUser)->get(route('member.invoices.receipt', $invoice))
+        ->assertOk()
+        ->assertSee('Struk Transaksi')
+        ->assertSee($invoice->invoice_number)
+        ->assertSee('PAY-INVOICE-'.$member->id)
+        ->assertSee('Simpan struk ini sebagai bukti transaksi.')
+        ->assertDontSee('secret-snap-token')
+        ->assertDontSee('payment.example.test')
+        ->assertDontSee('raw-secret')
+        ->assertDontSee('Catatan internal pembayaran');
+
+    $invoicePdf = $this->actingAs($memberUser)->get(route('member.invoices.download', $invoice));
+    $invoicePdf->assertOk();
+    expect((string) $invoicePdf->headers->get('content-disposition'))->toContain('.pdf');
+
+    $receiptPdf = $this->actingAs($memberUser)->get(route('member.invoices.download', ['invoice' => $invoice, 'type' => 'receipt']));
+    $receiptPdf->assertOk();
+    expect((string) $receiptPdf->headers->get('content-disposition'))->toContain('.pdf');
 });
 
 test('owner can view invoice document read only', function () {
@@ -119,8 +141,20 @@ test('owner can view invoice document read only', function () {
         ->assertSee('Invoice Transaksi')
         ->assertSee($invoice->invoice_number)
         ->assertSee('Owner')
+        ->assertSee('Lihat Struk')
         ->assertDontSee('secret-snap-token')
         ->assertDontSee('raw-secret')
         ->assertDontSee('Ubah')
         ->assertDontSee('Hapus');
+
+    $this->actingAs($owner)->get(route('owner.invoices.receipt', $invoice))
+        ->assertOk()
+        ->assertSee('Struk Transaksi')
+        ->assertSee($invoice->invoice_number)
+        ->assertDontSee('secret-snap-token')
+        ->assertDontSee('raw-secret');
+
+    $response = $this->actingAs($owner)->get(route('owner.invoices.download', $invoice));
+    $response->assertOk();
+    expect((string) $response->headers->get('content-disposition'))->toContain('.pdf');
 });

@@ -15,36 +15,16 @@ use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Tests\Feature\Member\Support\MemberPortalFixtures as MemberFixtures;
 
 beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
 });
 
-function createImprovementsMember(string $code, ?string $email = null, ?string $phone = null): array
-{
-    $user = User::factory()->create([
-        'name' => 'Member Improvements',
-        'email' => $email ?? ('member.improvements.'.Str::lower(Str::random(6)).'@example.com'),
-        'phone' => $phone ?? ('0812'.random_int(10000000, 99999999)),
-    ]);
-    $user->assignRole('member');
-
-    $member = Member::create([
-        'user_id' => $user->id,
-        'member_code' => $code,
-        'gender' => 'male',
-        'birth_date' => '2000-01-01',
-        'joined_at' => now()->subMonth()->toDateString(),
-        'status' => 'active',
-    ]);
-
-    return [$user, $member];
-}
-
 // Helper for new tests below — appended to existing suite.
 
 test('booking page disables button and shows kuota habis when capacity is full', function () {
-    [$user, $member] = createImprovementsMember('PG-PORTAL-FULL-CAPACITY');
+    [$user, $member] = MemberFixtures::improvementsMember('PG-PORTAL-FULL-CAPACITY');
 
     $package = ServicePackage::create([
         'name' => 'Senam Capacity Test',
@@ -113,7 +93,7 @@ test('booking page disables button and shows kuota habis when capacity is full',
 });
 
 test('booking page shows pay button label and price for paid class', function () {
-    [$user] = createImprovementsMember('PG-PORTAL-PAID-LABEL');
+    [$user] = MemberFixtures::improvementsMember('PG-PORTAL-PAID-LABEL');
 
     $gymClass = GymClass::create([
         'name' => 'Yoga Paid Test',
@@ -146,7 +126,7 @@ test('booking page shows pay button label and price for paid class', function ()
 });
 
 test('checkout pt package requires trainer selection matching specialization', function () {
-    [$user, $member] = createImprovementsMember('PG-PORTAL-PT-TRAINER');
+    [$user, $member] = MemberFixtures::improvementsMember('PG-PORTAL-PT-TRAINER');
 
     $gymPackage = ServicePackage::create([
         'name' => 'Gym For PT Trainer Test',
@@ -222,7 +202,7 @@ test('checkout pt package requires trainer selection matching specialization', f
 });
 
 test('membership page shows trainer dropdown only for pt and muaythai packages', function () {
-    [$user, $member] = createImprovementsMember('PG-PORTAL-TRAINER-DROPDOWN');
+    [$user, $member] = MemberFixtures::improvementsMember('PG-PORTAL-TRAINER-DROPDOWN');
 
     $gymPackage = ServicePackage::create([
         'name' => 'Gym Dropdown Active Test',
@@ -279,7 +259,7 @@ test('membership page shows trainer dropdown only for pt and muaythai packages',
 });
 
 test('transactions list shows service column for membership and class enrollment', function () {
-    [$user, $member] = createImprovementsMember('PG-PORTAL-TX-SERVICE');
+    [$user, $member] = MemberFixtures::improvementsMember('PG-PORTAL-TX-SERVICE');
 
     $package = ServicePackage::create([
         'name' => 'Gym Service Column',
@@ -319,7 +299,7 @@ test('transactions list shows service column for membership and class enrollment
 });
 
 test('notifications page renders internal action links from payload', function () {
-    [$user] = createImprovementsMember('PG-PORTAL-NOTIF-ACTION');
+    [$user] = MemberFixtures::improvementsMember('PG-PORTAL-NOTIF-ACTION');
 
     DatabaseNotification::query()->create([
         'id' => (string) Str::uuid(),
@@ -367,7 +347,7 @@ test('notifications page renders internal action links from payload', function (
 test('member sees lunas after midtrans status sync confirms settlement', function () {
     config(['services.midtrans.server_key' => 'server-test-key']);
 
-    [$user, $member] = createImprovementsMember('PG-PORTAL-SYNC');
+    [$user, $member] = MemberFixtures::improvementsMember('PG-PORTAL-SYNC');
 
     $package = ServicePackage::create([
         'name' => 'Gym Sync Test',
@@ -422,7 +402,7 @@ test('member sees lunas after midtrans status sync confirms settlement', functio
 });
 
 test('member layout renders success flash banner with emerald palette and polite live region', function () {
-    [$user] = createImprovementsMember('PG-PORTAL-FLASH-OK');
+    [$user] = MemberFixtures::improvementsMember('PG-PORTAL-FLASH-OK');
 
     $this->actingAs($user)
         ->withSession(['status' => 'Profil berhasil diperbarui.', 'status_kind' => 'success'])
@@ -434,7 +414,7 @@ test('member layout renders success flash banner with emerald palette and polite
 });
 
 test('member layout renders error flash banner with red palette and assertive live region', function () {
-    [$user] = createImprovementsMember('PG-PORTAL-FLASH-ERR');
+    [$user] = MemberFixtures::improvementsMember('PG-PORTAL-FLASH-ERR');
 
     $this->actingAs($user)
         ->withSession(['status' => 'Aksi gagal diproses.', 'status_kind' => 'error'])
@@ -446,7 +426,7 @@ test('member layout renders error flash banner with red palette and assertive li
 });
 
 test('member profile edit dispatches to member account security page using member layout', function () {
-    [$user] = createImprovementsMember('PG-PORTAL-ACCT-SEC');
+    [$user] = MemberFixtures::improvementsMember('PG-PORTAL-ACCT-SEC');
 
     $this->actingAs($user)->get(route('profile.edit'))
         ->assertOk()
