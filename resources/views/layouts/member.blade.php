@@ -85,6 +85,15 @@
                                 </div>
                             </div>
                         @endforeach
+
+                        <div class="border-t border-zinc-200 pt-5 dark:border-white/10">
+                            <a href="{{ route('public.home') }}" class="group flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-bold text-zinc-600 transition hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/[0.07] dark:hover:text-white dark:focus-visible:ring-offset-zinc-950" data-member-website-link="desktop" data-member-website-placement="menu">
+                                <span class="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-zinc-100 text-zinc-500 group-hover:text-gold-600 dark:bg-white/[0.06] dark:text-zinc-400 dark:group-hover:text-gold-400">
+                                    @include('member.partials.icon', ['name' => 'arrow', 'class' => 'h-4 w-4'])
+                                </span>
+                                <span class="min-w-0 flex-1 truncate">Website Utama</span>
+                            </a>
+                        </div>
                     </nav>
                 </div>
 
@@ -136,6 +145,13 @@
                                 </div>
                             </div>
                         @endforeach
+
+                        <div class="border-t border-zinc-200 pt-5 dark:border-white/10">
+                            <a href="{{ route('public.home') }}" class="flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-bold text-zinc-600 transition hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/10 dark:hover:text-white" data-member-website-link="mobile" data-member-website-placement="menu" x-on:click="closeMemberMenu()">
+                                @include('member.partials.icon', ['name' => 'arrow', 'class' => 'h-5 w-5 shrink-0'])
+                                <span class="min-w-0 flex-1 truncate">Website Utama</span>
+                            </a>
+                        </div>
                     </nav>
                 </div>
 
@@ -148,7 +164,6 @@
                         </div>
                     </div>
                     <div class="grid gap-2">
-
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="member-button-secondary w-full">Keluar</button>
