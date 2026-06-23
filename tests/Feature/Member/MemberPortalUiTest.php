@@ -24,6 +24,10 @@ test('complete member pages render consistent member layout smoke', function (st
         ->assertSee('Website Utama')
         ->assertSee(route('public.home'), false)
         ->assertSee('Buka Gymmi member', false)
+        ->assertSee('aria-label="Pertanyaan cepat Gymmi"', false)
+        ->assertSee('avatar-gymmi-light.png', false)
+        ->assertSee('avatar-gymmi-dark.png', false)
+        ->assertSee('gymmi-quick-reply-rail', false)
         ->assertDontSee('Dashboard Admin')
         ->assertDontSee('Owner Portal');
 

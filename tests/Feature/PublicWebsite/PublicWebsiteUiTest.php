@@ -36,3 +36,18 @@ test('public buttons and cards keep stable responsive utility contracts', functi
         ->assertSee('public-product-filter', false)
         ->assertSee('max-w-[calc(100%-4rem)]', false);
 });
+
+test('public page hero exposes polished reusable hero and reduced motion safe animation tokens', function () {
+    $this->get(route('public.services'))
+        ->assertOk()
+        ->assertSee('public-page-hero', false)
+        ->assertSee('public-page-hero-content', false)
+        ->assertSee('public-page-hero-accent', false);
+
+    $css = file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('@keyframes publicHeroIn')
+        ->toContain('@keyframes publicHeroAccent')
+        ->toContain('prefers-reduced-motion: reduce');
+});

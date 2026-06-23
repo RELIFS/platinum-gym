@@ -34,3 +34,39 @@ test('classes filters accept only allowed day and active class type values', fun
         ->assertDontSee('value="<script>', false)
         ->assertDontSee('selected>&lt;script&gt;', false);
 });
+
+test('classes page groups schedules into fixed public class sections', function () {
+    PublicFixtures::schedule(['name' => 'Aerobic Legacy Senam', 'class_type' => 'senam'], ['day_of_week' => 1]);
+    PublicFixtures::schedule(['name' => 'Zumba Legacy Senam', 'class_type' => 'senam'], ['day_of_week' => 2]);
+    PublicFixtures::schedule(['name' => 'Public Muaythai', 'class_type' => 'muaythai'], ['day_of_week' => 3]);
+    PublicFixtures::schedule(['name' => 'Public Poundfit', 'class_type' => 'poundfit'], ['day_of_week' => 4]);
+
+    $response = $this->get(route('public.classes'))->assertOk();
+
+    $response
+        ->assertSee('id="kelas-aerobic"', false)
+        ->assertSee('id="kelas-zumba"', false)
+        ->assertSee('id="kelas-muaythai"', false)
+        ->assertSee('id="kelas-poundfit"', false)
+        ->assertSee('Aerobic Legacy Senam')
+        ->assertSee('Zumba Legacy Senam')
+        ->assertSee('Public Muaythai')
+        ->assertSee('Public Poundfit');
+
+    $content = $response->getContent();
+
+    expect(strpos($content, 'id="kelas-aerobic"'))->toBeLessThan(strpos($content, 'id="kelas-zumba"'))
+        ->and(strpos($content, 'id="kelas-zumba"'))->toBeLessThan(strpos($content, 'id="kelas-muaythai"'))
+        ->and(strpos($content, 'id="kelas-muaythai"'))->toBeLessThan(strpos($content, 'id="kelas-poundfit"'));
+});
+
+test('classes type filter uses public section resolver for legacy senam class types', function () {
+    PublicFixtures::schedule(['name' => 'Aerobic Resolver Legacy', 'class_type' => 'senam'], ['day_of_week' => 1]);
+    PublicFixtures::schedule(['name' => 'Zumba Resolver Legacy', 'class_type' => 'senam'], ['day_of_week' => 2]);
+
+    $this->get(route('public.classes', ['jenis' => 'aerobic']))
+        ->assertOk()
+        ->assertSee('Aerobic Resolver Legacy')
+        ->assertDontSee('Zumba Resolver Legacy')
+        ->assertSee('jenis Aerobic');
+});
