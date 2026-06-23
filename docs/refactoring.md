@@ -180,7 +180,7 @@ Refactoring berikut akan dievaluasi saat kompleksitas fitur bertambah:
 
 - Penyempurnaan action pembayaran, booking, dan check-in jika aturan bisnis bertambah.
 - Export queue untuk laporan besar.
-- Invoice PDF/download dan upload bukti pembayaran jika dibutuhkan.
+- Upload bukti pembayaran jika dibutuhkan.
 - Cleanup route dan komponen bila modul baru bertambah.
 
 ## 6. Feature-Based Clean Architecture Foundation
@@ -598,19 +598,91 @@ resources/views/owner
 resources/views/invoices
 ```
 
-Reports owner memakai filter periode/status/metode/tipe laporan dan export CSV native. Invoice web memakai data transaksi yang sudah ada dan tidak membuat logic pembayaran baru.
+Reports owner memakai filter periode/status/metode/tipe laporan dan export CSV/Excel/PDF. Invoice web, PDF invoice, dan struk POS compact memakai data transaksi yang sudah ada dan tidak membuat logic pembayaran baru.
 
 ### Alasan
 
 - Owner tetap read-only dan tidak membawa aksi mutasi admin ke area bisnis.
 - Query laporan berada di layer fitur, bukan di Blade.
-- CSV native cukup untuk batch awal tanpa menambah package PDF/Excel.
-- Invoice web menjadi presentasi dokumen transaksi tanpa mengekspos token, payload provider, secret, atau data internal.
+- CSV tetap kompatibel, sedangkan Excel/PDF memakai package produksi yang sesuai untuk dokumen laporan.
+- Invoice web, PDF, dan struk menjadi presentasi dokumen transaksi tanpa mengekspos token, payload provider, secret, atau data internal.
 
 ### Dampak
 
 - `/owner` menjadi dashboard bisnis dengan KPI, grafik pendapatan, breakdown, transaksi terbaru, dan membership yang akan berakhir.
 - `/owner/laporan` dan halaman laporan detail dapat membaca ringkasan serta tabel preview.
-- `/owner/laporan/export` menghasilkan CSV laporan sesuai filter.
-- `/owner/invoice/{invoice}` dan `/member/invoice/{invoice}` menampilkan invoice web sesuai policy.
+- `/owner/laporan/export` menghasilkan CSV, Excel, atau PDF laporan sesuai filter.
+- `/owner/invoice/{invoice}`, `/member/invoice/{invoice}`, dan `/admin/invoice/{invoice}` menampilkan invoice web sesuai policy.
+- Route `/struk` dan `/download` menghasilkan struk web serta PDF invoice/struk.
 - `PaymentPolicy` dan `InvoicePolicy` memberi akses owner untuk membaca laporan/invoice, sementara aksi mutasi tetap tidak diberikan.
+
+## 19. Reports Export PDF/Excel Dan Struk POS
+
+### Perubahan
+
+Laporan Admin dan Owner sekarang memakai layer export terpisah untuk CSV, Excel, dan PDF:
+
+```text
+app/Features/Reports/Actions
+app/Features/Reports/Exports
+resources/views/reports/pdf
+```
+
+Invoice transaksi juga diperluas menjadi dokumen formal dan struk POS compact:
+
+```text
+app/Features/Invoices/Actions/RenderInvoicePdfAction.php
+resources/views/invoices/pdf.blade.php
+resources/views/invoices/receipt.blade.php
+resources/views/invoices/receipt-pdf.blade.php
+resources/views/invoices/partials/receipt-paper.blade.php
+```
+
+### Alasan
+
+- Controller tetap hanya mengatur authorization, filter, dan response format.
+- CSV lama tetap kompatibel, sementara Excel `.xlsx` dan PDF memenuhi kebutuhan dokumen production.
+- Struk POS menjadi format ringkas untuk bukti transaksi tanpa mengganti invoice formal.
+- Template PDF memakai CSS sederhana agar aman dirender DomPDF dan tidak bergantung pada Vite/Tailwind runtime.
+
+### Dampak
+
+- `/admin/laporan/export` dan `/owner/laporan/export` menerima `format=csv|xlsx|pdf`.
+- `/member/invoice/{invoice}`, `/owner/invoice/{invoice}`, dan `/admin/invoice/{invoice}` memiliki tampilan invoice, struk, dan download PDF.
+- Profil Owner di `/profile` memakai layout/copy Owner, bukan shell Admin.
+- Dokumen invoice/struk tetap tidak menampilkan token QR mentah, Midtrans snap token, redirect URL, raw response, note internal, atau secret provider.
+
+## 20. Renderer Grafik Lokal Dan Cleanup Test Domain
+
+### Perubahan
+
+Grafik tren Admin dan Owner dipindahkan dari dependency chart eksternal ke renderer SVG lokal kecil:
+
+```text
+resources/js/shared/svg-trend-chart.js
+resources/js/admin/operational-trend-chart.js
+resources/js/owner/business-trend-chart.js
+```
+
+Suite feature test juga dirapikan dari file legacy root ke folder domain:
+
+```text
+tests/Feature/Admin
+tests/Feature/Member
+tests/Feature/Owner
+tests/Feature/PublicWebsite
+tests/Feature/Gymmi
+tests/Feature/Invoices
+```
+
+### Alasan
+
+- Bundle frontend lebih ringan dan tidak membawa dependency chart besar untuk visual sederhana.
+- Test domain lebih mudah dirawat daripada file monolith root yang mencampur banyak perilaku.
+- File legacy tetap dipertahankan sebagai `*LegacyTest` pada domain terkait saat masih menyimpan coverage penting.
+
+### Dampak
+
+- `apexcharts` tidak lagi menjadi dependency frontend aktif.
+- Mount ID dan payload chart tetap kompatibel dengan Blade existing.
+- Root `tests/Feature` lebih fokus pada folder domain dan cross-domain yang jelas.

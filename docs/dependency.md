@@ -36,6 +36,8 @@ Status penggunaan dibagi menjadi:
 | `resend/resend-php` | Transport email Resend | Dipakai untuk pengiriman email aplikasi melalui `MAIL_MAILER=resend` | `^1.3` | Perlu domain/from address valid dan API key aman di `.env` | Sudah digunakan |
 | `midtrans/midtrans-php` | Integrasi payment gateway Midtrans | Mendukung pembayaran membership, paket sesi, kelas berbayar, dan webhook Sandbox | `^2.3` | Signature/webhook dan server key wajib aman | Sudah digunakan |
 | `simplesoftwareio/simple-qrcode` | QR Code generator Laravel | Menyediakan dependency Bacon QR untuk QR member/check-in | `^4.2` | QR token tidak boleh dirender sebagai teks mentah | Sudah digunakan |
+| `maatwebsite/excel` | Export Excel `.xlsx` | Digunakan untuk export laporan Admin dan Owner selain CSV | `^3.1` | Export besar perlu query/generator agar tidak boros memori | Sudah digunakan |
+| `barryvdh/laravel-dompdf` | Generate PDF dari Blade | Digunakan untuk PDF laporan, invoice, dan struk transaksi | `^3.1` | Template PDF harus CSS sederhana dan tidak memuat remote asset sensitif | Sudah digunakan |
 
 ## Dependency Development dan Testing
 
@@ -71,25 +73,18 @@ Scan `resources/js/**/*.js` diperlukan karena renderer Gymmi membuat sebagian cl
 | `@tailwindcss/vite` | Integrasi Tailwind dengan Vite | Mendukung proses build frontend | `^4.0.0` | Perlu perhatian kompatibilitas dengan versi Tailwind yang dipakai | Dependency frontend |
 | `alpinejs` | Interaktivitas ringan frontend | Digunakan untuk behavior UI sederhana seperti dropdown atau toggle | `^3.4.2` | Tidak cocok untuk state management kompleks | Sudah digunakan |
 | `axios` | HTTP client JavaScript | Disiapkan untuk request AJAX frontend | `^1.11.0` | Perlu pengaturan CSRF dan error handling | Dependency frontend |
-| `apexcharts` | Grafik interaktif frontend | Digunakan untuk grafik dashboard Admin dan Owner dengan tooltip, gradient, marker hover, dan theme-aware rendering | `^5.15.2` | Menambah ukuran bundle sehingga harus di-load lazy hanya pada halaman yang memakai grafik | Sudah digunakan |
 | `html5-qrcode` | Scanner QR kamera frontend | Digunakan secara lazy pada halaman admin check-in untuk membaca QR member dari kamera | `2.3.8` | Akses kamera membutuhkan secure context/HTTPS atau localhost dan permission browser | Sudah digunakan |
 | `concurrently` | Menjalankan beberapa command dev | Membantu menjalankan server, queue, dan Vite bersamaan | `^9.0.1` | Hanya kebutuhan development | Dependency development |
 | `postcss` | CSS processing | Digunakan dalam pipeline Tailwind/Vite | `^8.4.31` | Konfigurasi salah dapat membuat build CSS gagal | Dependency frontend |
 | `autoprefixer` | Vendor prefix CSS | Menambah kompatibilitas browser | `^10.4.2` | Umumnya rendah, mengikuti konfigurasi browser target | Dependency frontend |
-
-## Dependency Rencana Pengembangan
-
-| Package | Fungsi | Modul Rencana | Alasan | Status |
-|---|---|---|---|---|
-| `maatwebsite/excel` | Import/export Excel dan CSV | Import member lama dan export laporan | Memudahkan pengolahan laporan admin/owner | Direncanakan |
-| `barryvdh/laravel-dompdf` | Generate PDF dari Blade | Invoice dan laporan cetak | PDF mudah dicetak dan diarsipkan | Direncanakan |
 
 ## Integrasi Eksternal Tanpa Package Tambahan
 
 | Integrasi | Fungsi | Modul | Alasan | Status |
 |---|---|---|---|---|
 | Google Gemini API REST | AI assistant Gymmi | Public/member chatbot | Laravel HTTP client cukup untuk timeout, retry, fallback, dan test tanpa menambah package Composer | Sudah digunakan |
-| Native streamed CSV | Export laporan ringan | Admin/owner reports | Response streaming Laravel cukup untuk export CSV awal tanpa menambah package Excel/PDF | Sudah digunakan |
+| Native streamed CSV | Export laporan ringan | Admin/owner reports | Response streaming Laravel tetap dipakai untuk backward compatibility dan export CSV cepat | Sudah digunakan |
+| Local SVG chart renderer | Grafik dashboard ringan | Admin/owner dashboard | Mengganti dependency chart berat dengan renderer kecil di bundle lokal | Sudah digunakan |
 
 ## Dependency Yang Tidak Dipakai Pada Arsitektur Aktif
 
@@ -189,7 +184,7 @@ Referensi:
 | Who | Digunakan oleh member untuk menampilkan QR dan admin untuk memverifikasi check-in. |
 | When | Digunakan saat QR member aktif setelah membership aktif dan admin melakukan check-in. |
 | Where | Digunakan pada halaman QR member dan modul check-in admin. |
-| How | Sistem membuat QR visual dari token check-in; token tidak ditampilkan sebagai teks mentah di UI member. |
+| How | Sistem membuat QR visual dari token check-in stabil per member; token tidak ditampilkan sebagai teks mentah di UI member dan kelayakan scan tetap dicek dari membership aktif. |
 
 Referensi:
 
@@ -200,11 +195,11 @@ Referensi:
 | 5W+1H | Penjelasan |
 |---|---|
 | What | Maatwebsite Laravel Excel adalah package untuk import dan export Excel/CSV pada Laravel. |
-| Why | Package ini direncanakan untuk import data member lama dan export laporan admin/owner. |
+| Why | Package ini dipakai untuk export laporan Admin dan Owner dalam format `.xlsx` yang mudah dibuka di spreadsheet. |
 | Who | Digunakan oleh admin dan owner. |
-| When | Digunakan saat migrasi data awal, import member, dan export laporan. |
-| Where | Direncanakan pada modul member, transaksi, booking, dan laporan. |
-| How | Developer membuat class Import/Export untuk memvalidasi, membaca, menyimpan, dan menghasilkan file Excel. |
+| When | Digunakan saat admin atau owner mengunduh laporan dengan format Excel. |
+| Where | Digunakan pada route export laporan Admin dan Owner. |
+| How | Sistem memakai class Export terpisah dengan heading dan generator/query source agar controller tetap tipis. |
 
 Referensi:
 
@@ -216,11 +211,11 @@ Referensi:
 | 5W+1H | Penjelasan |
 |---|---|
 | What | `barryvdh/laravel-dompdf` adalah package Laravel untuk membuat PDF dari view Blade. |
-| Why | Package ini direncanakan untuk invoice, struk pembayaran, dan laporan cetak. |
+| Why | Package ini dipakai untuk membuat PDF laporan, invoice formal, dan struk POS compact dari Blade. |
 | Who | Digunakan oleh member, admin, dan owner. |
-| When | Digunakan setelah transaksi selesai atau saat laporan perlu dicetak. |
-| Where | Direncanakan pada modul transaksi, pembayaran, invoice, dan laporan. |
-| How | Sistem membuat view Blade khusus, lalu DomPDF mengubah view tersebut menjadi file PDF. |
+| When | Digunakan saat user mengunduh invoice/struk atau laporan dalam format PDF. |
+| Where | Digunakan pada modul invoice member/owner/admin dan export laporan Admin/Owner. |
+| How | Sistem membuat view Blade khusus dengan CSS sederhana, lalu DomPDF mengubah view tersebut menjadi file PDF tanpa remote asset. |
 
 Referensi:
 

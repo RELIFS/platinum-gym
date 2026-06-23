@@ -9,33 +9,47 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 ### Added
 
 - Menambahkan Owner portal read-only dengan layout khusus, dashboard bisnis, KPI, grafik pendapatan, breakdown sumber pendapatan, transaksi terbaru, dan membership yang akan berakhir.
-- Menambahkan halaman laporan Owner untuk keuangan, member, dan booking kelas dengan filter periode/status/metode serta export CSV native.
+- Menambahkan halaman laporan Owner untuk keuangan, member, dan booking kelas dengan filter periode/status/metode serta export CSV/Excel/PDF.
 - Menambahkan halaman invoice web untuk member dan owner berdasarkan transaksi yang sudah ada tanpa membuat logic pembayaran baru.
+- Menambahkan export laporan Admin dan Owner dalam format Excel `.xlsx` dan PDF.
+- Menambahkan PDF invoice formal dan struk POS compact untuk member, owner, dan admin.
+- Menambahkan halaman profil Owner dengan layout/copy Owner, bukan shell Admin.
+- Menambahkan upload foto profil Admin dan Owner memakai kolom avatar user existing dengan validasi image dan cleanup file lokal aman.
 - Menambahkan input tanggal lahir yang lebih ramah untuk register dan complete profile.
 - Menambahkan dukungan profil member yang lebih lengkap, avatar, verifikasi profil, QR download, dan guard kelayakan checkout.
 - Menambahkan alur pratinjau check-in QR admin sebelum confirm check-in atau pemakaian sesi.
-- Menambahkan grafik tren aktivitas admin berbasis data real dengan lazy-loaded chart.
+- Menambahkan grafik tren aktivitas admin dan owner berbasis data real dengan renderer SVG lokal ringan.
 
 ### Changed
 
+- Memoles caption dan error validasi login/register agar memakai Bahasa Indonesia production yang aman, ramah user, dan tidak membocorkan detail akun.
+- Mengubah lifecycle QR member menjadi stabil per member; pembelian membership baru tidak lagi mengganti QR yang sudah aktif.
 - Merapikan tampilan dan microcopy portal admin agar lebih ringkas, profesional, dan tidak terlalu berulang.
 - Merapikan tampilan portal member, filter, pagination, card, chatbot shell, dan state responsif.
+- Menambahkan shortcut `Website Utama` sebagai item menu bawah pada sidebar/drawer member tanpa menjadikannya route aktif portal.
+- Merapikan halaman BMI publik agar hasil IMT, segmented range, dan kategori tidak mengulang informasi yang sama.
 - Merapikan light theme website publik agar elemen utilitas tidak memakai surface gelap yang terlalu dominan.
 - Memperbarui dokumentasi root agar status Owner, Reports CSV, invoice web, dan dependency frontend sesuai implementasi terbaru.
 
 ### Fixed
 
+- Memperbaiki sidebar Owner agar hanya satu item aktif per halaman dan filter/reset laporan tetap berada di halaman laporan yang sedang dibuka.
+- Memperbaiki QR legacy yang memiliki `expires_at` agar dipakai ulang dan dibersihkan saat membership diperbarui.
 - Memperkuat fallback, cache, dan circuit breaker Gymmi AI agar kegagalan provider tidak merusak pengalaman pengguna.
 - Memperbaiki sumber kontak publik yang dipakai konteks Gymmi.
 
 ### Dependency
 
-- Menambahkan `apexcharts` untuk grafik interaktif dashboard Admin dan Owner.
+- Menambahkan `maatwebsite/excel` untuk export Excel laporan.
+- Menambahkan `barryvdh/laravel-dompdf` untuk PDF laporan, invoice, dan struk.
+- Menghapus `apexcharts`; grafik dashboard Admin dan Owner memakai renderer SVG lokal agar bundle lebih ringan.
 
 ### Testing
 
+- Merapikan struktur test Feature dari file legacy root ke suite domain Admin, Member, Owner, PublicWebsite, Auth, Gymmi, dan Invoices.
+- Menambahkan coverage untuk copy validasi login/register, error kredensial generic, throttle login, duplikat email/WhatsApp, tanggal lahir invalid, dan konfirmasi kata sandi.
 - Menambahkan coverage untuk Owner portal, invoice document, ownership policy, auth tanggal lahir, member portal, admin portal, public website, dan Gymmi.
-- Validasi terakhir: `php artisan test --no-ansi` lulus dengan 260 test dan 1848 assertion, `npm.cmd run build` lulus, `vendor\bin\pint --test` lulus, dan `git diff --check` lulus dengan peringatan CRLF.
+- Validasi terakhir 2026-06-23: `php artisan test --no-ansi` lulus dengan `579 passed / 3813 assertions`, `npm.cmd run build` lulus, `vendor\bin\pint --test` lulus, dan `git diff --check` lulus dengan peringatan line-ending Git.
 
 ## [Unreleased] - Admin Panel UI/UX & A11y Polish
 
@@ -195,8 +209,8 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Planned Added: fitur rekap member aktif per trainer pada area admin/laporan.
 - Planned Changed: halaman admin terkait trainer/laporan akan menampilkan status kapasitas trainer.
 - Impacted Modules: Admin Report, Trainer, Member Package Session, Route admin, Dokumentasi.
-- Owner dashboard dan laporan owner/export.
-- Invoice PDF/download.
+- Export queue saat data laporan membesar.
+- Invoice PDF caching bila diperlukan.
 - Upload bukti pembayaran manual bila dibutuhkan.
 - Refund/correction workflow pembayaran dan export queue saat data laporan membesar.
 - Penyempurnaan dokumentasi refactoring.
