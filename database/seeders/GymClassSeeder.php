@@ -12,13 +12,19 @@ class GymClassSeeder extends Seeder
     public function run(): void
     {
         $classes = [
-            ['Aerobic', 'aerobic', 'included', 'senam', 25, 0, 45000, null, [['Coach Ola', 1], ['Coach Irgo', 3], ['Coach Ola', 5]], '17:00', '18:00'],
-            ['Zumba', 'zumba', 'included', 'senam', 25, 0, 45000, null, [['Zin Nila', 2], ['Zin Nila', 4]], '17:00', '18:00'],
-            ['Poundfit', 'poundfit', 'session_based', 'poundfit', 25, null, null, null, [['Coach Ajeng', 3]], '19:15', '20:15'],
-            ['Muaythai', 'muaythai', 'session_based', 'muaythai', 6, null, 85000, null, [['Coach Arie', 1], ['Coach Adi', 1], ['Coach Arie', 2], ['Coach Adi', 2], ['Coach Arie', 3], ['Coach Adi', 3], ['Coach Arie', 4], ['Coach Adi', 4], ['Coach Arie', 5], ['Coach Adi', 5], ['Coach Arie', 6], ['Coach Adi', 6]], '19:00', '20:00'],
+            ['Aerobic', 'aerobic', 'included', 'senam', 25, 0, 45000, null, [['Coach Ola', 1, '17:15', '18:15'], ['Coach Irgo', 3, '17:15', '18:15'], ['Coach Ola', 5, '17:15', '18:15']]],
+            ['Zumba', 'zumba', 'included', 'senam', 25, 0, 45000, null, [['Zin Nila', 2, '17:15', '18:15'], ['Zin Nila', 4, '17:15', '18:15']]],
+            ['Poundfit', 'poundfit', 'session_based', 'poundfit', 25, null, null, null, [['Coach Ajeng', 3, '19:15', '20:15']]],
+            ['Muaythai', 'muaythai', 'session_based', 'muaythai', 6, null, 85000, null, [
+                ['Coach Adi', 1, '10:00', '11:00'], ['Coach Adi', 1, '19:00', '20:00'], ['Coach Arie', 1, '19:00', '20:00'],
+                ['Coach Adi', 2, '10:00', '11:00'], ['Coach Adi', 2, '19:00', '20:00'], ['Coach Arie', 2, '19:00', '20:00'],
+                ['Coach Adi', 4, '10:00', '11:00'], ['Coach Adi', 4, '19:00', '20:00'], ['Coach Arie', 4, '19:00', '20:00'],
+                ['Coach Adi', 5, '10:00', '11:00'], ['Coach Adi', 5, '19:00', '20:00'], ['Coach Arie', 5, '19:00', '20:00'],
+                ['Coach Adi', 6, '10:00', '11:00'], ['Coach Adi', 6, '19:00', '20:00'], ['Coach Arie', 6, '19:00', '20:00'],
+            ]],
         ];
 
-        foreach ($classes as [$name, $classType, $accessType, $requiredPackageType, $capacity, $memberPrice, $nonMemberPrice, $promoPrice, $schedules, $startTime, $endTime]) {
+        foreach ($classes as [$name, $classType, $accessType, $requiredPackageType, $capacity, $memberPrice, $nonMemberPrice, $promoPrice, $schedules]) {
             $gymClass = GymClass::updateOrCreate(['slug' => Str::slug($name)], [
                 'name' => $name,
                 'description' => $name.' Platinum Gym Padang.',
@@ -32,19 +38,36 @@ class GymClassSeeder extends Seeder
                 'is_active' => true,
             ]);
 
-            foreach ($schedules as [$trainerName, $day]) {
+            $activeScheduleKeys = [];
+
+            foreach ($schedules as [$trainerName, $day, $startTime, $endTime]) {
                 $trainer = Trainer::where('name', $trainerName)->first();
+                $activeScheduleKeys[] = $this->scheduleKey((int) $day, $startTime, $trainer?->id);
 
                 $gymClass->schedules()->updateOrCreate([
                     'day_of_week' => $day,
                     'start_time' => $startTime,
-                ], [
                     'trainer_id' => $trainer?->id,
+                ], [
                     'end_time' => $endTime,
                     'capacity' => $capacity,
                     'is_active' => true,
                 ]);
             }
+
+            $obsoleteScheduleIds = $gymClass->schedules()
+                ->get(['id', 'trainer_id', 'day_of_week', 'start_time'])
+                ->reject(fn ($schedule): bool => in_array($this->scheduleKey((int) $schedule->day_of_week, (string) $schedule->start_time, $schedule->trainer_id), $activeScheduleKeys, true))
+                ->pluck('id');
+
+            if ($obsoleteScheduleIds->isNotEmpty()) {
+                $gymClass->schedules()->whereIn('id', $obsoleteScheduleIds)->update(['is_active' => false]);
+            }
         }
+    }
+
+    private function scheduleKey(int $day, string $startTime, mixed $trainerId): string
+    {
+        return $day.'|'.substr($startTime, 0, 5).'|'.(string) $trainerId;
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Features\Bookings\Actions;
 
 use App\Models\ClassEnrollment;
+use App\Notifications\Bookings\BookingConfirmedNotification;
 use App\Notifications\MemberOperationalNotification;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -49,6 +50,7 @@ class ConfirmClassBookingAction
                 route('member.bookings'),
                 'Lihat Booking',
             ));
+            $enrollment->member?->user?->notify((new BookingConfirmedNotification($enrollment))->afterCommit());
 
             return $enrollment->refresh();
         });

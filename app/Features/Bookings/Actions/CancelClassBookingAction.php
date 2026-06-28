@@ -2,7 +2,9 @@
 
 namespace App\Features\Bookings\Actions;
 
+use App\Features\Bookings\Support\BookingTimePolicy;
 use App\Models\ClassEnrollment;
+use App\Notifications\Bookings\BookingCancelledNotification;
 use App\Notifications\MemberOperationalNotification;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -24,6 +26,10 @@ class CancelClassBookingAction
 
             if ($enrollment->attendance()->exists()) {
                 throw new RuntimeException('Booking yang sudah memiliki kehadiran tidak dapat dibatalkan.');
+            }
+
+            if (! BookingTimePolicy::canCancel($enrollment)) {
+                throw new RuntimeException(BookingTimePolicy::cancelCutoffMessage());
             }
 
             $enrollment->forceFill([
@@ -48,6 +54,7 @@ class CancelClassBookingAction
                 route('member.bookings'),
                 'Lihat Riwayat',
             ));
+            $enrollment->member?->user?->notify((new BookingCancelledNotification($enrollment))->afterCommit());
 
             return $enrollment->refresh();
         });

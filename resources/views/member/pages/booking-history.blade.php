@@ -10,7 +10,7 @@
     @include('member.partials.filter-toolbar', [
         'filters' => $portal['pageFilters'] ?? [],
         'searchLabel' => 'Cari riwayat booking',
-        'searchPlaceholder' => 'Cari kelas, coach, status...',
+        'searchPlaceholder' => 'Cari kelas, pelatih, status...',
         'selects' => [
             [
                 'name' => 'status',
@@ -43,7 +43,7 @@
                             class="mt-4"
                         >
                             <button type="submit" class="member-button-danger w-full">Batalkan Jadwal Booking</button>
-                            <p class="mt-2 text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">Booking bisa dibatalkan selama jadwal kelas belum lewat.</p>
+                            <p class="mt-2 text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">Booking bisa dibatalkan paling lambat 3 jam sebelum kelas dimulai.</p>
                         </x-confirm-form>
                     @endif
                 </article>

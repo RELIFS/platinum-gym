@@ -2,6 +2,8 @@
 
 namespace App\Features\MemberPortal\Queries;
 
+use App\Features\Bookings\Support\BookingTimePolicy;
+use App\Features\Classes\Support\ClassStaffPresenter;
 use App\Features\MemberPortal\Support\MemberPackageEligibility;
 use App\Features\MemberPortal\ViewModels\MemberPortalStatusViewModel;
 use App\Features\Payments\Actions\SyncMidtransPaymentStatusAction;
@@ -38,26 +40,26 @@ class MemberDashboardQuery
             $this->syncPendingMidtransPayments($member);
         }
 
-        $activeMembership = $member->memberships()
+        $startedMemberships = $member->memberships()
             ->with('package')
-            ->where('status', 'active')
-            ->whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today)
-            ->orderBy('end_date')
-            ->first();
-
-        $activeMemberships = $member->memberships()
-            ->with('package')
-            ->where('status', 'active')
-            ->whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today)
+            ->startedAndCurrent($today)
             ->orderBy('end_date')
             ->orderBy('created_at')
             ->get();
 
+        $awaitingMemberships = $member->memberships()
+            ->with('package')
+            ->awaitingFirstCheckIn()
+            ->orderBy('activated_at')
+            ->orderBy('created_at')
+            ->get();
+
+        $activeMemberships = $startedMemberships->concat($awaitingMemberships)->values();
+        $activeMembership = $activeMemberships->first();
+
         $latestMembership = $member->memberships()
             ->with('package')
-            ->latest('end_date')
+            ->latest('updated_at')
             ->latest('created_at')
             ->first();
 
@@ -150,7 +152,7 @@ class MemberDashboardQuery
 
     private function nextSessionDate(int $dayOfWeek): CarbonImmutable
     {
-        $date = CarbonImmutable::today();
+        $date = BookingTimePolicy::earliestBookingDate();
 
         while ($date->dayOfWeekIso !== $dayOfWeek) {
             $date = $date->addDay();
@@ -317,9 +319,7 @@ class MemberDashboardQuery
     private function hasActiveGymMembership(Member $member, string $today): bool
     {
         return $member->memberships()
-            ->where('status', 'active')
-            ->whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today)
+            ->activeForAccess($today)
             ->whereHas('package', fn ($query) => $query->whereIn('type', ['gym', 'include']))
             ->exists();
     }
@@ -415,6 +415,7 @@ class MemberDashboardQuery
     private function classSchedules(Member $member, string $pageKey, array $filters, string $today): mixed
     {
         $activeSessionTypes = $this->activePackageSessionTypes($member, $today);
+        $activeMuaythaiTrainerIds = $this->activePackageSessionTrainerIds($member, 'muaythai', $today);
 
         $query = ClassSchedule::query()
             ->with(['gymClass', 'trainer'])
@@ -424,13 +425,24 @@ class MemberDashboardQuery
             ->orderBy('day_of_week')
             ->orderBy('start_time');
 
+        if ($activeMuaythaiTrainerIds->isNotEmpty()) {
+            $query->where(function ($query) use ($activeMuaythaiTrainerIds): void {
+                $query->whereDoesntHave('gymClass', function ($query): void {
+                    $query->where(function ($query): void {
+                        $query->where('class_type', 'muaythai')
+                            ->orWhere('name', 'like', '%Muaythai%');
+                    });
+                })->orWhereIn('trainer_id', $activeMuaythaiTrainerIds->all());
+            });
+        }
+
         if ($pageKey === 'booking-kelas') {
             $this->applyScheduleFilters($query, $filters);
 
-            return $query->paginate(24)->withQueryString()->through(fn (ClassSchedule $schedule) => $this->prepareSchedule($schedule, $activeSessionTypes));
+            return $query->paginate(24)->withQueryString()->through(fn (ClassSchedule $schedule) => $this->prepareSchedule($schedule, $activeSessionTypes, $activeMuaythaiTrainerIds));
         }
 
-        return $query->limit(8)->get()->each(fn (ClassSchedule $schedule) => $this->prepareSchedule($schedule, $activeSessionTypes));
+        return $query->limit(8)->get()->each(fn (ClassSchedule $schedule) => $this->prepareSchedule($schedule, $activeSessionTypes, $activeMuaythaiTrainerIds));
     }
 
     private function notifications(User $user, string $pageKey, array $filters): mixed
@@ -476,17 +488,57 @@ class MemberDashboardQuery
     }
 
     /**
-     * @param  Collection<int, string>  $activeSessionTypes
+     * @return Collection<int, int>
      */
-    private function prepareSchedule(ClassSchedule $schedule, Collection $activeSessionTypes): ClassSchedule
+    private function activePackageSessionTrainerIds(Member $member, string $packageType, string $today): Collection
+    {
+        return $member->packageSessions()
+            ->with('package:id,type')
+            ->where('status', 'active')
+            ->where('remaining_sessions', '>', 0)
+            ->whereNotNull('trainer_id')
+            ->where(function ($query) use ($today): void {
+                $query->whereNull('expired_at')
+                    ->orWhereDate('expired_at', '>=', $today);
+            })
+            ->whereHas('package', fn ($query) => $query->where('type', $packageType))
+            ->pluck('trainer_id')
+            ->filter()
+            ->map(fn (mixed $id): int => (int) $id)
+            ->unique()
+            ->values();
+    }
+
+    /**
+     * @param  Collection<int, string>  $activeSessionTypes
+     * @param  Collection<int, int>  $activeMuaythaiTrainerIds
+     */
+    private function prepareSchedule(ClassSchedule $schedule, Collection $activeSessionTypes, Collection $activeMuaythaiTrainerIds): ClassSchedule
     {
         $schedule->setAttribute('next_session_date', $this->nextSessionDate((int) $schedule->day_of_week)->toDateString());
+        $schedule->setAttribute('staff_role_label', ClassStaffPresenter::roleLabel($schedule));
+        $schedule->setAttribute('staff_display_name', ClassStaffPresenter::memberBookingDisplayName($schedule->trainer, $schedule));
+        $schedule->setAttribute('time_label', ClassStaffPresenter::timeLabel($schedule));
         $meta = MemberPortalStatusViewModel::schedule($schedule);
         $requiredPackageType = (string) $schedule->gymClass?->required_package_type;
 
-        if (($meta['is_session_based'] ?? false) && filled($requiredPackageType) && ! $activeSessionTypes->contains($requiredPackageType)) {
+        if (
+            ($meta['is_session_based'] ?? false)
+            && filled($requiredPackageType)
+            && $requiredPackageType !== 'poundfit'
+            && ! $activeSessionTypes->contains($requiredPackageType)
+        ) {
             $meta['can_book'] = false;
             $meta['disabled_reason'] = 'Kelas ini membutuhkan membership aktif yang sesuai.';
+        }
+
+        if (
+            $requiredPackageType === 'muaythai'
+            && $activeMuaythaiTrainerIds->isNotEmpty()
+            && ! $activeMuaythaiTrainerIds->contains((int) $schedule->trainer_id)
+        ) {
+            $meta['can_book'] = false;
+            $meta['disabled_reason'] = 'Jadwal Muaythai mengikuti coach pada paket aktif Anda.';
         }
 
         $schedule->setAttribute('member_status_meta', $meta);
@@ -731,7 +783,7 @@ class MemberDashboardQuery
             [
                 'label' => 'Membership',
                 'value' => $activeMembership?->package?->name ?? 'Belum aktif',
-                'description' => $activeMembership ? 'Aktif sampai '.$activeMembership->end_date?->translatedFormat('d M Y') : 'Paket aktif akan tampil setelah pembelian terverifikasi.',
+                'description' => $activeMembership ? $activeMembership->validityLabel() : 'Paket aktif akan tampil setelah pembelian terverifikasi.',
             ],
             [
                 'label' => 'Booking',
