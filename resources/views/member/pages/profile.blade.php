@@ -15,6 +15,9 @@
         $member->address,
         $member->emergency_contact,
     ];
+    if ($member->is_student) {
+        $profileFields[] = $member->student_proof_path;
+    }
     $filledFields = collect($profileFields)->filter(fn ($value) => filled($value))->count();
     $completionPercent = (int) round(($filledFields / count($profileFields)) * 100);
     $identityRows = [
@@ -31,7 +34,11 @@
     ];
     $supportRows = [
         ['label' => 'Kategori Member', 'value' => $member->is_student ? 'Mahasiswa' : 'Umum'],
-        ['label' => 'NIM', 'value' => $member->student_id_number ?? '-'],
+        [
+            'label' => 'Bukti Mahasiswa',
+            'value' => $member->is_student ? (filled($member->student_proof_path) ? 'Sudah diunggah' : 'Belum diunggah') : '-',
+            'url' => filled($member->student_proof_path) ? route('member.profile.student-proof') : null,
+        ],
     ];
 @endphp
 
@@ -119,6 +126,9 @@
             <article class="member-soft-panel min-w-0">
                 <p class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">{{ $row['label'] }}</p>
                 <p class="mt-2 break-words text-lg font-black text-zinc-950 dark:text-white">{{ $row['value'] }}</p>
+                @if ($row['url'] ?? null)
+                    <a href="{{ $row['url'] }}" class="mt-3 inline-flex min-h-10 items-center rounded-md border border-gold-500/30 px-3 text-xs font-black text-gold-700 underline-offset-2 hover:bg-gold-500/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500 dark:text-gold-300" target="_blank" rel="noopener">Lihat bukti</a>
+                @endif
             </article>
         @endforeach
     </div>

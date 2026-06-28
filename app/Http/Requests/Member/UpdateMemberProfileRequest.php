@@ -45,6 +45,8 @@ class UpdateMemberProfileRequest extends FormRequest
      */
     public function rules(): array
     {
+        $hasStudentProof = filled($this->user()?->member()->value('student_proof_path'));
+
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($this->user()?->id)],
@@ -58,7 +60,7 @@ class UpdateMemberProfileRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:1000'],
             'emergency_contact' => ['nullable', 'string', 'regex:/^08\d{8,12}$/'],
             'is_student' => ['boolean'],
-            'student_id_number' => ['nullable', Rule::requiredIf($this->boolean('is_student')), 'string', 'max:50'],
+            'student_proof' => ['nullable', Rule::requiredIf($this->boolean('is_student') && ! $hasStudentProof), 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
     }
@@ -80,7 +82,7 @@ class UpdateMemberProfileRequest extends FormRequest
             'birth_year' => 'tahun lahir',
             'address' => 'alamat',
             'emergency_contact' => 'kontak darurat',
-            'student_id_number' => 'NIM',
+            'student_proof' => 'bukti mahasiswa',
             'avatar' => 'foto profil',
         ];
     }

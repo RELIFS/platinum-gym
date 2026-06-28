@@ -12,7 +12,7 @@ use Throwable;
 
 class UpdateMemberProfileAction
 {
-    public function __construct(private readonly VerifyStudentStatusAction $verifyStudentStatus) {}
+    private const STUDENT_PROOF_DIRECTORY = 'member/student-proofs';
 
     /**
      * @param  array<string, mixed>  $data
@@ -20,17 +20,13 @@ class UpdateMemberProfileAction
     public function execute(User $user, Member $member, array $data): void
     {
         $newAvatar = $this->storeAvatar($data['avatar'] ?? null);
+        $newStudentProof = $this->storeStudentProof(($data['is_student'] ?? false) ? ($data['student_proof'] ?? null) : null);
         $oldAvatar = $user->avatar;
+        $oldStudentProof = $member->student_proof_path;
+        $studentProofToDelete = null;
 
         try {
-            DB::transaction(function () use ($user, $member, $data, $newAvatar): void {
-                $oldStudentSnapshot = [
-                    'name' => $user->name,
-                    'birth_date' => $member->birth_date?->toDateString(),
-                    'is_student' => (bool) $member->is_student,
-                    'student_id_number' => (string) ($member->student_id_number ?? ''),
-                ];
-
+            DB::transaction(function () use ($user, $member, $data, $newAvatar, $newStudentProof, $oldStudentProof, &$studentProofToDelete): void {
                 $payload = [
                     'name' => $data['name'],
                     'email' => $data['email'],
@@ -49,29 +45,48 @@ class UpdateMemberProfileAction
 
                 $user->save();
 
+                $isStudent = (bool) ($data['is_student'] ?? false);
+
                 $member->fill([
                     'gender' => $data['gender'],
                     'birth_date' => $data['birth_date'],
                     'address' => $data['address'] ?? null,
                     'emergency_contact' => $data['emergency_contact'] ?? null,
-                    'is_student' => (bool) ($data['is_student'] ?? false),
-                    'student_id_number' => ($data['is_student'] ?? false) ? ($data['student_id_number'] ?? null) : null,
+                    'is_student' => $isStudent,
+                    'student_id_number' => $isStudent ? $member->student_id_number : null,
                 ]);
 
-                if ($this->studentDataChanged($oldStudentSnapshot, $user, $member)) {
-                    $result = $this->verifyStudentStatus->handle($user, $member);
+                if ($newStudentProof) {
                     $member->forceFill([
-                        'student_verification_status' => $result->status,
-                        'student_verified_at' => $result->status === 'verified' ? now() : null,
-                        'student_verification_source' => $result->source,
-                        'student_verification_note' => $result->note,
+                        'student_proof_path' => $newStudentProof,
+                        'student_proof_uploaded_at' => now(),
+                        'student_verification_status' => 'pending_review',
+                        'student_verified_at' => null,
+                        'student_verification_source' => 'member_upload',
+                        'student_verification_note' => 'Bukti mahasiswa telah diunggah dan siap ditinjau admin.',
                     ]);
+
+                    $studentProofToDelete = $oldStudentProof;
+                }
+
+                if (! $isStudent) {
+                    $member->forceFill([
+                        'student_proof_path' => null,
+                        'student_proof_uploaded_at' => null,
+                        'student_verification_status' => 'unverified',
+                        'student_verified_at' => null,
+                        'student_verification_source' => 'profile',
+                        'student_verification_note' => 'Member bukan mahasiswa.',
+                    ]);
+
+                    $studentProofToDelete = $oldStudentProof;
                 }
 
                 $member->save();
             });
         } catch (Throwable $exception) {
             $this->deleteLocalAvatar($newAvatar);
+            $this->deleteStudentProof($newStudentProof);
 
             throw $exception;
         }
@@ -79,6 +94,8 @@ class UpdateMemberProfileAction
         if ($newAvatar) {
             $this->deleteLocalAvatar($oldAvatar);
         }
+
+        $this->deleteStudentProof($studentProofToDelete);
     }
 
     private function storeAvatar(mixed $avatar): ?string
@@ -105,12 +122,27 @@ class UpdateMemberProfileAction
         Storage::disk('public')->delete(substr($avatar, strlen('storage/')));
     }
 
-    /** @param array{name: string|null, birth_date: string|null, is_student: bool, student_id_number: string} $old */
-    private function studentDataChanged(array $old, User $user, Member $member): bool
+    private function storeStudentProof(mixed $proof): ?string
     {
-        return $old['name'] !== $user->name
-            || $old['birth_date'] !== $member->birth_date?->toDateString()
-            || $old['is_student'] !== (bool) $member->is_student
-            || $old['student_id_number'] !== (string) ($member->student_id_number ?? '');
+        if (! $proof instanceof UploadedFile) {
+            return null;
+        }
+
+        $path = Storage::disk('local')->putFile(self::STUDENT_PROOF_DIRECTORY, $proof);
+
+        if (! is_string($path) || $path === '') {
+            throw new RuntimeException('Bukti mahasiswa belum dapat disimpan.');
+        }
+
+        return $path;
+    }
+
+    private function deleteStudentProof(?string $path): void
+    {
+        if (! $path || ! str_starts_with($path, self::STUDENT_PROOF_DIRECTORY.'/')) {
+            return;
+        }
+
+        Storage::disk('local')->delete($path);
     }
 }

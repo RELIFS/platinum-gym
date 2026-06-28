@@ -1,5 +1,8 @@
 @php
     $profileFields = [$user->name, $user->email, $user->phone, $user->avatar, $member->gender, $member->birth_date, $member->address, $member->emergency_contact];
+    if ($member->is_student) {
+        $profileFields[] = $member->student_proof_path;
+    }
     $filledFields = collect($profileFields)->filter(fn ($value) => filled($value))->count();
     $completionPercent = (int) round(($filledFields / count($profileFields)) * 100);
 @endphp
@@ -15,7 +18,7 @@
             <span class="member-status-pill bg-gold-500/15 text-gold-700 dark:text-gold-300">{{ $completionPercent }}% lengkap</span>
         </div>
 
-        <form method="POST" action="{{ route('member.profile.update') }}" enctype="multipart/form-data" class="mt-6 space-y-6" x-data="{ submitting: false, avatarPreviewUrl: null, avatarPreviewActive: false, avatarObjectUrl: null, setAvatarPreview(event) { const file = event.target.files?.[0]; if (this.avatarObjectUrl) { URL.revokeObjectURL(this.avatarObjectUrl); this.avatarObjectUrl = null; } if (! file) { this.avatarPreviewUrl = null; this.avatarPreviewActive = false; return; } this.avatarObjectUrl = URL.createObjectURL(file); this.avatarPreviewUrl = this.avatarObjectUrl; this.avatarPreviewActive = true; } }" x-on:submit="if (submitting) { $event.preventDefault() } else { submitting = true }">
+        <form method="POST" action="{{ route('member.profile.update') }}" enctype="multipart/form-data" class="mt-6 space-y-6" x-data="{ submitting: false, avatarPreviewUrl: null, avatarPreviewActive: false, avatarObjectUrl: null, studentProofPreviewUrl: null, studentProofPreviewActive: false, studentProofObjectUrl: null, setAvatarPreview(event) { const file = event.target.files?.[0]; if (this.avatarObjectUrl) { URL.revokeObjectURL(this.avatarObjectUrl); this.avatarObjectUrl = null; } if (! file) { this.avatarPreviewUrl = null; this.avatarPreviewActive = false; return; } this.avatarObjectUrl = URL.createObjectURL(file); this.avatarPreviewUrl = this.avatarObjectUrl; this.avatarPreviewActive = true; }, setStudentProofPreview(event) { const file = event.target.files?.[0]; if (this.studentProofObjectUrl) { URL.revokeObjectURL(this.studentProofObjectUrl); this.studentProofObjectUrl = null; } if (! file) { this.studentProofPreviewUrl = null; this.studentProofPreviewActive = false; return; } this.studentProofObjectUrl = URL.createObjectURL(file); this.studentProofPreviewUrl = this.studentProofObjectUrl; this.studentProofPreviewActive = true; } }" x-on:submit="if (submitting) { $event.preventDefault() } else { submitting = true }">
             @csrf
             @method('patch')
 
@@ -94,13 +97,34 @@
                     <input id="member_is_student" name="is_student" type="checkbox" value="1" class="mt-0.5 h-6 w-6 rounded border-zinc-300 text-gold-500 focus:ring-gold-500/40 dark:border-white/20 dark:bg-zinc-950" @checked(old('is_student', $member->is_student))>
                     <span class="min-w-0">
                         <span class="block text-sm font-black text-zinc-950 dark:text-white">Member mahasiswa</span>
-                        <span class="mt-1 block break-words text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">Masukkan Nomor Induk Mahasiswa (NIM) yang terdaftar di PDDIKTI, karena data akan dicek secara otomatis oleh sistem.</span>
+                        <span class="mt-1 block break-words text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">Upload KTM atau screenshot akun portal mahasiswa untuk checkout paket mahasiswa.</span>
                     </span>
                 </label>
-                <div class="mt-4">
-                    <x-input-label for="member_student_id" value="Nomor Induk Mahasiswa (NIM)" />
-                    <x-text-input id="member_student_id" name="student_id_number" type="text" class="mt-2 block min-h-12 w-full" :value="old('student_id_number', $member->student_id_number)" autocomplete="off" />
-                    <x-input-error class="mt-2" :messages="$errors->get('student_id_number')" />
+                <div class="mt-4 grid min-w-0 gap-4 lg:grid-cols-[9rem_minmax(0,1fr)]">
+                    <div class="grid aspect-[4/3] min-h-28 min-w-0 place-items-center overflow-hidden rounded-lg border border-dashed border-gold-500/35 bg-gold-500/10 text-center">
+                        <template x-if="studentProofPreviewUrl">
+                            <img x-bind:src="studentProofPreviewUrl" alt="" class="h-full w-full object-cover">
+                        </template>
+                        @if ($member->student_proof_path)
+                            <template x-if="! studentProofPreviewUrl">
+                                <img src="{{ route('member.profile.student-proof') }}" alt="Bukti mahasiswa tersimpan" class="h-full w-full object-cover" loading="lazy">
+                            </template>
+                        @else
+                            <template x-if="! studentProofPreviewUrl">
+                                <span class="px-3 text-xs font-black uppercase tracking-[0.12em] text-gold-700 dark:text-gold-300">Belum diunggah</span>
+                            </template>
+                        @endif
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <x-input-label for="member_student_proof" value="Bukti Mahasiswa" />
+                            <span class="member-status-pill {{ $member->student_proof_path ? 'member-status-success' : 'bg-zinc-100 text-zinc-700 dark:bg-white/10 dark:text-zinc-300' }}">{{ $member->student_proof_path ? 'Sudah diunggah' : 'Belum diunggah' }}</span>
+                        </div>
+                        <input id="member_student_proof" name="student_proof" type="file" accept="image/jpeg,image/png,image/webp" class="member-form-input mt-2 file:mr-3 file:rounded-md file:border-0 file:bg-gold-500 file:px-3 file:py-1.5 file:text-sm file:font-black file:text-zinc-950" x-on:change="setStudentProofPreview($event)">
+                        <x-input-error class="mt-2" :messages="$errors->get('student_proof')" />
+                        <p class="mt-2 text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">Upload KTM atau screenshot akun portal mahasiswa. JPG, PNG, atau WebP. Maksimal 2 MB.</p>
+                        <p class="mt-2 text-xs font-black uppercase tracking-[0.12em] text-gold-700 dark:text-gold-400" x-show="studentProofPreviewActive" x-cloak>Preview, belum disimpan</p>
+                    </div>
                 </div>
             </div>
 
