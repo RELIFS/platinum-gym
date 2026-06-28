@@ -2,7 +2,7 @@
 
 use App\Models\Member;
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
+use App\Notifications\Auth\EmailVerificationCodeNotification;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
 
@@ -17,8 +17,17 @@ test('registration screen can be rendered', function () {
         ->assertSee('name="birth_date_display"', false)
         ->assertSee('name="birth_date"', false)
         ->assertSee('placeholder="dd/mm/yyyy"', false)
+        ->assertSee('x-modelable="isoValue"', false)
         ->assertSee('aria-label="Pilih tanggal lahir"', false)
+        ->assertSee('auth-terms-row', false)
+        ->assertSee('auth-terms-checkbox', false)
+        ->assertSee('auth-terms-copy', false)
+        ->assertSee('auth-inline-link', false)
+        ->assertSee('name="terms"', false)
+        ->assertSee(route('legal.terms', absolute: false), false)
+        ->assertSee(route('legal.privacy', absolute: false), false)
         ->assertDontSee('Pilih tanggal lahir sesuai identitas.')
+        ->assertDontSee('class="auth-link">Syarat &amp; Ketentuan', false)
         ->assertDontSee('name="birth_day"', false)
         ->assertDontSee('name="birth_month"', false)
         ->assertDontSee('name="birth_year"', false);
@@ -96,7 +105,13 @@ test('new members can register', function () {
         ->and($member->birth_date->toDateString())->toBe('2000-01-15')
         ->and($member->status)->toBe('active');
 
-    Notification::assertSentTo($user, VerifyEmail::class);
+    Notification::assertSentTo($user, EmailVerificationCodeNotification::class, function (EmailVerificationCodeNotification $notification) use ($user): bool {
+        $mail = $notification->toMail($user);
+
+        return $mail->subject === 'Kode Verifikasi Email Platinum Gym'
+            && strlen($notification->code) === 6
+            && str_contains($mail->render(), 'Verifikasi Email');
+    });
 });
 
 test('registration requires member fields and terms', function () {
