@@ -17,8 +17,12 @@ class MemberPackageEligibility
         $isPtPackage = self::isPersonalTrainerPackage($package);
         $buttonLabel = $isMembership ? 'Checkout Membership' : 'Checkout Paket Sesi';
 
-        if ($isMembership && self::missingBasicProfile($member)) {
-            return self::blocked('Lengkapi profil dan foto profil sebelum checkout membership.', 'Lengkapi data', $profileRoute, $buttonLabel, $package, $isStudentPackage, $isPtPackage);
+        if (! self::hasCompleteBasicProfile($member)) {
+            $reason = $isMembership
+                ? 'Lengkapi profil dan foto profil sebelum checkout membership.'
+                : 'Lengkapi profil dan foto profil sebelum checkout paket sesi.';
+
+            return self::blocked($reason, 'Lengkapi data', $profileRoute, $buttonLabel, $package, $isStudentPackage, $isPtPackage);
         }
 
         if (self::requiresFemaleMember($package) && (string) $member->gender !== 'female') {
@@ -29,7 +33,7 @@ class MemberPackageEligibility
             return self::blocked('Paket ini khusus member perempuan.', null, null, 'Khusus Perempuan', $package, $isStudentPackage, $isPtPackage);
         }
 
-        if ($isMembership && $isStudentPackage) {
+        if ($isStudentPackage) {
             $studentBlock = self::studentBlock($member, $package, $buttonLabel, $profileRoute);
 
             if ($studentBlock !== null) {
@@ -77,25 +81,23 @@ class MemberPackageEligibility
         $today = now()->toDateString();
 
         return $member->memberships()
-            ->where('status', 'active')
-            ->whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today)
+            ->activeForAccess($today)
             ->whereHas('package', fn ($query) => $query->whereIn('type', ['gym', 'include']))
             ->exists();
     }
 
-    private static function missingBasicProfile(Member $member): bool
+    public static function hasCompleteBasicProfile(Member $member): bool
     {
         $member->loadMissing('user');
         $user = $member->user;
 
-        return ! $user
-            || blank($user->name)
-            || blank($user->email)
-            || blank($user->phone)
-            || blank($user->avatar)
-            || blank($member->gender)
-            || ! $member->birth_date;
+        return $user
+            && filled($user->name)
+            && filled($user->email)
+            && filled($user->phone)
+            && filled($user->avatar)
+            && filled($member->gender)
+            && (bool) $member->birth_date;
     }
 
     /**
@@ -107,8 +109,8 @@ class MemberPackageEligibility
             return self::blocked('Aktifkan status mahasiswa di profil.', 'Lengkapi data', $profileRoute, $buttonLabel, $package, true, false);
         }
 
-        if (blank($member->student_id_number)) {
-            return self::blocked('Lengkapi NIM yang terdaftar di PDDIKTI.', 'Lengkapi data', $profileRoute, $buttonLabel, $package, true, false);
+        if (blank($member->student_proof_path)) {
+            return self::blocked('Upload KTM atau screenshot akun portal mahasiswa.', 'Lengkapi data', $profileRoute, $buttonLabel, $package, true, false);
         }
 
         $maxAge = (int) ($package->max_age ?: 22);

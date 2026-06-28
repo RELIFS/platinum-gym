@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Member;
 
 use App\Features\MemberPortal\Actions\EnsureMemberCheckoutEligibilityAction;
 use App\Features\MemberPortal\Queries\MemberDashboardQuery;
+use App\Features\MemberPortal\Support\MemberPackageEligibility;
 use App\Features\MemberPortal\ViewModels\MemberPortalStatusViewModel;
 use App\Features\Payments\Actions\CreatePaymentCheckoutAction;
 use App\Features\Payments\Actions\SyncMidtransPaymentStatusAction;
@@ -50,6 +51,13 @@ class MemberCheckoutController extends Controller
         try {
             $eligibility->handle($member, $package);
         } catch (RuntimeException $exception) {
+            if (! MemberPackageEligibility::hasCompleteBasicProfile($member)) {
+                return redirect()
+                    ->route('member.profile.edit')
+                    ->with('status', $exception->getMessage())
+                    ->with('status_kind', 'error');
+            }
+
             return back()
                 ->with('status', $exception->getMessage())
                 ->with('status_kind', 'error')

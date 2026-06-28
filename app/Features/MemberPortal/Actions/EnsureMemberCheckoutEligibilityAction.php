@@ -13,9 +13,7 @@ class EnsureMemberCheckoutEligibilityAction
     {
         $member->loadMissing('user');
 
-        if ((string) $package->package_kind === 'membership') {
-            $this->ensureBasicProfile($member);
-        }
+        $this->ensureBasicProfile($member, $package);
 
         if (MemberPackageEligibility::requiresFemaleMember($package)) {
             $this->ensureFemaleMember($member);
@@ -30,16 +28,12 @@ class EnsureMemberCheckoutEligibilityAction
         }
     }
 
-    private function ensureBasicProfile(Member $member): void
+    private function ensureBasicProfile(Member $member, Package $package): void
     {
-        $user = $member->user;
+        if (! MemberPackageEligibility::hasCompleteBasicProfile($member)) {
+            $packageType = (string) $package->package_kind === 'membership' ? 'membership' : 'paket sesi';
 
-        if (! $user || blank($user->name) || blank($user->email) || blank($user->phone) || blank($user->avatar)) {
-            throw new RuntimeException('Lengkapi nama, email, WhatsApp, dan foto profil sebelum checkout.');
-        }
-
-        if (blank($member->gender) || ! $member->birth_date) {
-            throw new RuntimeException('Lengkapi gender dan tanggal lahir sebelum checkout.');
+            throw new RuntimeException("Lengkapi profil dan foto profil sebelum checkout {$packageType}.");
         }
     }
 
@@ -49,8 +43,8 @@ class EnsureMemberCheckoutEligibilityAction
             throw new RuntimeException('Paket mahasiswa hanya tersedia untuk member dengan status mahasiswa.');
         }
 
-        if (blank($member->student_id_number)) {
-            throw new RuntimeException('Lengkapi NIM sebelum checkout paket mahasiswa.');
+        if (blank($member->student_proof_path)) {
+            throw new RuntimeException('Upload KTM atau screenshot akun portal mahasiswa sebelum checkout paket mahasiswa.');
         }
 
         $maxAge = (int) ($package->max_age ?: 22);

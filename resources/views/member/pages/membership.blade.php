@@ -29,7 +29,7 @@
                     @foreach ($activeMemberships as $membership)
                         <article class="min-w-0 shrink-0 basis-[min(100%,20rem)] snap-start rounded-lg border border-emerald-500/20 bg-white/75 p-4 dark:border-emerald-400/15 dark:bg-zinc-950/45 sm:basis-80 xl:basis-[21rem]">
                             <h4 class="break-words text-xl font-black text-zinc-950 dark:text-white">{{ $membership->package?->name ?? $membership->code }}</h4>
-                            <p class="mt-2 member-copy">{{ $membership->start_date?->translatedFormat('d M Y') }} sampai {{ $membership->end_date?->translatedFormat('d M Y') }}.</p>
+                            <p class="mt-2 member-copy">{{ $membership->validityLabel() }}.</p>
                             <p class="mt-4 text-2xl font-black text-gold-600 dark:text-gold-400">Rp {{ number_format((float) $membership->price, 0, ',', '.') }}</p>
                         </article>
                     @endforeach

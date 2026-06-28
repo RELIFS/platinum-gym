@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Member;
 
+use App\Features\MemberPortal\Support\MemberPackageEligibility;
 use App\Features\MemberPortal\ViewModels\MemberPortalStatusViewModel;
 use App\Models\Package;
 use App\Models\Trainer;
@@ -21,7 +22,7 @@ class CheckoutPackageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'trainer_id' => ['nullable', 'integer', 'exists:trainers,id'],
+            'trainer_id' => ['nullable', 'integer'],
         ];
     }
 
@@ -31,6 +32,12 @@ class CheckoutPackageRequest extends FormRequest
             $package = $this->route('package');
 
             if (! $package instanceof Package) {
+                return;
+            }
+
+            $member = $this->user()?->member()->with('user')->first();
+
+            if ($member && ! MemberPackageEligibility::hasCompleteBasicProfile($member)) {
                 return;
             }
 

@@ -8,6 +8,9 @@
         'promo_price' => filled($package->promo_price) ? (float) $package->promo_price : null,
         'has_promo' => false,
         'display_price' => (float) ($package->promo_price ?? $package->price ?? 0),
+        'duration_label' => $package->durationMarketingLabel(),
+        'bonus_label' => $package->durationBonusLabel(),
+        'effective_duration_days' => $package->effectiveDurationDays(),
     ];
     $eligibility = $package->member_eligibility ?? [
         'can_checkout' => true,
@@ -25,10 +28,14 @@
     $requiresTrainer = (bool) ($packageMeta['requires_trainer'] ?? false);
     $packageTrainerList = $trainerOptions[$package->id] ?? [];
     $trainerSelectId = 'trainer-select-'.$package->id;
+    $checkoutDurationMessage = $isMembership && ! empty($packageMeta['effective_duration_days'])
+        ? sprintf(' Masa aktif total %s hari, mulai saat check-in pertama.', number_format((int) $packageMeta['effective_duration_days'], 0, ',', '.'))
+        : '';
     $confirmMessage = sprintf(
-        'Lanjut checkout %s seharga Rp %s? Anda akan diarahkan ke pembayaran Midtrans.',
+        'Lanjut checkout %s seharga Rp %s?%s Anda akan diarahkan ke pembayaran Midtrans.',
         addslashes((string) $package->name),
         number_format((float) $packageMeta['display_price'], 0, ',', '.'),
+        $checkoutDurationMessage,
     );
     $categoryLabel = match (str((string) $package->category)->lower()->toString()) {
         'mahasiswa' => 'Mahasiswa',
@@ -65,6 +72,14 @@
             <span class="member-status-pill member-status-warning">Promo</span>
         @endif
     </div>
+    @if ($isMembership && ! empty($packageMeta['duration_label']))
+        <div class="mt-3 flex flex-wrap items-center gap-2 text-sm font-bold leading-6 text-zinc-500 dark:text-zinc-400">
+            <span class="min-w-0 break-words">Masa aktif: {{ $packageMeta['duration_label'] }}</span>
+            @if (! empty($packageMeta['bonus_label']))
+                <span class="member-status-pill member-status-warning">{{ $packageMeta['bonus_label'] }}</span>
+            @endif
+        </div>
+    @endif
 
     <div class="mt-auto pt-4">
         @if ($canCheckout)
