@@ -8,7 +8,9 @@ use App\Models\MemberPackageSession;
 use App\Models\Membership;
 use App\Models\Payment;
 use App\Models\QrToken;
+use App\Notifications\Bookings\BookingCreatedNotification;
 use App\Notifications\MemberOperationalNotification;
+use App\Notifications\Payments\PaymentSucceededNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -45,6 +47,7 @@ class FulfillPaidPaymentAction
 
             if ($payable instanceof ClassEnrollment) {
                 $payable->forceFill(['status' => 'booked', 'payment_id' => $payment->id])->save();
+                $payment->member?->user?->notify((new BookingCreatedNotification($payable))->afterCommit());
             }
 
             $invoice = $this->createInvoice->handle($payment);
@@ -55,8 +58,8 @@ class FulfillPaidPaymentAction
                 'Pembayaran '.$payment->payment_code.' sudah berhasil dan layanan Anda telah diperbarui.',
                 route('member.transactions'),
                 'Lihat Transaksi',
-                true,
             ));
+            $payment->member?->user?->notify((new PaymentSucceededNotification($payment))->afterCommit());
 
             return $payment->refresh();
         });
@@ -65,13 +68,12 @@ class FulfillPaidPaymentAction
     private function activateMembership(Payment $payment, Membership $membership, ?int $verifiedBy): void
     {
         $package = $membership->package;
-        $startDate = now()->toDateString();
-        $endDate = now()->addDays(max((int) ($package?->duration_days ?? 30), 1) - 1)->toDateString();
+        $durationDays = max((int) ($membership->duration_days_snapshot ?: $package?->effectiveDurationDays() ?: 30), 1);
 
         $membership->forceFill([
-            'start_date' => $membership->start_date ?? $startDate,
-            'end_date' => $membership->end_date && $membership->end_date->isFuture() ? $membership->end_date : $endDate,
+            'duration_days_snapshot' => $durationDays,
             'status' => 'active',
+            'activated_at' => $membership->activated_at ?? now(),
             'approved_by' => $verifiedBy,
             'approved_at' => now(),
         ])->save();

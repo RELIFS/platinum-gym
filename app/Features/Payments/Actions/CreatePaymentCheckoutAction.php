@@ -38,9 +38,10 @@ class CreatePaymentCheckoutAction
                 'member_id' => $member->id,
                 'package_id' => $package->id,
                 'code' => PaymentCode::membership(),
-                'start_date' => now()->toDateString(),
-                'end_date' => now()->addDays(max((int) ($package->duration_days ?? 30), 1) - 1)->toDateString(),
+                'start_date' => null,
+                'end_date' => null,
                 'price' => $this->packagePrice($package),
+                'duration_days_snapshot' => max((int) ($package->effectiveDurationDays() ?? 30), 1),
                 'status' => 'pending_payment',
             ]);
 
@@ -186,9 +187,7 @@ class CreatePaymentCheckoutAction
     private function hasActiveMembership(Member $member): bool
     {
         return $member->memberships()
-            ->where('status', 'active')
-            ->whereDate('start_date', '<=', now()->toDateString())
-            ->whereDate('end_date', '>=', now()->toDateString())
+            ->activeForAccess()
             ->exists();
     }
 }

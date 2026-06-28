@@ -11,6 +11,7 @@ use App\Models\Member;
 use App\Models\Package;
 use App\Models\Payment;
 use App\Notifications\MemberOperationalNotification;
+use App\Notifications\Payments\PaymentRejectedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -74,8 +75,8 @@ class AdminPaymentController extends Controller
                 'Pembayaran '.$payment->payment_code.' ditolak. Periksa catatan transaksi untuk informasi lanjut.',
                 route('member.transactions'),
                 'Lihat Transaksi',
-                true,
             ));
+            $payment->member?->user?->notify((new PaymentRejectedNotification($payment))->afterCommit());
         });
 
         return back()->with('status', 'Pembayaran berhasil ditolak.');
