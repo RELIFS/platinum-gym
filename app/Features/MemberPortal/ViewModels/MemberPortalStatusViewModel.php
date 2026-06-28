@@ -2,6 +2,7 @@
 
 namespace App\Features\MemberPortal\ViewModels;
 
+use App\Features\Bookings\Support\BookingTimePolicy;
 use App\Models\ClassEnrollment;
 use App\Models\ClassSchedule;
 use App\Models\Package;
@@ -34,7 +35,7 @@ class MemberPortalStatusViewModel
         return [
             'label' => self::bookingLabel($status),
             'class' => self::bookingClass($status),
-            'can_cancel' => ! in_array($status, ['cancelled', 'canceled'], true) && (bool) $enrollment->session_date?->isFuture(),
+            'can_cancel' => ! in_array($status, ['cancelled', 'canceled'], true) && BookingTimePolicy::canCancel($enrollment),
         ];
     }
 
@@ -49,7 +50,7 @@ class MemberPortalStatusViewModel
     }
 
     /**
-     * @return array{kind_label: string, is_membership: bool, type_label: string, requires_trainer: bool, price: float, promo_price: float|null, has_promo: bool, display_price: float}
+     * @return array{kind_label: string, is_membership: bool, type_label: string, requires_trainer: bool, price: float, promo_price: float|null, has_promo: bool, display_price: float, duration_label: string|null, bonus_label: string|null, effective_duration_days: int|null}
      */
     public static function package(Package $package): array
     {
@@ -67,6 +68,9 @@ class MemberPortalStatusViewModel
             'promo_price' => $promoPrice,
             'has_promo' => $hasPromo,
             'display_price' => $hasPromo ? (float) $promoPrice : $price,
+            'duration_label' => $package->durationMarketingLabel(),
+            'bonus_label' => $package->durationBonusLabel(),
+            'effective_duration_days' => $package->effectiveDurationDays(),
         ];
     }
 

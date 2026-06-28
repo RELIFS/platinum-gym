@@ -30,9 +30,7 @@ class DownloadMemberQrAction
         }
 
         $hasActiveMembership = $member->memberships()
-            ->where('status', 'active')
-            ->whereDate('start_date', '<=', now()->toDateString())
-            ->whereDate('end_date', '>=', now()->toDateString())
+            ->activeForAccess()
             ->exists();
 
         if (! $hasActiveMembership) {

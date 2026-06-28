@@ -59,7 +59,7 @@ class PreviewMemberQrCheckInAction
             'membership' => [
                 'id' => $membership->id,
                 'name' => $membership->package?->name ?? $membership->code,
-                'end_date' => $membership->end_date?->translatedFormat('d M Y'),
+                'end_date' => $membership->end_date?->translatedFormat('d M Y') ?? 'Mulai saat check-in pertama',
                 'status' => $membership->status,
             ],
             'qr' => [
@@ -84,12 +84,23 @@ class PreviewMemberQrCheckInAction
 
     private function activeMembership(Member $member): ?Membership
     {
+        $today = now()->toDateString();
+
+        $startedMembership = $member->memberships()
+            ->with('package')
+            ->startedAndCurrent($today)
+            ->orderBy('end_date')
+            ->first();
+
+        if ($startedMembership) {
+            return $startedMembership;
+        }
+
         return $member->memberships()
             ->with('package')
-            ->where('status', 'active')
-            ->whereDate('start_date', '<=', now()->toDateString())
-            ->whereDate('end_date', '>=', now()->toDateString())
-            ->orderBy('end_date')
+            ->awaitingFirstCheckIn()
+            ->orderBy('activated_at')
+            ->orderBy('created_at')
             ->first();
     }
 }

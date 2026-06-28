@@ -20,7 +20,7 @@ class ConfirmMemberQrCheckInAction
     public const CHECK_IN_AND_USE_SESSION = 'check_in_and_use_session';
 
     /**
-     * @return array{member_name: string, check_in?: GymCheckIn, usage?: MemberPackageSessionUsage}
+     * @return array{member_name: string, check_in?: GymCheckIn|null, usage?: MemberPackageSessionUsage|null}
      */
     public function handle(string $token, string $action, int $adminUserId, ?int $packageSessionId = null, ?string $requestKey = null): array
     {
@@ -52,6 +52,8 @@ class ConfirmMemberQrCheckInAction
                     throw new RuntimeException('Member sudah check-in hari ini.');
                 }
 
+                $membership->startDurationOn($today);
+
                 $checkIn = GymCheckIn::create([
                     'member_id' => $member->id,
                     'membership_id' => $membership->id,
@@ -82,16 +84,29 @@ class ConfirmMemberQrCheckInAction
 
     private function activeMembership(Member $member): ?Membership
     {
-        return $member->memberships()
-            ->where('status', 'active')
-            ->whereDate('start_date', '<=', now()->toDateString())
-            ->whereDate('end_date', '>=', now()->toDateString())
+        $today = now()->toDateString();
+
+        $startedMembership = $member->memberships()
+            ->with('package')
+            ->startedAndCurrent($today)
             ->orderBy('end_date')
+            ->lockForUpdate()
+            ->first();
+
+        if ($startedMembership) {
+            return $startedMembership;
+        }
+
+        return $member->memberships()
+            ->with('package')
+            ->awaitingFirstCheckIn()
+            ->orderBy('activated_at')
+            ->orderBy('created_at')
             ->lockForUpdate()
             ->first();
     }
 
-    private function usePackageSession(Member $member, int $packageSessionId, int $adminUserId, ?GymCheckIn $checkIn, ?string $requestKey): MemberPackageSessionUsage
+    private function usePackageSession(Member $member, int $packageSessionId, int $adminUserId, ?GymCheckIn $checkIn, ?string $requestKey): ?MemberPackageSessionUsage
     {
         if (filled($requestKey)) {
             $existingUsage = MemberPackageSessionUsage::query()->where('request_key', $requestKey)->first();
@@ -102,6 +117,17 @@ class ConfirmMemberQrCheckInAction
         }
 
         $today = now()->toDateString();
+        $existingUsageToday = MemberPackageSessionUsage::query()
+            ->where('member_package_session_id', $packageSessionId)
+            ->where('member_id', $member->id)
+            ->whereDate('usage_date', $today)
+            ->lockForUpdate()
+            ->first();
+
+        if ($existingUsageToday) {
+            return $checkIn ? null : $existingUsageToday;
+        }
+
         $session = MemberPackageSession::query()
             ->where('id', $packageSessionId)
             ->where('member_id', $member->id)

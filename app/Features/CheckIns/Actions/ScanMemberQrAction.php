@@ -38,6 +38,8 @@ class ScanMemberQrAction
                 throw new RuntimeException('Member sudah check-in hari ini.');
             }
 
+            $membership->startDurationOn($today);
+
             $checkIn = GymCheckIn::create([
                 'member_id' => $member->id,
                 'membership_id' => $membership->id,
@@ -55,11 +57,25 @@ class ScanMemberQrAction
 
     private function activeMembership(Member $member): ?Membership
     {
-        return $member->memberships()
-            ->where('status', 'active')
-            ->whereDate('start_date', '<=', now()->toDateString())
-            ->whereDate('end_date', '>=', now()->toDateString())
+        $today = now()->toDateString();
+
+        $startedMembership = $member->memberships()
+            ->with('package')
+            ->startedAndCurrent($today)
             ->orderBy('end_date')
+            ->lockForUpdate()
+            ->first();
+
+        if ($startedMembership) {
+            return $startedMembership;
+        }
+
+        return $member->memberships()
+            ->with('package')
+            ->awaitingFirstCheckIn()
+            ->orderBy('activated_at')
+            ->orderBy('created_at')
+            ->lockForUpdate()
             ->first();
     }
 }

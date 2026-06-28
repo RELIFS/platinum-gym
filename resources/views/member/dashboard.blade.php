@@ -153,9 +153,7 @@
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div class="min-w-0">
                             <p class="text-sm font-black text-emerald-800 dark:text-emerald-300">{{ $activeMembership->package?->name ?? $activeMembership->code }}</p>
-                            <p class="mt-2 text-sm font-medium leading-6 text-zinc-600 dark:text-zinc-300">
-                                Berlaku {{ $activeMembership->start_date?->translatedFormat('d M Y') }} sampai {{ $activeMembership->end_date?->translatedFormat('d M Y') }}.
-                            </p>
+                            <p class="mt-2 text-sm font-medium leading-6 text-zinc-600 dark:text-zinc-300">{{ $activeMembership->validityLabel() }}.</p>
                         </div>
                         <span class="member-status-pill member-status-success">Aktif</span>
                     </div>
