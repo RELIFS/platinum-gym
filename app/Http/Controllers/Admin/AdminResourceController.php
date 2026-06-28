@@ -37,7 +37,7 @@ class AdminResourceController extends Controller
     public function store(UpsertAdminResourceRequest $request, string $resource, UpsertAdminResourceAction $action): RedirectResponse
     {
         $definition = $this->registry->definition($resource);
-        $model = $action->handle($resource, $request->validated());
+        $model = $action->handle($resource, $request->validated(), actor: $request->user());
 
         return redirect()
             ->route($definition['index_route'])
@@ -63,7 +63,7 @@ class AdminResourceController extends Controller
     public function update(UpsertAdminResourceRequest $request, string $resource, int $id, UpsertAdminResourceAction $action): RedirectResponse
     {
         $definition = $this->registry->definition($resource);
-        $action->handle($resource, $request->validated(), $this->registry->model($resource, $id));
+        $action->handle($resource, $request->validated(), $this->registry->model($resource, $id), $request->user());
 
         return redirect()
             ->route($definition['index_route'])

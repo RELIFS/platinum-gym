@@ -128,9 +128,9 @@
                             <input type="hidden" name="action" x-bind:value="selectedAction">
 
                             @if ($previewSessions->isNotEmpty())
-                                <label class="min-w-0">
-                                    <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Paket Sesi Aktif</span>
-                                    <select name="member_package_session_id" class="admin-form-input mt-2" x-model="selectedSessionId" x-on:change="sessionError = ''">
+                                <label class="admin-field">
+                                    <span class="admin-field-label">Paket sesi aktif</span>
+                                    <select name="member_package_session_id" class="admin-form-input" x-model="selectedSessionId" x-on:change="sessionError = ''">
                                         <option value="">Pilih paket sesi yang ingin digunakan</option>
                                         @foreach ($previewSessions as $session)
                                             <option value="{{ $session['id'] }}">{{ $session['name'] }} - {{ $session['remaining'] }}/{{ $session['total'] }} sesi{{ filled($session['trainer'] ?? null) ? ' - '.$session['trainer'] : '' }}</option>

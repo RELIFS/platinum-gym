@@ -20,8 +20,8 @@
         ->mapWithKeys(fn ($key) => [$key => $filters->get($key)])
         ->filter(fn ($value) => filled($value));
     $formGridClass = $hasDateFilters
-        ? 'mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_12rem_12rem_auto_auto] lg:items-end'
-        : 'mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_14rem_auto_auto] lg:items-end';
+        ? 'lg:grid-cols-[minmax(0,1fr)_12rem_12rem_auto_auto] lg:items-end'
+        : 'lg:grid-cols-[minmax(0,1fr)_14rem_auto_auto] lg:items-end';
     $countText = $hasPaginator
         ? match (true) {
             $paginator->total() === 0 => '0 data',
@@ -41,12 +41,12 @@
     </div>
 
     @if ($hasPaginator || $statusOptions->isNotEmpty() || $hasActiveFilter || $hasDateFilters)
-        <form method="GET" action="{{ url()->current() }}" class="admin-toolbar {{ $formGridClass }}">
+        <form method="GET" action="{{ url()->current() }}" class="admin-filter-bar {{ $formGridClass }}">
             @foreach ($preservedFilters as $name => $value)
                 <input type="hidden" name="{{ $name }}" value="{{ $value }}">
             @endforeach
 
-            <label class="min-w-0">
+            <label class="admin-field">
                 <span class="sr-only">Cari {{ $module['title'] ?? 'data admin' }}</span>
                 <span class="relative block">
                     <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-zinc-400 dark:text-zinc-500" aria-hidden="true">
@@ -66,8 +66,8 @@
             </label>
 
             @if ($statusOptions->isNotEmpty())
-                <label class="min-w-0">
-                    <span class="sr-only">Filter status</span>
+                <label class="admin-field">
+                    <span class="admin-field-label">Status</span>
                     <select name="status" class="admin-form-input min-h-11" aria-label="Filter status {{ $module['title'] ?? 'data admin' }}">
                         <option value="">Semua status</option>
                         @foreach ($statusOptions as $value => $label)
@@ -80,18 +80,18 @@
             @endif
 
             @if ($hasDateFilters)
-                <label class="min-w-0">
-                    <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Dari tanggal</span>
-                    <input type="date" name="date_from" value="{{ $filters->get('date_from') }}" max="{{ $filters->get('date_to') }}" class="admin-form-input mt-2 min-h-11">
+                <label class="admin-field">
+                    <span class="admin-field-label">Dari tanggal</span>
+                    <x-local-date-input id="{{ $tableId }}-date-from" name="date_from" :value="$filters->get('date_from')" :max="$filters->get('date_to')" class="admin-form-input min-h-11" />
                 </label>
-                <label class="min-w-0">
-                    <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Sampai tanggal</span>
-                    <input type="date" name="date_to" value="{{ $filters->get('date_to') }}" min="{{ $filters->get('date_from') }}" class="admin-form-input mt-2 min-h-11">
+                <label class="admin-field">
+                    <span class="admin-field-label">Sampai tanggal</span>
+                    <x-local-date-input id="{{ $tableId }}-date-to" name="date_to" :value="$filters->get('date_to')" :min="$filters->get('date_from')" class="admin-form-input min-h-11" />
                 </label>
             @endif
 
             <button type="submit" class="admin-button-primary min-h-11">Terapkan</button>
-            <a href="{{ url()->current().($preservedFilters->isNotEmpty() ? '?'.http_build_query($preservedFilters->all()) : '') }}" class="admin-button-secondary min-h-11">Bersihkan Pencarian</a>
+            <a href="{{ url()->current().($preservedFilters->isNotEmpty() ? '?'.http_build_query($preservedFilters->all()) : '') }}" class="admin-button-secondary min-h-11">Reset Filter</a>
         </form>
     @endif
 

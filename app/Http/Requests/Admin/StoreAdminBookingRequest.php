@@ -2,7 +2,13 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Features\Admin\Support\AdminOperationalRules;
+use App\Features\Bookings\Support\BookingTimePolicy;
+use App\Features\Shared\Support\IndonesianDateFormat;
+use App\Models\ClassSchedule;
+use App\Models\Member;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StoreAdminBookingRequest extends FormRequest
 {
@@ -16,8 +22,39 @@ class StoreAdminBookingRequest extends FormRequest
         return [
             'member_id' => ['required', 'exists:members,id'],
             'schedule_id' => ['required', 'exists:class_schedules,id'],
-            'session_date' => ['required', 'date', 'after_or_equal:today'],
+            'session_date' => ['required', 'date', 'after:today'],
         ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                if ($validator->errors()->has('member_id') || $validator->errors()->has('schedule_id')) {
+                    return;
+                }
+
+                $member = Member::query()->find($this->input('member_id'));
+                $schedule = ClassSchedule::query()->with('gymClass')->find($this->input('schedule_id'));
+
+                if (! $member || ! $schedule) {
+                    return;
+                }
+
+                if (! AdminOperationalRules::memberCanBookSchedule($member, $schedule)) {
+                    $validator->errors()->add('schedule_id', 'Jadwal kelas tidak sesuai dengan paket aktif member.');
+                }
+            },
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if (blank($this->input('session_date')) && filled($this->input('session_date_display'))) {
+            $this->merge([
+                'session_date' => IndonesianDateFormat::dateFromDisplay($this->input('session_date_display')) ?? 'invalid-date',
+            ]);
+        }
     }
 
     public function attributes(): array
@@ -37,8 +74,8 @@ class StoreAdminBookingRequest extends FormRequest
             'schedule_id.required' => 'Pilih jadwal kelas terlebih dahulu.',
             'schedule_id.exists' => 'Jadwal kelas yang dipilih tidak ditemukan.',
             'session_date.required' => 'Tanggal kelas wajib diisi.',
-            'session_date.date' => 'Tanggal kelas belum valid.',
-            'session_date.after_or_equal' => 'Tanggal kelas tidak boleh lebih awal dari hari ini.',
+            'session_date.date' => 'Tanggal kelas belum valid. Gunakan format dd/mm/yyyy.',
+            'session_date.after' => BookingTimePolicy::bookingDateMessage(),
         ];
     }
 }

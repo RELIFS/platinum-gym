@@ -65,22 +65,22 @@
                     </template>
                 </div>
                 <div class="min-w-0 flex-1 overflow-hidden">
-                    <label for="admin_avatar" class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Foto profil admin</label>
+                    <label for="admin_avatar" class="admin-field-label">Foto profil admin</label>
                     <input
                         id="admin_avatar"
                         name="avatar"
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
-                        class="admin-form-input mt-2 max-w-full overflow-hidden text-sm file:mr-3 file:max-w-full file:rounded-md file:border-0 file:bg-gold-500 file:px-3 file:py-1.5 file:text-sm file:font-black file:text-zinc-950"
+                        class="admin-form-input admin-upload-field mt-2 text-sm file:max-w-full file:py-1.5"
                         aria-describedby="{{ $avatarHelpId }}{{ $errors->has('avatar') ? ' '.$avatarErrorId : '' }}"
                         @error('avatar') aria-invalid="true" @enderror
                         x-on:change="setAvatarPreview($event)"
                         required
                     >
-                    <p id="{{ $avatarHelpId }}" class="mt-2 text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">Gunakan JPG, PNG, atau WebP maksimal 2 MB. Foto hanya tampil di Portal Admin.</p>
+                    <p id="{{ $avatarHelpId }}" class="admin-field-help mt-2">Gunakan JPG, PNG, atau WebP maksimal 2 MB. Foto hanya tampil di Portal Admin.</p>
                     <p class="mt-2 text-xs font-black uppercase tracking-[0.12em] text-gold-700 dark:text-gold-400" x-show="avatarPreviewActive" x-cloak>Preview, belum disimpan</p>
                     @error('avatar')
-                        <span id="{{ $avatarErrorId }}" class="mt-2 block text-sm font-bold text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
+                        <span id="{{ $avatarErrorId }}" class="admin-field-error mt-2" role="alert">{{ $message }}</span>
                     @enderror
                     @if (session('status') === 'admin-photo-updated')
                         <p class="mt-2 text-sm font-bold text-emerald-700 dark:text-emerald-300" role="status">Foto profil admin tersimpan.</p>

@@ -53,39 +53,39 @@
         @csrf
         @method('patch')
 
-        <label class="block">
-            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Nama <span class="text-red-500" aria-hidden="true">*</span></span>
+        <label class="admin-field">
+            <span class="admin-field-label">Nama <span class="admin-required" aria-hidden="true">*</span></span>
             <input id="name" name="name" type="text" value="{{ old('name', $user->name) }}" required autofocus autocomplete="name"
-                class="admin-form-input mt-2"
+                class="admin-form-input"
                 aria-invalid="{{ $errors->get('name') ? 'true' : 'false' }}"
                 @if ($errors->get('name')) aria-describedby="name-error" @endif>
             @error('name')
-                <span id="name-error" class="mt-2 block text-sm font-bold text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
+                <span id="name-error" class="admin-field-error" role="alert">{{ $message }}</span>
             @enderror
         </label>
 
-        <label class="block">
-            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Email <span class="text-red-500" aria-hidden="true">*</span></span>
+        <label class="admin-field">
+            <span class="admin-field-label">Email <span class="admin-required" aria-hidden="true">*</span></span>
             <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required autocomplete="username"
-                class="admin-form-input mt-2"
+                class="admin-form-input"
                 aria-invalid="{{ $errors->get('email') ? 'true' : 'false' }}"
                 @if ($errors->get('email')) aria-describedby="email-error" @endif>
             @error('email')
-                <span id="email-error" class="mt-2 block text-sm font-bold text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
+                <span id="email-error" class="admin-field-error" role="alert">{{ $message }}</span>
             @enderror
 
             @if (! $emailVerified)
                 <div class="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-800 dark:text-amber-200">
                     Email belum diverifikasi.
                     <button form="send-verification" class="ml-1 underline hover:no-underline focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40">Kirim ulang email verifikasi.</button>
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-bold text-emerald-700 dark:text-emerald-300">Link verifikasi baru sudah dikirim.</p>
+                    @if (session('status') === 'verification-code-sent')
+                        <p class="mt-2 font-bold text-emerald-700 dark:text-emerald-300">Kode verifikasi baru sudah dikirim.</p>
                     @endif
                 </div>
             @endif
         </label>
 
-        <div class="flex items-center gap-3">
+        <div class="admin-inline-action-field">
             <button type="submit" class="admin-button-primary">Simpan Profil</button>
             @if (session('status') === 'profile-updated')
                 <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300">Informasi akun tersimpan.</p>
@@ -106,9 +106,9 @@
         @csrf
         @method('put')
 
-        <label class="block">
-            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Kata Sandi Saat Ini <span class="text-red-500" aria-hidden="true">*</span></span>
-            <div class="relative mt-2">
+        <label class="admin-field">
+            <span class="admin-field-label">Kata sandi saat ini <span class="admin-required" aria-hidden="true">*</span></span>
+            <div class="relative">
                 <input id="update_password_current_password" name="current_password" x-bind:type="show1 ? 'text' : 'password'" autocomplete="current-password"
                     class="admin-form-input pr-12"
                     aria-invalid="{{ $errors->updatePassword->get('current_password') ? 'true' : 'false' }}"
@@ -119,13 +119,13 @@
                 </button>
             </div>
             @error('current_password', 'updatePassword')
-                <span id="{{ $currentPasswordErrorId }}" class="mt-2 block text-sm font-bold text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
+                <span id="{{ $currentPasswordErrorId }}" class="admin-field-error" role="alert">{{ $message }}</span>
             @enderror
         </label>
 
-        <label class="block">
-            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Kata Sandi Baru <span class="text-red-500" aria-hidden="true">*</span></span>
-            <div class="relative mt-2">
+        <label class="admin-field">
+            <span class="admin-field-label">Kata sandi baru <span class="admin-required" aria-hidden="true">*</span></span>
+            <div class="relative">
                 <input id="update_password_password" name="password" x-bind:type="show2 ? 'text' : 'password'" autocomplete="new-password"
                     class="admin-form-input pr-12"
                     aria-invalid="{{ $errors->updatePassword->get('password') ? 'true' : 'false' }}"
@@ -136,13 +136,13 @@
                 </button>
             </div>
             @error('password', 'updatePassword')
-                <span id="{{ $newPasswordErrorId }}" class="mt-2 block text-sm font-bold text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
+                <span id="{{ $newPasswordErrorId }}" class="admin-field-error" role="alert">{{ $message }}</span>
             @enderror
         </label>
 
-        <label class="block">
-            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Konfirmasi Kata Sandi Baru <span class="text-red-500" aria-hidden="true">*</span></span>
-            <div class="relative mt-2">
+        <label class="admin-field">
+            <span class="admin-field-label">Konfirmasi kata sandi baru <span class="admin-required" aria-hidden="true">*</span></span>
+            <div class="relative">
                 <input id="update_password_password_confirmation" name="password_confirmation" x-bind:type="show3 ? 'text' : 'password'" autocomplete="new-password"
                     class="admin-form-input pr-12"
                     aria-invalid="{{ $errors->updatePassword->get('password_confirmation') ? 'true' : 'false' }}"
@@ -153,11 +153,11 @@
                 </button>
             </div>
             @error('password_confirmation', 'updatePassword')
-                <span id="{{ $confirmPasswordErrorId }}" class="mt-2 block text-sm font-bold text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
+                <span id="{{ $confirmPasswordErrorId }}" class="admin-field-error" role="alert">{{ $message }}</span>
             @enderror
         </label>
 
-        <div class="flex items-center gap-3">
+        <div class="admin-inline-action-field">
             <button type="submit" class="admin-button-primary">Simpan Kata Sandi</button>
             @if (session('status') === 'password-updated')
                 <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300">Kata sandi berhasil diperbarui.</p>

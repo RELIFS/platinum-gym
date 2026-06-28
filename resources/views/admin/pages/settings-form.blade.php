@@ -46,15 +46,15 @@
                                 $hasError = $errors->has($field['name']);
                                 $isFullWidth = ($field['type'] ?? 'text') === 'textarea' || (bool) ($field['fullWidth'] ?? false);
                             @endphp
-                            <label for="{{ $fieldId }}" class="min-w-0 {{ $isFullWidth ? 'xl:col-span-2' : '' }}">
-                                <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">{{ $field['label'] }}</span>
+                            <label for="{{ $fieldId }}" class="admin-field {{ $isFullWidth ? 'xl:col-span-2' : '' }}">
+                                <span class="admin-field-label">{{ $field['label'] }}</span>
                                 @if (($field['type'] ?? 'text') === 'textarea')
                                     <textarea
                                         id="{{ $fieldId }}"
                                         name="{{ $field['name'] }}"
                                         rows="3"
                                         placeholder="{{ $field['placeholder'] ?? '' }}"
-                                        class="admin-form-input mt-2"
+                                        class="admin-form-input"
                                         aria-describedby="{{ $helpId }}{{ $hasError ? ' '.$errorId : '' }}"
                                         aria-invalid="{{ $hasError ? 'true' : 'false' }}"
                                     >{{ $value }}</textarea>
@@ -66,14 +66,14 @@
                                         value="{{ $value }}"
                                         placeholder="{{ $field['placeholder'] ?? '' }}"
                                         autocomplete="{{ $field['autocomplete'] ?? 'off' }}"
-                                        class="admin-form-input mt-2"
+                                        class="admin-form-input"
                                         aria-describedby="{{ $helpId }}{{ $hasError ? ' '.$errorId : '' }}"
                                         aria-invalid="{{ $hasError ? 'true' : 'false' }}"
                                     >
                                 @endif
-                                <span id="{{ $helpId }}" class="mt-2 block text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">{{ $field['help'] ?? 'Pengaturan ini dipakai oleh website publik.' }}</span>
+                                <span id="{{ $helpId }}" class="admin-field-help">{{ $field['help'] ?? 'Pengaturan ini dipakai oleh website publik.' }}</span>
                                 @error($field['name'])
-                                    <span id="{{ $errorId }}" class="mt-2 block text-sm font-bold text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
+                                    <span id="{{ $errorId }}" class="admin-field-error" role="alert">{{ $message }}</span>
                                 @enderror
                             </label>
                         @endforeach
