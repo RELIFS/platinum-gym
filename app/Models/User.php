@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Features\Auth\Actions\SendEmailVerificationCodeAction;
+use App\Notifications\Auth\ResetPasswordNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -83,5 +85,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function aiConversations(): HasMany
     {
         return $this->hasMany(AiConversation::class);
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        app(SendEmailVerificationCodeAction::class)->handle($this);
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify((new ResetPasswordNotification($token))->afterCommit());
     }
 }

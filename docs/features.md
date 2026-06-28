@@ -1,6 +1,6 @@
 # Feature Documentation
 
-Status: Updated 2026-06-14. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
+Status: Updated 2026-06-22. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
 
 Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Platinum Gym Padang.
 
@@ -22,20 +22,20 @@ Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Pla
 | Verifikasi email | Sudah tersedia | Member |
 | Resend verification email | Sudah tersedia | Member |
 | Dashboard protected | Sudah tersedia | User verified |
-| Profile dan keamanan akun | Sudah tersedia; profil member editable di `/member/profil`, keamanan akun di `/profile` | Member/user login |
+| Profile dan keamanan akun | Sudah tersedia; profil member view-only di `/member/profil`, edit di `/member/profil/edit`, keamanan akun di `/profile` | Member/user login |
 | Role member/admin/owner | Sudah tersedia | Member, admin, owner |
 | Policy own-data | Sudah tersedia | Member |
 | Auth UI Platinum Gym | Sudah tersedia dan dipoles visual | Pengunjung/member |
 | Theme toggle | Sudah tersedia | Pengguna UI |
-| Member portal | Operasional: edit profil member, membership checkout, paket sesi, booking, transaksi, QR, notifikasi | Member |
-| Admin portal | Production custom Blade: CRUD master data, pembayaran, booking, check-in, settings, audit, laporan CSV, dan tabel paginated | Admin |
-| Dashboard owner placeholder | Sudah tersedia dasar | Owner |
-| Membership package | Checkout Midtrans Sandbox dan approval admin aktif | Member, admin |
+| Member portal | Operasional: profil/avatar/bukti mahasiswa, eligibility checkout, membership checkout, paket sesi, booking, transaksi, QR visual/download, notifikasi, dan server-side pagination/filter | Member |
+| Admin portal | Production custom Blade: CRUD master data, pembayaran, booking, preview-confirm check-in, settings, audit, laporan CSV/Excel/PDF, invoice/struk, dan tabel paginated | Admin |
+| Owner portal | Operasional read-only: dashboard bisnis, laporan, export CSV/Excel/PDF, invoice web, dan struk transaksi | Owner |
+| Membership package | Checkout Midtrans dan approval admin aktif | Member, admin |
 | Booking kelas | Booking/cancel member dan confirm/cancel admin aktif | Member, admin |
 | Pembayaran | Midtrans Sandbox, webhook, invoice, approval/reject admin aktif | Member, admin |
-| Check-in gym | QR member dan scan token admin aktif | Member, admin |
-| Laporan owner | Direncanakan | Owner |
-| Gymmi Gemini AI | Operasional dengan Gemini, fallback lokal, guardrail, dan conversation log | Pengunjung, member |
+| Check-in gym | QR member stabil per member, download QR aktif, preview-confirm admin, dan pemakaian paket sesi eksplisit | Member, admin |
+| Laporan owner | Sudah tersedia dengan filter dan export CSV/Excel/PDF | Owner |
+| Gymmi Gemini AI | Operasional hybrid RAG dengan dataset, database live, Gemini, fallback aman berbasis data resmi, guardrail, dan conversation log | Pengunjung, member |
 
 ## Public Website
 
@@ -86,6 +86,9 @@ Fitur public website digunakan sebagai company profile digital untuk calon membe
 - Mobile navigation memiliki scroll containment untuk device pendek.
 - Dynamic content pada paket, kelas, produk, galeri, testimoni, kontak, dan chatbot diberi wrapping guard agar tidak overflow.
 - Home hero mobile memakai visual gym/strength umum sebagai visual utama; Muaythai tetap menjadi visual pendukung pada collage desktop.
+- Halaman layanan mengurutkan paket dari query layer agar konsisten: membership dimulai dari Gym/Senam umum, lalu Gym/Senam mahasiswa; Muaythai dimulai dari 1x, Umum 4x/8x, lalu Mahasiswa 4x/8x; setelah itu Personal Trainer dan Session.
+- Halaman kelas dikelompokkan menjadi section Aerobic, Zumba, Muaythai, dan Poundfit dengan filter jenis yang tetap kompatibel dengan data jadwal lama.
+- `page-hero` public dipoles sebagai partial reusable compact-premium dengan ukuran teks responsif, dekorasi ringan, dan animasi masuk CSS-only yang menghormati reduced motion.
 - Halaman produk memakai CTA umum `Lihat Lokasi`; tidak ada CTA per produk, cart, checkout, pembayaran produk, invoice produk, atau transaksi produk online.
 - Halaman produk menampilkan foto produk WebP jika tersedia dan memakai fallback visual untuk produk tanpa foto.
 - Ringkasan audit responsive sudah dikonsolidasikan pada catatan UX fitur public website.
@@ -138,6 +141,11 @@ User membuka halaman register -> user mengisi data member -> sistem validasi dat
 - Konfirmasi password.
 - Persetujuan syarat layanan.
 
+### Catatan Validasi
+
+- Error validasi register memakai Bahasa Indonesia yang ramah user untuk field wajib, format email, format No. WhatsApp, tanggal lahir, duplikat email/WhatsApp, persetujuan terms, dan konfirmasi kata sandi.
+- Tanggal lahir yang diisi tetapi tidak valid menampilkan pesan format `dd/mm/yyyy`, bukan pesan teknis field internal.
+
 ### Route dan Controller
 
 | Method | Route | Controller |
@@ -167,6 +175,12 @@ Fitur login digunakan agar user dapat masuk ke sistem menggunakan email dan pass
 User membuka halaman login -> user memasukkan email dan password -> sistem validasi kredensial -> user masuk ke aplikasi -> sistem mengarahkan user ke dashboard
 ```
 
+### Catatan Validasi
+
+- Error login memakai Bahasa Indonesia.
+- Kredensial salah memakai pesan generic aman agar UI tidak membedakan apakah email tidak terdaftar atau kata sandi salah.
+- Percobaan login berulang tetap dibatasi rate limiter dan menampilkan pesan tunggu yang ramah user.
+
 ### Route dan Controller
 
 | Method | Route | Controller |
@@ -183,7 +197,7 @@ Screenshot halaman login akan ditambahkan setelah dokumentasi visual disiapkan.
 
 ### Tujuan
 
-Admin portal digunakan sebagai area kerja operasional Platinum Gym untuk memproses CRUD master data, pembayaran, booking kelas, check-in QR/manual member, settings publik, audit log, dan laporan operasional.
+Admin portal digunakan sebagai area kerja operasional Platinum Gym untuk memproses CRUD master data, pembayaran, booking kelas, preview-confirm check-in QR kamera, settings publik, audit log, dan laporan operasional.
 
 Admin login melalui `/login`. User dengan role `admin` diarahkan ke `/admin` dan seluruh route admin tetap dibatasi middleware `auth`, `verified`, dan `role:admin`.
 
@@ -192,7 +206,7 @@ Admin login melalui `/login`. User dengan role `admin` diarahkan ke `/admin` dan
 | Route | Fungsi |
 |---|---|
 | `/admin` | Dashboard ringkasan operasional |
-| `/admin/check-in` | Check-in gym dan input token QR member |
+| `/admin/check-in` | Preview QR member, confirm check-in, pemakaian paket sesi, dan input manual |
 | `/admin/booking` | Booking kelas admin, konfirmasi, dan pembatalan |
 | `/admin/notifikasi` | Ringkasan notifikasi operasional |
 | `/admin/anggota` | Daftar member terbaru |
@@ -204,10 +218,14 @@ Admin login melalui `/login`. User dengan role `admin` diarahkan ke `/admin` dan
 | `/admin/testimoni` | Testimoni website |
 | `/admin/promo` | Promo website |
 | `/admin/trainer` | Data trainer |
-| `/admin/laporan` | Ringkasan laporan dan export CSV |
+| `/admin/laporan` | Ringkasan laporan dan export CSV/Excel/PDF |
+| `/admin/invoice/{invoice}` | Invoice transaksi read-only untuk admin |
+| `/admin/invoice/{invoice}/struk` | Struk POS compact transaksi |
+| `/admin/invoice/{invoice}/download` | Download PDF invoice atau struk |
 | `/admin/audit-log` | Activity log terbaru dengan filter |
 | `/admin/pengaturan` | Setting website whitelist dengan value sensitif tersamarkan |
-| `/admin/profil` | Profil admin login |
+| `/admin/profil` | Profil admin login dengan upload foto profil |
+| `/admin/profil/foto` | Update foto profil admin |
 
 ### Catatan Scope
 
@@ -217,27 +235,72 @@ Admin login melalui `/login`. User dengan role `admin` diarahkan ke `/admin` dan
 - Master data anggota, paket, kelas, jadwal kelas, produk, galeri, testimoni, promo, dan trainer memakai reusable custom Blade resource form untuk tambah/edit.
 - Pembayaran cash membuat payment, invoice, dan aktivasi layanan dalam transaksi aman.
 - Pembayaran dapat disetujui/ditolak admin; Midtrans webhook tetap menjadi sumber kebenaran untuk payment online.
-- Check-in admin memvalidasi QR token/manual member, membership aktif, dan mencegah check-in ganda pada tanggal yang sama.
+- Check-in admin memvalidasi QR dari kamera, menampilkan preview data member terlebih dahulu, lalu confirm check-in atau pemakaian paket sesi secara eksplisit. Scan QR saja tidak membuat check-in dan tidak mengurangi sesi.
+- QR member adalah identitas check-in stabil per member. Pembelian membership baru tidak mengganti QR yang sudah aktif; kelayakan check-in tetap dicek dari membership aktif saat scan.
 - Modul paket, produk, galeri, testimoni, promo, trainer, dan member memiliki aksi status aman berupa aktif/nonaktif atau tayang/draft, bukan hard delete.
 - Semua route admin memakai middleware `auth`, `verified`, dan `role:admin`; aksi tulis juga mengecek permission.
 - Nilai setting sensitif seperti API key, token, secret, OAuth, prompt, dan password disamarkan sebagai `Tersamarkan`.
+- Foto profil admin hanya menerima gambar lokal tervalidasi dan tidak menghapus avatar eksternal atau folder avatar role lain saat replace.
 - Form pengaturan hanya mengubah kontak publik, maps, jam operasional, dan invoice footer; secret/API key tidak bisa diedit dari UI ini.
+
+## Owner Portal
+
+### Tujuan
+
+Owner portal digunakan sebagai area monitoring bisnis read-only untuk melihat kondisi pendapatan, transaksi, member, membership, booking kelas, laporan, dan invoice tanpa mengubah data operasional.
+
+Owner login melalui `/login`. User dengan role `owner` diarahkan ke `/owner` dan seluruh route owner dibatasi middleware `auth`, `verified`, dan `role:owner`.
+
+### Route Aktif
+
+| Route | Fungsi |
+|---|---|
+| `/owner` | Dashboard bisnis dengan KPI, grafik pendapatan, breakdown, transaksi terbaru, dan membership yang akan berakhir |
+| `/owner/laporan` | Pusat laporan dengan filter periode, status, metode, dan tipe laporan |
+| `/owner/laporan/keuangan` | Laporan pendapatan dan transaksi terkonfirmasi |
+| `/owner/laporan/member` | Laporan member dan membership |
+| `/owner/laporan/booking-kelas` | Laporan booking dan kelas |
+| `/owner/laporan/export` | Export CSV, Excel, atau PDF untuk laporan owner |
+| `/owner/invoice/{invoice}` | Tampilan invoice web read-only |
+| `/owner/invoice/{invoice}/struk` | Struk POS compact transaksi |
+| `/owner/invoice/{invoice}/download` | Download PDF invoice atau struk |
+| `/owner/profil/foto` | Update foto profil owner |
+
+### Catatan Scope
+
+- Owner hanya membaca data bisnis dan laporan; tidak ada aksi tambah, ubah, hapus, approve, reject, atau cancel.
+- Pendapatan owner dihitung dari pembayaran dengan status `paid`; pembayaran pending, waiting, rejected, dan cancelled tidak masuk pendapatan.
+- Export laporan tersedia sebagai CSV native, Excel `.xlsx`, dan PDF.
+- Invoice web, PDF invoice, dan struk POS compact hanya menampilkan data transaksi yang aman dan tidak menampilkan token QR mentah, payload payment, secret, atau data internal provider.
 
 ## Gymmi Chatbot Public dan Member
 
 ### Tujuan
 
-Gymmi membantu pengunjung dan member menemukan informasi layanan lewat Gemini API dengan fallback lokal jika provider gagal atau quota habis.
+Gymmi membantu pengunjung dan member menemukan informasi layanan dari data resmi Platinum Gym. Sistem memakai hybrid RAG: dataset terkompilasi untuk FAQ/Alias/Config/knowledge stabil, database live untuk data yang berubah, lalu Gemini API hanya untuk merangkai jawaban natural dari snippet yang sudah dipilih.
 
 ### Behavior Aktif
 
-- Public dan member memakai floating chatbot Gemini-backed melalui endpoint `POST /gymmi/chat`, dengan fallback intention-based lokal.
+- Public dan member memakai floating chatbot melalui endpoint `POST /gymmi/chat`; kontrak response tetap `{ reply: { text }, source }`.
+- Knowledge base utama berasal dari workbook internal `data_AI_Chatbot.xlsx` dan dikompilasi menjadi `resources/data/gymmi/knowledge-base.json` lewat `php artisan gymmi:import-knowledge`.
+- Artifact knowledge base terbaru berisi FAQ 137 dan Alias 1578, termasuk tambahan variasi alias untuk gym, Muaythai, pendaftaran, bukti mahasiswa/KTM, kontak, produk, fasilitas, dan kebijakan.
+- Runtime chat membaca JSON terkompilasi dengan cache, bukan membaca Excel per request.
+- Strategi jawaban: input guard, FAQ direct answer, Alias untuk memahami variasi pertanyaan, intent ringan untuk topik seperti jadwal kelas/harga/coach/kapasitas/private, Config/catalog snippets, database live snippets, Gemini composition, lalu fallback aman.
+- Database live hanya mengambil snippet aman dari data aktif/published: paket, promo valid, jadwal kelas aktif, trainer aktif, produk/kategori aktif, dan setting publik whitelist. Data live menang untuk harga, promo, jadwal, dan stok jika berbeda dari dataset.
+- Retrieval kelas dibuat spesifik agar pertanyaan Muaythai, termasuk typo seperti `muaytai`, tidak menarik Aerobic/Poundfit. Jika data resmi belum menyebut sesi privat, Gymmi menjawab konservatif dan mengarahkan konfirmasi ke admin.
+- `resources/data/gymmi/knowledge-overrides.json` menyimpan koreksi knowledge kecil yang sudah divalidasi setelah import workbook, misalnya FAQ/Alias Muaythai privat; file ini digabung saat runtime tanpa membaca Excel per request.
+- Gymmi member hanya boleh memakai data user login sendiri: ringkasan membership aktif, paket sesi aktif, transaksi menunggu, booking sendiri, dan status QR tanpa token mentah. Data member lain, raw payment payload, raw QR token, dan secret tidak boleh dikirim ke Gemini atau ditampilkan.
+- Produk tetap bersifat katalog informasi; Gymmi tidak membuat klaim checkout produk online.
+- Gemini hanya dipanggil jika input lolos guard dan ada snippet data resmi yang relevan; pertanyaan kosong, spam, prompt injection, permintaan API key/token/secret, bypass role, akses database, dan topik di luar Platinum Gym dijawab aman tanpa dikirim ke provider.
+- Multi-key Gemini disimpan hanya di `.env`/environment server melalui `GEMINI_API_KEYS`; command `php artisan gymmi:sync-gemini-keys` membantu dry-run/status/sinkronisasi `.env` lokal dari file private tanpa mencetak key dan bukan dependency runtime request.
+- Jawaban yang tampil ke user memakai Bahasa Indonesia natural seperti customer service Platinum Gym, ringkas, dan tidak menyebut istilah internal seperti `Gemini`, `fallback`, `provider`, `rate limit`, `snippet`, `prompt`, atau `data lokal`.
 - Message log memakai `role="log"` dan `aria-live="polite"`.
 - Pesan user tampil di kanan tanpa avatar visual `AN`.
-- FAQ quick reply tampil sebagai chip kanan yang ringkas.
-- Pesan bot tampil di kiri dengan initial `GY` yang tidak ikut dibaca screen reader.
+- FAQ quick reply tampil sebagai rail horizontal yang bisa discroll, keyboard-focusable, dan tidak membuat halaman overflow.
+- Pesan bot tampil di kiri dengan avatar gambar Gymmi light/dark; fallback initial `GY` tetap tersedia jika asset tidak termuat.
+- Warna Gymmi public dan member mengikuti tema light/dark aktif untuk panel, input, bubble, quick reply, typing state, dan action link.
 - Saat Gymmi mengetik, send button dan quick replies dinonaktifkan agar pesan tidak dobel.
-- Prompt Gymmi memakai konteks aman dari data publik dan data member sendiri jika login. Conversation log disimpan ke `ai_conversations`/`ai_messages`, route memakai throttle `gymmi`, dan provider failure tidak merusak UI.
+- Prompt Gymmi memakai konteks terstruktur dari snippet knowledge base, database live, dan data member login sendiri bila ada. Jika layanan AI tidak tersedia, jalur aman tetap merangkai jawaban natural dari data resmi, bukan menampilkan snippet mentah atau mekanisme internal. Conversation log disimpan ke `ai_conversations`/`ai_messages`, route memakai throttle `gymmi`, dan gangguan provider tidak merusak UI.
 
 ## Auth UI Platinum Gym
 
@@ -251,6 +314,7 @@ Auth UI digunakan agar halaman login, register, forgot password, reset password,
 - Mobile tidak memuat foto besar pada area form agar halaman register tetap ringan dan tidak terlalu panjang.
 - Form auth memakai panel kontras dengan border, shadow, dan background light/dark yang tetap mudah dibaca.
 - Elemen interaktif tetap memakai label, focus ring, dan target klik yang aman untuk keyboard/touch.
+- Halaman login/register menampilkan ringkasan error `Periksa kembali data yang ditandai di bawah ini.`, field error dekat input, `aria-invalid`, `aria-describedby`, dan fokus otomatis ke field invalid pertama.
 
 ## Logout
 
@@ -287,25 +351,28 @@ Fitur verifikasi email memastikan email user valid sebelum user mengakses dashbo
 ### Alur Fitur
 
 ```text
-Member berhasil register -> sistem mengirim email verifikasi -> member membuka link verifikasi -> sistem memvalidasi signed URL -> email member ditandai verified -> member diarahkan ke dashboard
+Member berhasil register -> sistem mengirim email berisi kode 6 digit dan tombol link fallback -> member memasukkan kode di halaman verify-email atau membuka signed link -> sistem memvalidasi kode/link -> email member ditandai verified -> member diarahkan ke dashboard
 ```
+
+Catatan operasional: email verifikasi dikirim otomatis oleh aplikasi, bukan manual. Pada shared hosting tanpa worker permanen, gunakan `QUEUE_CONNECTION=sync` agar Resend dipanggil langsung saat register/resend. Jika `QUEUE_CONNECTION=database`, email baru keluar setelah queue worker berjalan. Pending job dengan `attempts=0` berarti email masih menunggu worker, bukan form register gagal atau Resend memblokir recipient yang pernah dipakai.
 
 ### Route dan Controller
 
 | Method | Route | Controller |
 |---|---|---|
 | GET | `/verify-email` | `EmailVerificationPromptController` |
+| POST | `/verify-email` | `VerifyEmailCodeController` |
 | GET | `/verify-email/{id}/{hash}` | `VerifyEmailController` |
 
 ### Screenshot
 
 Screenshot halaman verifikasi email akan ditambahkan setelah dokumentasi visual disiapkan.
 
-## Resend Verification Email
+## Kirim Ulang Kode Verifikasi Email
 
 ### Tujuan
 
-Fitur ini digunakan jika member belum menerima email verifikasi atau link sebelumnya tidak ditemukan.
+Fitur ini digunakan jika member belum menerima kode verifikasi atau link fallback sebelumnya tidak ditemukan.
 
 ### Aktor
 
@@ -314,14 +381,45 @@ Fitur ini digunakan jika member belum menerima email verifikasi atau link sebelu
 ### Alur Fitur
 
 ```text
-Member membuka halaman verify-email -> member menekan tombol kirim ulang -> sistem mengirim ulang email verifikasi -> sistem menampilkan status sukses
+Member membuka halaman verify-email -> member menekan tombol kirim ulang -> sistem membatalkan kode lama, membuat kode baru, mengirim ulang email verifikasi branded, dan menampilkan status sukses
 ```
+
+Halaman verifikasi menampilkan email tujuan dalam bentuk masked, misalnya `lut***@gmail.com`, agar user tahu alamat tujuan tanpa membuka full email di layar.
 
 ### Route dan Controller
 
 | Method | Route | Controller |
 |---|---|---|
 | POST | `/email/verification-notification` | `EmailVerificationNotificationController@store` |
+
+## Undangan Akun Member Dari Admin
+
+### Tujuan
+
+Flow ini dipakai ketika admin membuat akun member secara manual. Sistem tidak mengirim kode verifikasi biasa; member menerima link sekali pakai untuk mengatur kata sandi dan mengaktifkan akun.
+
+### Aktor
+
+- Admin.
+- Member baru yang dibuat admin.
+
+### Alur Fitur
+
+```text
+Admin membuat member -> sistem membuat user dengan kata sandi acak internal -> sistem membuat token undangan hashed yang berlaku 72 jam -> email undangan dikirim -> member membuka link -> member mengatur password -> email ditandai verified -> token marked accepted -> member login
+```
+
+### Route dan Controller
+
+| Method | Route | Controller |
+|---|---|---|
+| GET | `/undangan-akun/{token}` | `AccountInvitationController@show` |
+| POST | `/undangan-akun/{token}` | `AccountInvitationController@store` |
+| POST | `/admin/anggota/{member}/undangan` | `AdminMemberInvitationController` |
+
+## Email Operasional
+
+Pembayaran berhasil/ditolak dan lifecycle booking memakai email branded Platinum Gym berbasis Laravel Markdown mail. Email dikirim melalui Laravel notification dan `afterCommit()` agar tidak dikirim sebelum transaksi database sukses; pada shared hosting sementara mode queue dapat memakai `sync`, sedangkan VPS/worker-capable production dapat memakai `database` queue dengan worker aktif. Database notification member tetap dipertahankan untuk portal, sedangkan email operasional memuat data yang relevan seperti kode pembayaran, layanan, nominal, status, jadwal kelas, trainer bila ada, dan CTA internal aplikasi. Theme email `platinum` memakai card putih responsif, CTA gold, OTP card, panel ringkas, dan detail transaksi/booking table-like agar aman dibaca di email client mobile maupun desktop.
 
 ## Dashboard Protected
 
@@ -357,7 +455,7 @@ Fitur profile dipisah menjadi dua area agar data member dan credential login tid
 
 ### Area Fitur
 
-- `/member/profil` digunakan member untuk melihat dan mengubah data profil layanan: nama, email, WhatsApp, gender, tanggal lahir, alamat, kontak darurat, status mahasiswa, tinggi, dan berat badan.
+- `/member/profil` digunakan member untuk melihat dan mengubah data profil layanan: nama, email, WhatsApp, gender, tanggal lahir, alamat, kontak darurat, status mahasiswa, dan bukti mahasiswa berupa KTM atau screenshot akun portal mahasiswa.
 - `/profile` digunakan untuk keamanan akun: email login, password, verifikasi email, dan penghapusan akun.
 - Perubahan email dari `/member/profil` mereset status verifikasi email dan mengarahkan user ke flow verifikasi.
 - Nomor WhatsApp dinormalisasi dan harus unik.
@@ -367,12 +465,13 @@ Fitur profile dipisah menjadi dua area agar data member dan credential login tid
 | Method | Route | Controller |
 |---|---|---|
 | GET | `/member/profil` | `MemberPortalController@profile` |
+| GET | `/member/profil/bukti-mahasiswa` | `MemberProfileController@studentProof` |
 | PATCH | `/member/profil` | `MemberProfileController@update` |
 | GET | `/profile` | `ProfileController@edit` |
 | PATCH | `/profile` | `ProfileController@update` |
 | DELETE | `/profile` | `ProfileController@destroy` |
 
-## Role dan Dashboard Placeholder
+## Role dan Dashboard
 
 ### Tujuan
 
@@ -398,9 +497,10 @@ User login -> sistem membaca role -> sistem redirect ke dashboard role -> route 
 ### Status
 
 - Role final: `member`, `admin`, `owner`.
-- Member portal sudah aktif untuk dashboard, profil, checkout membership/paket sesi, booking kelas, riwayat booking, transaksi, QR status, notifikasi, dan chatbot global Gymmi Gemini-backed dengan fallback lokal.
-- Admin portal sudah aktif untuk CRUD master data, pembayaran, booking, check-in, settings, audit, dan laporan CSV; owner dashboard masih placeholder untuk validasi auth dan role.
-- Owner report/export tetap mengikuti modul masing-masing; AI admin automation belum dibuat.
+- Member portal sudah aktif untuk dashboard, profil, checkout membership/paket sesi, booking kelas, riwayat booking, transaksi, QR status, notifikasi, dan chatbot global Gymmi Gemini-backed dengan fallback aman berbasis data resmi.
+- Admin portal sudah aktif untuk CRUD master data, pembayaran, booking, check-in, settings, audit, laporan CSV/Excel/PDF, dan invoice/struk.
+- Owner portal sudah aktif untuk dashboard bisnis read-only, laporan web, export CSV/Excel/PDF, invoice web, dan struk transaksi.
+- AI admin automation belum dibuat.
 
 ## Member Portal
 
@@ -414,20 +514,25 @@ Member portal digunakan agar member yang sudah login dapat mengecek informasi ak
 |---|---|
 | `/member/dashboard` | Ringkasan membership, paket sesi, transaksi, booking, QR, dan notifikasi |
 | `/member/profil` | Profil member editable dan akses ke keamanan akun |
-| `/member/membership` | Status membership, katalog paket, dan checkout Midtrans Sandbox |
+| `/member/membership` | Status membership, katalog paket, dan checkout Midtrans |
 | `/member/booking-kelas` | Booking jadwal kelas sesuai membership/paket sesi/payment |
 | `/member/riwayat-booking` | Riwayat booking member |
-| `/member/transaksi` | Riwayat transaksi, detail, invoice, dan tombol bayar Midtrans |
-| `/member/qr` | QR member aktif tanpa menampilkan token mentah |
+| `/member/transaksi` | Riwayat transaksi, detail, invoice, struk, PDF, dan tombol bayar Midtrans |
+| `/member/qr` | QR member stabil per member tanpa menampilkan token mentah |
 | `/member/notifikasi` | Daftar notifikasi, baca satu, dan baca semua |
 | `/member/complete-profile` | Pelengkapan profil member Google |
 
 ### Catatan UI dan Scope
 
-- Sidebar dan mobile drawer hanya berisi navigasi, footer action, dan grouped menu `Utama`, `Aktivitas`, dan `Akun`.
+- Sidebar dan mobile drawer berisi navigasi portal, shortcut menu bawah, footer identity, dan grouped menu `Utama`, `Aktivitas`, dan `Akun`.
 - Identitas member, kode member, status membership, dan invoice tidak ditampilkan di sidebar agar tidak redundan.
-- Gymmi tersedia sebagai floating widget global Gemini-backed di semua halaman member dan tetap mengarah ke route internal untuk action aman.
+- `Website Utama` ditampilkan sebagai item menu paling bawah menuju website publik, sementara footer sidebar/drawer fokus pada identity member dan `Keluar`; shortcut akun login tidak diduplikasi di sidebar member.
+- Katalog membership, booking kelas, riwayat booking, transaksi, dan notifikasi memakai server-side pagination/filter dengan query string agar pencarian berlaku pada seluruh data milik member, bukan hanya item yang sedang terlihat.
+- Batas list member dibuat tetap: paket 6 item, jadwal 9 item, transaksi 8 item, riwayat booking 8 item, dan notifikasi 8 item per halaman.
+- Checkout membership dan paket sesi mewajibkan profil dasar lengkap plus foto profil sebelum payment/session dibuat; Muaythai, Poundfit, dan Personal Trainer menampilkan disabled state dengan CTA `Lengkapi data` jika profil belum lengkap.
+- Gymmi tersedia sebagai floating widget global Gemini-backed di semua halaman member dan tetap memakai data member login sendiri untuk action aman.
 - Gymmi member menampilkan action `QR Member` ke `/member/qr` dan tidak menampilkan token QR mentah.
+- QR member tetap sama selama token tidak dirotasi/dicabut secara internal; status aktifnya mengikuti membership aktif, bukan paket membership tertentu.
 - Route/page `/member/ai-assistant` tidak aktif; Gymmi tetap berupa widget global, bukan halaman terpisah.
 - Checkout membership/paket sesi, booking kelas, QR check-in admin, payment webhook Midtrans Sandbox, approval admin, dan notifikasi member aktif. Produk tetap katalog informasi, bukan checkout produk.
 
@@ -456,12 +561,10 @@ Catatan standar UI: toggle tema menggunakan action-style. Saat light mode aktif,
 
 Fitur berikut akan dijelaskan lebih detail setelah kebutuhan dan prioritas implementasi disepakati:
 
-- Dashboard owner dan owner report/export.
-- Invoice PDF/download.
 - Upload bukti pembayaran manual jika dibutuhkan.
 - Export queue untuk laporan saat dataset operasional besar.
 - Refund/correction workflow pembayaran.
-- Pengembangan Gymmi lanjutan untuk knowledge base FAQ dan monitoring admin.
+- Monitoring/admin tooling Gymmi lanjutan bila nanti dibutuhkan.
 - Upload media konten website melalui storage/media library.
 
 ## Architecture Foundation
@@ -475,10 +578,18 @@ app/Features/Auth/Actions
 app/Features/Auth/Http/Requests
 app/Features/PublicWebsite/Queries
 app/Features/MemberPortal/Queries
+app/Features/MemberPortal/Actions
 app/Features/MemberPortal/ViewModels
 app/Features/Admin/Queries
 app/Features/Admin/Actions
 app/Features/Admin/Support
+app/Features/OwnerPortal/Queries
+app/Features/Reports/Data
+app/Features/Reports/Actions
+app/Features/Reports/Exports
+app/Features/Reports/Queries
+app/Features/Invoices/Actions
+app/Features/Invoices/Queries
 app/Features/Payments/Actions
 app/Features/Payments/Contracts
 app/Features/Payments/Gateways

@@ -1,4 +1,4 @@
-<x-public-layout :settings="$settings" title="Tentang Platinum Gym Padang" description="Profil Platinum Gym Padang, fasilitas, coach, dan nilai layanan fitness premium di Padang.">
+<x-public-layout :settings="$settings" title="Tentang Platinum Gym Padang" description="Profil Platinum Gym Padang, fasilitas, tim pelatih, dan nilai layanan fitness premium di Padang.">
     @include('public.partials.page-hero', [
         'eyebrow' => 'Tentang Kami',
         'title' => 'Fitness center premium untuk progres yang konsisten.',
@@ -26,7 +26,7 @@
                         <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/20 to-transparent"></div>
                         <div class="absolute bottom-5 left-5 right-5 text-white">
                             <p class="public-eyebrow">Suasana Gym</p>
-                            <h3 class="mt-2 text-2xl font-black">Coach, kelas, dan latihan dalam satu ekosistem.</h3>
+                            <h3 class="mt-2 text-2xl font-black">Tim pelatih, kelas, dan latihan dalam satu ekosistem.</h3>
                         </div>
                     </div>
                     <div class="mt-4 grid gap-3 sm:grid-cols-3">
@@ -40,7 +40,7 @@
                         </div>
                         <div class="rounded-2xl bg-zinc-50 p-4 text-center dark:bg-zinc-950/80">
                             <p class="text-3xl font-black text-gold-600 dark:text-gold-400">{{ $stats['trainers'] }}</p>
-                            <p class="mt-1 text-xs font-bold text-zinc-600 dark:text-zinc-400">Coach aktif</p>
+                            <p class="mt-1 text-xs font-bold text-zinc-600 dark:text-zinc-400">Tim pelatih aktif</p>
                         </div>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
             <div class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
                 @foreach ([
                     ['Fasilitas lengkap', 'Latihan beban, cardio, kelas grup, dan sesi privat dalam satu tempat.'],
-                    ['Coach aktif', 'Trainer dan instruktur membantu member berlatih sesuai kebutuhan.'],
+                    ['Tim aktif', 'Tim pelatih membantu member berlatih sesuai kebutuhan.'],
                     ['Lokasi strategis', 'Berada di Sawahan, Padang Timur, mudah dicapai dari area pusat kota.'],
                     ['Ekosistem digital', 'Akun member, dashboard, dan booking disiapkan bertahap untuk pengalaman yang lebih rapi.'],
                 ] as [$title, $body])
@@ -74,24 +74,29 @@
         <div class="public-container">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div class="max-w-3xl">
-                    <p class="public-eyebrow">Tim Coach</p>
-                    <h2 class="public-heading-balance mt-3 text-3xl font-black text-zinc-950 dark:text-white sm:text-4xl">Coach sesuai program latihan.</h2>
+                    <p class="public-eyebrow">Tim Pelatih</p>
+                    <h2 class="public-heading-balance mt-3 text-3xl font-black text-zinc-950 dark:text-white sm:text-4xl">Pendamping latihan sesuai program.</h2>
                 </div>
                 <a href="{{ route('public.classes') }}" class="public-button-secondary">Lihat Jadwal</a>
             </div>
 
             <div class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
                 @forelse ($trainers as $trainer)
+                    @php
+                        $trainerDisplayName = \App\Features\PublicWebsite\Support\PublicTrainerPresenter::displayName($trainer);
+                        $trainerRole = \App\Features\PublicWebsite\Support\PublicTrainerPresenter::roleWithSpecialization($trainer);
+                        $trainerInitial = \App\Features\PublicWebsite\Support\PublicTrainerPresenter::initial($trainer);
+                    @endphp
                     <article class="public-card public-card-hover">
                         <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-950 text-2xl font-black text-gold-500 dark:bg-gold-500 dark:text-zinc-950">
-                            {{ \Illuminate\Support\Str::of($trainer->name)->after('Coach ')->substr(0, 1)->upper() }}
+                            {{ $trainerInitial }}
                         </div>
-                        <h3 class="mt-5 text-lg font-black text-zinc-950 dark:text-white">{{ $trainer->name }}</h3>
-                        <p class="mt-2 text-sm font-bold text-gold-600 dark:text-gold-400">{{ $trainer->specialization }}</p>
+                        <h3 class="mt-5 text-lg font-black text-zinc-950 dark:text-white">{{ $trainerDisplayName }}</h3>
+                        <p class="mt-2 text-sm font-bold text-gold-600 dark:text-gold-400">{{ $trainerRole }}</p>
                         <p class="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">{{ $trainer->bio ?? 'Mendampingi member sesuai program dan jadwal yang tersedia.' }}</p>
                     </article>
                 @empty
-                    <div class="public-card md:col-span-2 xl:col-span-4">Data coach belum tersedia.</div>
+                    <div class="public-card md:col-span-2 xl:col-span-4">Data tim pelatih belum tersedia.</div>
                 @endforelse
             </div>
         </div>

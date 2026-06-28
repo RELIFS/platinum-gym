@@ -14,16 +14,24 @@ class InvoicePolicy
 
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->hasRole('owner') && $user->can('view_financial_reports');
     }
 
     public function view(User $user, Invoice $invoice): bool
     {
+        if ($user->hasRole('owner') && $user->can('view_financial_reports')) {
+            return true;
+        }
+
         return $invoice->payment?->member?->user_id === $user->id;
     }
 
     public function download(User $user, Invoice $invoice): bool
     {
+        if ($user->hasRole('owner') && $user->can('export_financial_reports')) {
+            return true;
+        }
+
         return $invoice->payment?->member?->user_id === $user->id && $user->can('download_own_invoice');
     }
 

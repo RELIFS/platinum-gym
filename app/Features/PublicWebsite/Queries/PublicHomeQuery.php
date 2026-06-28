@@ -22,7 +22,7 @@ class PublicHomeQuery
     {
         return [
             'settings' => $this->settings->get(),
-            'promos' => $this->publishedPromos()->limit(2)->get(),
+            'promos' => $this->publishedPromos()->with('package')->limit(2)->get(),
             'packages' => Package::query()
                 ->where('is_active', true)
                 ->orderBy('package_kind')

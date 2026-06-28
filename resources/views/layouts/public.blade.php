@@ -42,7 +42,7 @@
     <body class="bg-zinc-50 font-sans text-zinc-950 antialiased selection:bg-gold-500 selection:text-zinc-950 dark:bg-zinc-950 dark:text-zinc-100">
         <a href="#main-content" class="public-skip-link">Lewati navigasi utama</a>
 
-        <div class="min-h-screen overflow-hidden">
+        <div class="min-h-screen overflow-hidden" data-public-motion-root>
             @include('public.partials.header', ['settings' => $settings ?? []])
 
             <main id="main-content" tabindex="-1">

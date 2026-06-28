@@ -1,0 +1,30 @@
+@props([
+    'item' => [],
+    'mobile' => false,
+    'href' => null,
+    'label' => null,
+    'icon' => null,
+    'active' => null,
+    'websiteLink' => null,
+])
+
+@php
+    $activePattern = $active ?? ($item['active'] ?? null);
+    $iconName = $icon ?? ($item['icon'] ?? 'circle');
+    $isActive = $activePattern ? request()->routeIs($activePattern) : false;
+    $linkHref = $href ?? (isset($item['route']) ? route($item['route']) : '#');
+    $linkLabel = $label ?? ($item['label'] ?? '');
+@endphp
+
+<a
+    href="{{ $linkHref }}"
+    @if ($isActive) aria-current="page" @endif
+    @if ($mobile) x-on:click="closeAdminMenu()" @endif
+    @if ($websiteLink) data-admin-website-link="{{ $websiteLink }}" @endif
+    class="group admin-sidebar-nav-link {{ $isActive ? 'admin-sidebar-nav-link-active' : '' }}"
+>
+    <span class="admin-sidebar-icon-frame {{ $isActive ? 'admin-sidebar-icon-frame-active' : '' }}" data-admin-sidebar-icon="{{ $iconName }}" aria-hidden="true">
+        @include('admin.partials.icon', ['name' => $iconName, 'class' => 'admin-sidebar-icon-svg'])
+    </span>
+    <span class="min-w-0 flex-1 truncate">{{ $linkLabel }}</span>
+</a>

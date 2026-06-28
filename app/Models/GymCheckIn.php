@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class GymCheckIn extends Model
 {
@@ -30,5 +31,10 @@ class GymCheckIn extends Model
     public function scanner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'scanned_by');
+    }
+
+    public function packageSessionUsages(): HasMany
+    {
+        return $this->hasMany(MemberPackageSessionUsage::class);
     }
 }

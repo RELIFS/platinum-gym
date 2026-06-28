@@ -36,6 +36,8 @@ Status penggunaan dibagi menjadi:
 | `resend/resend-php` | Transport email Resend | Dipakai untuk pengiriman email aplikasi melalui `MAIL_MAILER=resend` | `^1.3` | Perlu domain/from address valid dan API key aman di `.env` | Sudah digunakan |
 | `midtrans/midtrans-php` | Integrasi payment gateway Midtrans | Mendukung pembayaran membership, paket sesi, kelas berbayar, dan webhook Sandbox | `^2.3` | Signature/webhook dan server key wajib aman | Sudah digunakan |
 | `simplesoftwareio/simple-qrcode` | QR Code generator Laravel | Menyediakan dependency Bacon QR untuk QR member/check-in | `^4.2` | QR token tidak boleh dirender sebagai teks mentah | Sudah digunakan |
+| `maatwebsite/excel` | Export Excel `.xlsx` | Digunakan untuk export laporan Admin dan Owner selain CSV | `^3.1` | Export besar perlu query/generator agar tidak boros memori | Sudah digunakan |
+| `barryvdh/laravel-dompdf` | Generate PDF dari Blade | Digunakan untuk PDF laporan, invoice, dan struk transaksi | `^3.1` | Template PDF harus CSS sederhana dan tidak memuat remote asset sensitif | Sudah digunakan |
 
 ## Dependency Development dan Testing
 
@@ -71,22 +73,18 @@ Scan `resources/js/**/*.js` diperlukan karena renderer Gymmi membuat sebagian cl
 | `@tailwindcss/vite` | Integrasi Tailwind dengan Vite | Mendukung proses build frontend | `^4.0.0` | Perlu perhatian kompatibilitas dengan versi Tailwind yang dipakai | Dependency frontend |
 | `alpinejs` | Interaktivitas ringan frontend | Digunakan untuk behavior UI sederhana seperti dropdown atau toggle | `^3.4.2` | Tidak cocok untuk state management kompleks | Sudah digunakan |
 | `axios` | HTTP client JavaScript | Disiapkan untuk request AJAX frontend | `^1.11.0` | Perlu pengaturan CSRF dan error handling | Dependency frontend |
+| `html5-qrcode` | Scanner QR kamera frontend | Digunakan secara lazy pada halaman admin check-in untuk membaca QR member dari kamera | `2.3.8` | Akses kamera membutuhkan secure context/HTTPS atau localhost dan permission browser | Sudah digunakan |
 | `concurrently` | Menjalankan beberapa command dev | Membantu menjalankan server, queue, dan Vite bersamaan | `^9.0.1` | Hanya kebutuhan development | Dependency development |
 | `postcss` | CSS processing | Digunakan dalam pipeline Tailwind/Vite | `^8.4.31` | Konfigurasi salah dapat membuat build CSS gagal | Dependency frontend |
 | `autoprefixer` | Vendor prefix CSS | Menambah kompatibilitas browser | `^10.4.2` | Umumnya rendah, mengikuti konfigurasi browser target | Dependency frontend |
-
-## Dependency Rencana Pengembangan
-
-| Package | Fungsi | Modul Rencana | Alasan | Status |
-|---|---|---|---|---|
-| `maatwebsite/excel` | Import/export Excel dan CSV | Import member lama dan export laporan | Memudahkan pengolahan laporan admin/owner | Direncanakan |
-| `barryvdh/laravel-dompdf` | Generate PDF dari Blade | Invoice dan laporan cetak | PDF mudah dicetak dan diarsipkan | Direncanakan |
 
 ## Integrasi Eksternal Tanpa Package Tambahan
 
 | Integrasi | Fungsi | Modul | Alasan | Status |
 |---|---|---|---|---|
-| Google Gemini API REST | AI assistant Gymmi | Public/member chatbot | Laravel HTTP client cukup untuk timeout, retry, fallback, dan test tanpa menambah package Composer | Sudah digunakan |
+| Google Gemini API REST | AI assistant Gymmi | Public/member chatbot | Laravel HTTP client cukup untuk hybrid RAG, timeout, retry, fallback, dan test tanpa menambah package Composer | Sudah digunakan |
+| Native streamed CSV | Export laporan ringan | Admin/owner reports | Response streaming Laravel tetap dipakai untuk backward compatibility dan export CSV cepat | Sudah digunakan |
+| Local SVG chart renderer | Grafik dashboard ringan | Admin/owner dashboard | Mengganti dependency chart berat dengan renderer kecil di bundle lokal | Sudah digunakan |
 
 ## Dependency Yang Tidak Dipakai Pada Arsitektur Aktif
 
@@ -166,11 +164,11 @@ Referensi:
 | 5W+1H | Penjelasan |
 |---|---|
 | What | `resend/resend-php` adalah library PHP untuk mengirim email melalui Resend. |
-| Why | Package ini dipakai agar email verifikasi, reset password, dan notifikasi operasional bisa dikirim lewat provider email yang punya free tier. |
-| Who | Digunakan oleh sistem untuk mengirim email kepada member dan admin sesuai flow aplikasi. |
+| Why | Package ini dipakai agar email verifikasi kode 6 digit, reset password, undangan akun, pembayaran, dan booking bisa dikirim lewat provider email yang punya free tier. |
+| Who | Digunakan oleh sistem untuk mengirim email transaksional kepada member sesuai flow aplikasi. |
 | When | Digunakan saat mailer aplikasi memakai `MAIL_MAILER=resend` dan `RESEND_API_KEY` tersedia di `.env`. |
-| Where | Digunakan pada konfigurasi mail Laravel dan notifikasi/email transaksional. |
-| How | Laravel mailer memakai transport `resend`; secret hanya dibaca dari `.env`, bukan dari source code. |
+| Where | Digunakan pada konfigurasi mail Laravel, Laravel notification, dan template Markdown mail branded Platinum Gym. |
+| How | Laravel mailer memakai transport `resend`; secret hanya dibaca dari `.env`, bukan dari source code. Notification penting berjalan melalui queue dan `afterCommit()` agar sinkron dengan transaksi database. Pada shared CWP/cPanel tanpa worker permanen, gunakan `QUEUE_CONNECTION=sync` agar email terkirim saat request. Saat `QUEUE_CONNECTION=database`, worker `php artisan queue:work --tries=3 --timeout=90` harus aktif agar email benar-benar terkirim. Kuota mailbox cPanel/CWP seperti `Email 0/0` tidak menghalangi Resend API sending. |
 
 Referensi:
 
@@ -186,7 +184,7 @@ Referensi:
 | Who | Digunakan oleh member untuk menampilkan QR dan admin untuk memverifikasi check-in. |
 | When | Digunakan saat QR member aktif setelah membership aktif dan admin melakukan check-in. |
 | Where | Digunakan pada halaman QR member dan modul check-in admin. |
-| How | Sistem membuat QR visual dari token check-in; token tidak ditampilkan sebagai teks mentah di UI member. |
+| How | Sistem membuat QR visual dari token check-in stabil per member; token tidak ditampilkan sebagai teks mentah di UI member dan kelayakan scan tetap dicek dari membership aktif. |
 
 Referensi:
 
@@ -197,11 +195,11 @@ Referensi:
 | 5W+1H | Penjelasan |
 |---|---|
 | What | Maatwebsite Laravel Excel adalah package untuk import dan export Excel/CSV pada Laravel. |
-| Why | Package ini direncanakan untuk import data member lama dan export laporan admin/owner. |
-| Who | Digunakan oleh admin dan owner. |
-| When | Digunakan saat migrasi data awal, import member, dan export laporan. |
-| Where | Direncanakan pada modul member, transaksi, booking, dan laporan. |
-| How | Developer membuat class Import/Export untuk memvalidasi, membaca, menyimpan, dan menghasilkan file Excel. |
+| Why | Package ini dipakai untuk export laporan Admin/Owner dan import workbook knowledge base Gymmi ke JSON runtime. |
+| Who | Digunakan oleh admin/owner saat export laporan dan developer/operator saat menjalankan `php artisan gymmi:import-knowledge`. |
+| When | Digunakan saat admin atau owner mengunduh laporan Excel, serta saat `data_AI_Chatbot.xlsx` berubah dan knowledge base Gymmi perlu dikompilasi ulang. |
+| Where | Digunakan pada route export laporan Admin/Owner dan command `app/Console/Commands/ImportGymmiKnowledgeCommand.php`. |
+| How | Export laporan memakai class Export terpisah. Import Gymmi membaca workbook internal tim, memfilter status `Aktif`/`Tersedia`, melewati config bernilai `Tidak tersedia`, lalu menulis `resources/data/gymmi/knowledge-base.json` agar request chat tidak membaca Excel langsung. Artifact Gymmi terbaru memuat FAQ 137 dan Alias 1578. |
 
 Referensi:
 
@@ -213,11 +211,11 @@ Referensi:
 | 5W+1H | Penjelasan |
 |---|---|
 | What | `barryvdh/laravel-dompdf` adalah package Laravel untuk membuat PDF dari view Blade. |
-| Why | Package ini direncanakan untuk invoice, struk pembayaran, dan laporan cetak. |
+| Why | Package ini dipakai untuk membuat PDF laporan, invoice formal, dan struk POS compact dari Blade. |
 | Who | Digunakan oleh member, admin, dan owner. |
-| When | Digunakan setelah transaksi selesai atau saat laporan perlu dicetak. |
-| Where | Direncanakan pada modul transaksi, pembayaran, invoice, dan laporan. |
-| How | Sistem membuat view Blade khusus, lalu DomPDF mengubah view tersebut menjadi file PDF. |
+| When | Digunakan saat user mengunduh invoice/struk atau laporan dalam format PDF. |
+| Where | Digunakan pada modul invoice member/owner/admin dan export laporan Admin/Owner. |
+| How | Sistem membuat view Blade khusus dengan CSS sederhana, lalu DomPDF mengubah view tersebut menjadi file PDF tanpa remote asset. |
 
 Referensi:
 
@@ -232,7 +230,7 @@ Referensi:
 | Who | Digunakan oleh pengunjung dan member saat bertanya lewat Gymmi. Admin automation belum dibuat. |
 | When | Digunakan saat user mengirim pesan dari widget Gymmi public atau member. |
 | Where | Endpoint `POST /gymmi/chat`, frontend `resources/js/public-chatbot.js`, dan partial public/member chatbot. |
-| How | Sistem membangun konteks aman, memilih salah satu key Gemini dari `.env`, memanggil `generateContent`, menyimpan conversation log, dan memakai fallback lokal jika provider gagal. |
+| How | Sistem menjalankan input guard, memilih FAQ/Alias/Config/catalog snippets dari `resources/data/gymmi/knowledge-base.json` plus override kecil tervalidasi, menambahkan snippet database live yang aman untuk paket/promo/jadwal/produk/settings publik dan data member login sendiri, lalu memanggil Gemini hanya untuk merangkai jawaban dari snippet valid. Intent ringan membatasi retrieval agar pertanyaan spesifik seperti Muaythai/privat tidak menarik kelas lain. Key pool dibaca dari `.env` (`GEMINI_API_KEY`/`GEMINI_API_KEYS`), 429 membuka cooldown, 401/403 menandai key invalid sementara, 404 membuka cooldown model, timeout/5xx retry terbatas, dan fallback knowledge dipakai jika provider gagal dengan jawaban natural, bukan snippet mentah. Command `php artisan gymmi:sync-gemini-keys` tersedia untuk dry-run/status/sinkronisasi `.env` lokal dari file private tanpa mencetak nilai key; production tetap memakai environment/secret manager hosting. Log tidak memuat key, raw prompt, payload sensitif, raw QR token, atau secret. |
 
 Referensi:
 

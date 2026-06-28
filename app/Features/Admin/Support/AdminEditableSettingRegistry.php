@@ -9,22 +9,44 @@ class AdminEditableSettingRegistry
     public function fields(): array
     {
         return [
-            ['name' => 'site_name', 'label' => 'Nama Website', 'group' => 'general', 'type' => 'text'],
-            ['name' => 'address', 'label' => 'Alamat Gym', 'group' => 'contact', 'type' => 'textarea'],
-            ['name' => 'phone_number', 'label' => 'Nomor Telepon', 'group' => 'contact', 'type' => 'text'],
-            ['name' => 'phone_display', 'label' => 'Tampilan Telepon', 'group' => 'contact', 'type' => 'text'],
-            ['name' => 'whatsapp_number', 'label' => 'Nomor WhatsApp', 'group' => 'contact', 'type' => 'text'],
-            ['name' => 'public_email', 'label' => 'Email Publik', 'group' => 'contact', 'type' => 'email'],
-            ['name' => 'instagram_handle', 'label' => 'Instagram Handle', 'group' => 'contact', 'type' => 'text'],
-            ['name' => 'instagram_url', 'label' => 'URL Instagram', 'group' => 'contact', 'type' => 'url'],
-            ['name' => 'maps_url', 'label' => 'URL Google Maps', 'group' => 'contact', 'type' => 'url'],
-            ['name' => 'maps_search_url', 'label' => 'URL Pencarian Maps', 'group' => 'contact', 'type' => 'url'],
-            ['name' => 'maps_shared_url', 'label' => 'URL Share Maps', 'group' => 'contact', 'type' => 'url'],
-            ['name' => 'maps_embed_url', 'label' => 'URL Embed Maps', 'group' => 'contact', 'type' => 'textarea'],
-            ['name' => 'operational_hours_weekday', 'label' => 'Jam Operasional Weekday', 'group' => 'general', 'type' => 'text'],
-            ['name' => 'operational_hours_weekend', 'label' => 'Jam Operasional Weekend', 'group' => 'general', 'type' => 'text'],
-            ['name' => 'invoice_prefix', 'label' => 'Prefix Invoice', 'group' => 'invoice', 'type' => 'text'],
-            ['name' => 'invoice_footer', 'label' => 'Footer Invoice', 'group' => 'invoice', 'type' => 'textarea'],
+            ['name' => 'site_name', 'label' => 'Nama Website', 'group' => 'general', 'type' => 'text', 'placeholder' => 'Platinum Gym Padang', 'help' => 'Nama ini tampil di website publik, meta SEO, dan beberapa dokumen operasional.'],
+            ['name' => 'operational_hours_weekday', 'label' => 'Jam operasional hari kerja', 'group' => 'general', 'type' => 'text', 'placeholder' => '06:00-22:00', 'help' => 'Gunakan format singkat, misalnya 06:00-22:00.'],
+            ['name' => 'operational_hours_weekend', 'label' => 'Jam operasional akhir pekan', 'group' => 'general', 'type' => 'text', 'placeholder' => '06:00-20:00', 'help' => 'Tampil di halaman lokasi dan informasi kontak publik.'],
+            ['name' => 'address', 'label' => 'Alamat Gym', 'group' => 'contact', 'type' => 'textarea', 'placeholder' => 'Jl. ... Padang', 'help' => 'Alamat utama yang tampil pada halaman lokasi.', 'fullWidth' => true],
+            ['name' => 'phone_number', 'label' => 'Nomor Telepon', 'group' => 'contact', 'type' => 'text', 'placeholder' => '081234567890', 'help' => 'Nomor utama untuk link telepon. Gunakan angka yang bisa dihubungi.'],
+            ['name' => 'phone_display', 'label' => 'Nomor telepon yang ditampilkan', 'group' => 'contact', 'type' => 'text', 'placeholder' => '0812-3456-7890', 'help' => 'Versi yang lebih mudah dibaca oleh pengunjung website.'],
+            ['name' => 'whatsapp_number', 'label' => 'Nomor WhatsApp', 'group' => 'contact', 'type' => 'text', 'placeholder' => '6281234567890', 'help' => 'Gunakan format internasional tanpa tanda plus agar link WhatsApp stabil.'],
+            ['name' => 'public_email', 'label' => 'Email Publik', 'group' => 'contact', 'type' => 'email', 'placeholder' => 'halo@platinumgym.test', 'help' => 'Email kontak yang aman ditampilkan kepada pengunjung.', 'autocomplete' => 'email'],
+            ['name' => 'instagram_handle', 'label' => 'Instagram Handle', 'group' => 'maps_social', 'type' => 'text', 'placeholder' => '@platinumgympadang', 'help' => 'Nama akun yang ditampilkan sebagai teks.'],
+            ['name' => 'instagram_url', 'label' => 'URL Instagram', 'group' => 'maps_social', 'type' => 'url', 'placeholder' => 'https://instagram.com/platinumgympadang', 'help' => 'Link profil Instagram resmi.'],
+            ['name' => 'maps_url', 'label' => 'URL Google Maps', 'group' => 'maps_social', 'type' => 'url', 'placeholder' => 'https://maps.google.com/...', 'help' => 'Link utama untuk tombol buka peta.'],
+            ['name' => 'maps_search_url', 'label' => 'URL pencarian Maps', 'group' => 'maps_social', 'type' => 'url', 'placeholder' => 'https://www.google.com/maps/search/...', 'help' => 'Fallback saat link lokasi langsung belum tersedia.'],
+            ['name' => 'maps_shared_url', 'label' => 'URL share Maps', 'group' => 'maps_social', 'type' => 'url', 'placeholder' => 'https://maps.app.goo.gl/...', 'help' => 'Link pendek yang biasa dibagikan dari aplikasi Google Maps.'],
+            ['name' => 'maps_embed_url', 'label' => 'Link embed peta Google', 'group' => 'maps_social', 'type' => 'textarea', 'placeholder' => 'https://www.google.com/maps/embed?...', 'help' => 'Isi dengan URL embed, bukan kode iframe lengkap.', 'fullWidth' => true],
+            ['name' => 'invoice_prefix', 'label' => 'Awalan Nomor Invoice', 'group' => 'invoice', 'type' => 'text', 'placeholder' => 'PGP', 'help' => 'Dipakai sebagai awalan nomor invoice baru. Maksimal 12 karakter.'],
+            ['name' => 'invoice_footer', 'label' => 'Catatan Footer Invoice', 'group' => 'invoice', 'type' => 'textarea', 'placeholder' => 'Terima kasih telah bertransaksi di Platinum Gym Padang.', 'help' => 'Pesan singkat yang tampil pada invoice dan struk.', 'fullWidth' => true],
+        ];
+    }
+
+    public function groups(): array
+    {
+        return [
+            'general' => [
+                'label' => 'Informasi Umum',
+                'description' => 'Identitas website dan jam operasional yang tampil untuk pengunjung.',
+            ],
+            'contact' => [
+                'label' => 'Kontak Publik',
+                'description' => 'Alamat, telepon, WhatsApp, dan email yang aman ditampilkan di website publik.',
+            ],
+            'maps_social' => [
+                'label' => 'Media Sosial & Peta',
+                'description' => 'Link resmi Instagram dan Google Maps untuk membantu pengunjung menemukan gym.',
+            ],
+            'invoice' => [
+                'label' => 'Invoice',
+                'description' => 'Format ringkas yang muncul di dokumen invoice dan struk transaksi.',
+            ],
         ];
     }
 
@@ -92,11 +114,9 @@ class AdminEditableSettingRegistry
 
     public function groupFor(string $key): string
     {
-        return match ($key) {
-            'address', 'phone_number', 'phone_display', 'whatsapp_number', 'public_email', 'instagram_handle', 'instagram_url', 'maps_url', 'maps_search_url', 'maps_shared_url', 'maps_embed_url' => 'contact',
-            'invoice_prefix', 'invoice_footer' => 'invoice',
-            default => 'general',
-        };
+        $field = collect($this->fields())->firstWhere('name', $key);
+
+        return $field['group'] ?? 'general';
     }
 
     public function typeFor(string $key): string

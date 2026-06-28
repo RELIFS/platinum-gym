@@ -1,0 +1,65 @@
+{
+    "metadata": {
+        "purpose": "Supplemental Gymmi knowledge that has been validated after the workbook import.",
+        "updated_at": "2026-06-26"
+    },
+    "faq": [
+        {
+            "id": "OVR-FAQ-MUAYTHAI-PRIVATE-001",
+            "category": "Class Terpisah",
+            "question": "Apakah Muaythai privat atau bersama peserta lain?",
+            "answer": "Muaythai tercatat sebagai kelas berjadwal dengan kapasitas terbatas. Jika ingin sesi privat atau latihan hanya dengan coach, konfirmasi ketersediaan ke admin Platinum Gym.",
+            "source_sheet": "Knowledge Override"
+        }
+    ],
+    "aliases": [
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-PRIVATE-001",
+            "category": "Class Terpisah",
+            "phrase": "muaytai",
+            "intent": "muaythai privat"
+        },
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-PRIVATE-002",
+            "category": "Class Terpisah",
+            "phrase": "muaytai privat",
+            "intent": "muaythai privat"
+        },
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-PRIVATE-003",
+            "category": "Class Terpisah",
+            "phrase": "muaythai sendiri",
+            "intent": "muaythai privat"
+        },
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-PRIVATE-004",
+            "category": "Class Terpisah",
+            "phrase": "muaythai private",
+            "intent": "muaythai privat"
+        },
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-PRIVATE-005",
+            "category": "Class Terpisah",
+            "phrase": "muaythai bareng orang lain",
+            "intent": "muaythai privat"
+        },
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-PRIVATE-006",
+            "category": "Class Terpisah",
+            "phrase": "latihan muaythai cuma saya",
+            "intent": "muaythai privat"
+        },
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-PRIVATE-007",
+            "category": "Class Terpisah",
+            "phrase": "muaythai satu coach satu member",
+            "intent": "muaythai privat"
+        },
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-PRIVATE-008",
+            "category": "Class Terpisah",
+            "phrase": "muaythai hanya saya dan coach",
+            "intent": "muaythai privat"
+        }
+    ]
+}

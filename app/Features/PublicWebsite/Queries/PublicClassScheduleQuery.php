@@ -3,7 +3,6 @@
 namespace App\Features\PublicWebsite\Queries;
 
 use App\Models\ClassSchedule;
-use App\Models\GymClass;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -11,6 +10,25 @@ use Illuminate\Support\Str;
 
 class PublicClassScheduleQuery
 {
+    private const CLASS_SECTIONS = [
+        'aerobic' => [
+            'label' => 'Aerobic',
+            'description' => 'Latihan kardio ritmis untuk stamina, koordinasi, dan kebugaran harian.',
+        ],
+        'zumba' => [
+            'label' => 'Zumba',
+            'description' => 'Kelas dance fitness energik dengan coach dan jadwal studio reguler.',
+        ],
+        'muaythai' => [
+            'label' => 'Muaythai',
+            'description' => 'Sesi striking intensif untuk teknik, conditioning, dan disiplin latihan.',
+        ],
+        'poundfit' => [
+            'label' => 'Poundfit',
+            'description' => 'Kelas full-body berbasis rhythm workout dengan format sesi khusus.',
+        ],
+    ];
+
     public const DAY_OPTIONS = [
         'senin' => 1,
         'selasa' => 2,
@@ -41,14 +59,16 @@ class PublicClassScheduleQuery
 
         $schedules = $this->activeSchedulesQuery()
             ->when($selectedDay, fn (Builder $query) => $query->where('day_of_week', self::DAY_OPTIONS[$selectedDay]))
-            ->when($selectedType, function (Builder $query) use ($selectedType): void {
-                $query->whereHas('gymClass', fn (Builder $classQuery) => $classQuery->where('class_type', $selectedType));
-            })
             ->get();
+
+        $filteredSchedules = $selectedType
+            ? $schedules->filter(fn (ClassSchedule $schedule): bool => $this->resolveSectionKey($schedule) === $selectedType)->values()
+            : $schedules;
 
         return [
             'settings' => $this->settings->get(),
-            'schedules' => $schedules,
+            'schedules' => $filteredSchedules,
+            'classSections' => $this->classSections($filteredSchedules, $selectedType),
             'dayOptions' => self::DAY_OPTIONS,
             'dayLabels' => self::DAY_LABELS,
             'classTypeOptions' => $classTypeOptions,
@@ -93,12 +113,49 @@ class PublicClassScheduleQuery
 
     private function classTypeOptions(): Collection
     {
-        return GymClass::query()
-            ->where('is_active', true)
-            ->distinct()
-            ->orderBy('class_type')
-            ->pluck('class_type')
-            ->filter()
-            ->mapWithKeys(fn ($type) => [$type => Str::headline((string) $type)]);
+        return collect(self::CLASS_SECTIONS)
+            ->mapWithKeys(fn (array $section, string $key): array => [$key => $section['label']]);
+    }
+
+    private function classSections(Collection $schedules, ?string $selectedType): Collection
+    {
+        $grouped = $schedules->groupBy(fn (ClassSchedule $schedule): string => $this->resolveSectionKey($schedule));
+        $sections = collect(self::CLASS_SECTIONS)
+            ->when($selectedType, fn (Collection $items): Collection => $items->only($selectedType))
+            ->map(function (array $section, string $key) use ($grouped): array {
+                return [
+                    'key' => $key,
+                    'label' => $section['label'],
+                    'description' => $section['description'],
+                    'schedules' => $grouped->get($key, collect())->values(),
+                ];
+            });
+
+        if (! $selectedType && $grouped->has('other')) {
+            $sections->put('other', [
+                'key' => 'other',
+                'label' => 'Kelas Lainnya',
+                'description' => 'Jadwal aktif lain yang belum masuk kategori utama.',
+                'schedules' => $grouped->get('other', collect())->values(),
+            ]);
+        }
+
+        return $sections;
+    }
+
+    private function resolveSectionKey(ClassSchedule $schedule): string
+    {
+        $class = $schedule->gymClass;
+        $name = Str::lower((string) $class?->name);
+        $type = Str::lower((string) $class?->class_type);
+        $combined = $name.' '.$type;
+
+        return match (true) {
+            str_contains($name, 'aerobic'), $type === 'aerobic' => 'aerobic',
+            str_contains($name, 'zumba'), $type === 'zumba' => 'zumba',
+            str_contains($combined, 'muay') => 'muaythai',
+            str_contains($combined, 'pound') => 'poundfit',
+            default => 'other',
+        };
     }
 }

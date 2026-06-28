@@ -1,0 +1,234 @@
+body,
+body *:not(html):not(style):not(br):not(tr):not(code) {
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background-color: #f5f5f4;
+    color: #18181b;
+    height: 100%;
+    hyphens: auto;
+    line-height: 1.55;
+    margin: 0;
+    width: 100% !important;
+    word-break: break-word;
+}
+
+.wrapper {
+    background-color: #f5f5f4;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.content {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.header {
+    padding: 32px 16px 18px;
+    text-align: center;
+}
+
+.header a {
+    color: #18181b;
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 0.2px;
+    text-decoration: none;
+}
+
+.body {
+    background-color: #f5f5f4;
+    border-bottom: 0;
+    border-top: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.inner-body {
+    background-color: #ffffff;
+    border: 1px solid #e4e4e7;
+    border-radius: 20px;
+    box-shadow: 0 18px 48px rgba(24, 24, 27, 0.09);
+    margin: 0 auto;
+    padding: 0;
+    width: 600px;
+}
+
+.content-cell {
+    padding: 34px 40px 36px;
+}
+
+.footer {
+    margin: 0 auto;
+    padding: 24px 18px 34px;
+    text-align: center;
+    width: 600px;
+}
+
+.footer p {
+    color: #71717a;
+    font-size: 12px;
+    line-height: 1.55;
+    margin: 0 0 6px;
+}
+
+p,
+ul,
+ol,
+blockquote {
+    color: #3f3f46;
+    font-size: 15px;
+    line-height: 1.65;
+    margin-top: 0;
+    text-align: left;
+}
+
+a {
+    color: #b77905;
+}
+
+h1 {
+    color: #18181b;
+    font-size: 25px;
+    font-weight: 900;
+    line-height: 1.25;
+    margin: 0 0 18px;
+    text-align: left;
+}
+
+.button-primary,
+.button-blue {
+    background-color: #FEAC18;
+    border-bottom: 10px solid #FEAC18;
+    border-left: 22px solid #FEAC18;
+    border-radius: 12px;
+    border-right: 22px solid #FEAC18;
+    border-top: 10px solid #FEAC18;
+    color: #18181b;
+    display: inline-block;
+    font-weight: 900;
+    min-height: 44px;
+    text-decoration: none;
+}
+
+.panel {
+    background-color: #fffbeb;
+    border-left: 4px solid #FEAC18;
+    border-radius: 12px;
+    margin: 24px 0;
+    padding: 18px;
+}
+
+.panel-content,
+.panel-content p {
+    color: #3f3f46;
+}
+
+.subcopy {
+    color: #71717a;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.eyebrow {
+    color: #b77905;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.7px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.otp-wrap {
+    margin: 26px 0;
+    text-align: center;
+}
+
+.otp-card {
+    background-color: #FEAC18;
+    border-radius: 16px;
+    box-shadow: 0 12px 24px rgba(254, 172, 24, 0.24);
+    color: #111827;
+    display: inline-block;
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: 8px;
+    line-height: 1;
+    padding: 18px 22px;
+}
+
+.detail-table {
+    border-collapse: collapse;
+    margin: 4px 0;
+    width: 100%;
+}
+
+.detail-table td {
+    border-bottom: 1px solid rgba(180, 83, 9, 0.16);
+    color: #3f3f46;
+    font-size: 14px;
+    line-height: 1.45;
+    padding: 9px 0;
+    vertical-align: top;
+}
+
+.detail-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.detail-label {
+    color: #71717a !important;
+    font-weight: 700;
+    padding-right: 14px !important;
+    width: 38%;
+}
+
+.detail-value {
+    color: #18181b !important;
+    font-weight: 800;
+    text-align: right;
+    word-break: break-word;
+}
+
+@media only screen and (max-width: 600px) {
+    .inner-body,
+    .footer {
+        width: calc(100% - 24px) !important;
+    }
+
+    .content-cell {
+        padding: 26px 22px 28px !important;
+    }
+
+    h1 {
+        font-size: 22px;
+    }
+
+    .otp-card {
+        font-size: 26px !important;
+        letter-spacing: 6px !important;
+        padding: 16px 18px !important;
+    }
+
+    .detail-table td {
+        display: block;
+        padding: 6px 0;
+        width: 100% !important;
+    }
+
+    .detail-label {
+        padding-bottom: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .detail-value {
+        padding-top: 2px !important;
+        text-align: left !important;
+    }
+}

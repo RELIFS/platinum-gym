@@ -3,12 +3,17 @@
 namespace App\Features\Admin\Queries;
 
 use App\Features\Admin\Support\AdminEditableSettingRegistry;
+use App\Features\Admin\Support\AdminOperationalRules;
+use App\Features\Bookings\Support\BookingTimePolicy;
+use App\Features\Classes\Support\ClassStaffPresenter;
 use App\Models\ClassEnrollment;
 use App\Models\ClassSchedule;
 use App\Models\Gallery;
 use App\Models\GymCheckIn;
 use App\Models\GymClass;
 use App\Models\Member;
+use App\Models\MemberPackageSession;
+use App\Models\MemberPackageSessionUsage;
 use App\Models\Membership;
 use App\Models\Package;
 use App\Models\Payment;
@@ -20,7 +25,9 @@ use App\Models\Trainer;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -37,27 +44,38 @@ class AdminDashboardQuery
     {
         $today = now()->toDateString();
         $filters = $this->normaliseFilters($filters);
+        $paymentMembers = $this->paymentMembers();
+        $paymentPackages = $this->paymentPackages();
+        $bookingMembers = $this->bookingMembers();
+        $bookingSchedules = $this->bookingSchedules();
 
         return [
             'admin' => $user,
             'filters' => $filters,
             'stats' => $this->stats($today),
             'queue' => $this->operationalQueue($today),
+            'operationalTrend' => $this->operationalTrend(),
             'quickLinks' => $this->quickLinks(),
             'recentMembers' => $this->recentMembers(),
             'recentPayments' => $this->recentPayments(),
-            'paymentMembers' => $this->paymentMembers(),
-            'paymentPackages' => $this->paymentPackages(),
+            'paymentMembers' => $paymentMembers,
+            'paymentPackages' => $paymentPackages,
             'paymentTrainers' => $this->paymentTrainers(),
+            'paymentPackageTrainerRules' => AdminOperationalRules::paymentPackageTrainerRules($paymentPackages),
+            'paymentTrainerOptionsByPackage' => AdminOperationalRules::paymentTrainerOptionsByPackage($paymentPackages),
             'todayBookings' => $this->todayBookings($today),
-            'bookingMembers' => $this->paymentMembers(),
-            'bookingSchedules' => $this->bookingSchedules(),
+            'bookingMembers' => $bookingMembers,
+            'bookingSchedules' => $bookingSchedules,
+            'bookingMemberScheduleAccess' => AdminOperationalRules::bookingMemberScheduleAccess($bookingMembers, $bookingSchedules),
             'todayCheckIns' => $this->todayCheckIns($today),
-            'checkInCandidates' => $this->checkInCandidates($today),
             'moduleSummaries' => $this->moduleSummaries($today),
             'modules' => $this->modules($today, $user, $filters, $activeModule),
             'settings' => $this->settings(),
-            'editableSettings' => ['fields' => $this->editableSettings->fields(), 'values' => $this->editableSettings->values()],
+            'editableSettings' => [
+                'fields' => $this->editableSettings->fields(),
+                'groups' => $this->editableSettings->groups(),
+                'values' => $this->editableSettings->values(),
+            ],
             'activityLogs' => $this->latestActivityLogs(),
             'activityUsers' => $this->activityUsers(),
         ];
@@ -71,16 +89,16 @@ class AdminDashboardQuery
                 ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard', 'icon' => 'dashboard'],
             ]],
             ['label' => 'Operasional', 'items' => [
-                ['label' => 'Check-in', 'route' => 'admin.check-in', 'active' => 'admin.check-in', 'icon' => 'qr'],
-                ['label' => 'Booking', 'route' => 'admin.booking', 'active' => 'admin.booking', 'icon' => 'calendar'],
+                ['label' => 'Check-in', 'route' => 'admin.check-in', 'active' => 'admin.check-in', 'icon' => 'qr-scan'],
+                ['label' => 'Booking', 'route' => 'admin.booking', 'active' => 'admin.booking', 'icon' => 'calendar-check'],
                 ['label' => 'Notifikasi', 'route' => 'admin.notifications', 'active' => 'admin.notifications', 'icon' => 'bell'],
             ]],
             ['label' => 'Anggota & Paket', 'items' => [
                 ['label' => 'Anggota', 'route' => 'admin.members', 'active' => 'admin.members', 'icon' => 'members'],
-                ['label' => 'Paket', 'route' => 'admin.packages', 'active' => 'admin.packages', 'icon' => 'card'],
+                ['label' => 'Paket', 'route' => 'admin.packages', 'active' => 'admin.packages', 'icon' => 'membership-card'],
             ]],
             ['label' => 'Aktivitas', 'items' => [
-                ['label' => 'Kelas', 'route' => 'admin.classes', 'active' => 'admin.classes', 'icon' => 'activity'],
+                ['label' => 'Kelas', 'route' => 'admin.classes', 'active' => 'admin.classes', 'icon' => 'dumbbell'],
             ]],
             ['label' => 'Keuangan', 'items' => [
                 ['label' => 'Pembayaran', 'route' => 'admin.payments', 'active' => 'admin.payments', 'icon' => 'receipt'],
@@ -92,10 +110,12 @@ class AdminDashboardQuery
                 ['label' => 'Promo', 'route' => 'admin.promos', 'active' => 'admin.promos', 'icon' => 'tag'],
             ]],
             ['label' => 'Tim & Sistem', 'items' => [
-                ['label' => 'Trainer', 'route' => 'admin.trainers', 'active' => 'admin.trainers', 'icon' => 'trainer'],
+                ['label' => 'Trainer', 'route' => 'admin.trainers', 'active' => 'admin.trainers', 'icon' => 'coach'],
                 ['label' => 'Laporan', 'route' => 'admin.reports', 'active' => 'admin.reports', 'icon' => 'chart'],
-                ['label' => 'Audit Log', 'route' => 'admin.audit-log', 'active' => 'admin.audit-log', 'icon' => 'shield'],
+                ['label' => 'Audit Log', 'route' => 'admin.audit-log', 'active' => 'admin.audit-log', 'icon' => 'history'],
                 ['label' => 'Pengaturan', 'route' => 'admin.settings', 'active' => 'admin.settings', 'icon' => 'settings'],
+            ]],
+            ['label' => 'Akun', 'items' => [
                 ['label' => 'Profil Admin', 'route' => 'admin.profile', 'active' => 'admin.profile', 'icon' => 'user'],
             ]],
         ];
@@ -105,8 +125,8 @@ class AdminDashboardQuery
     public function pageDefinitions(): array
     {
         return [
-            'check-in' => $this->page('check-in', 'Check-in', 'Pantau check-in gym harian dan proses masuk member dari QR atau input manual.', 'admin.check-in', 'checkIns'),
-            'booking' => $this->page('booking', 'Booking Kelas', 'Kelola booking kelas hari ini, status peserta, dan kapasitas jadwal.', 'admin.booking', 'bookings'),
+            'check-in' => $this->page('check-in', 'Check-in', 'Pantau check-in gym harian dan proses masuk member melalui QR kamera.', 'admin.check-in', 'checkIns'),
+            'booking' => $this->page('booking', 'Booking Kelas', 'Kelola riwayat booking kelas, status peserta, dan kapasitas jadwal.', 'admin.booking', 'bookings'),
             'notifications' => $this->page('notifications', 'Notifikasi', 'Pantau area notifikasi operasional untuk member, booking, dan pembayaran.', 'admin.notifications', 'notifications'),
             'members' => $this->page('members', 'Anggota', 'Kelola daftar member, status akun, dan kode keanggotaan.', 'admin.members', 'members') + ['createResource' => 'members'],
             'packages' => $this->page('packages', 'Paket', 'Kelola katalog membership dan paket sesi yang tersedia di website.', 'admin.packages', 'packages') + ['createResource' => 'packages'],
@@ -118,9 +138,9 @@ class AdminDashboardQuery
             'promos' => $this->page('promos', 'Promo', 'Kelola promo, periode tayang, dan nilai diskon.', 'admin.promos', 'promos') + ['createResource' => 'promos'],
             'trainers' => $this->page('trainers', 'Trainer', 'Kelola trainer, spesialisasi, sertifikasi, dan status aktif.', 'admin.trainers', 'trainers') + ['createResource' => 'trainers'],
             'reports' => $this->page('reports', 'Laporan', 'Lihat ringkasan operasional berdasarkan periode yang dipilih.', 'admin.reports', 'reports'),
-            'audit-log' => $this->page('audit-log', 'Audit Log', 'Pantau jejak perubahan sistem tanpa membuka nilai sensitif.', 'admin.audit-log', 'auditLogs'),
+            'audit-log' => $this->page('audit-log', 'Audit Log', 'Pantau jejak perubahan penting yang tercatat di sistem.', 'admin.audit-log', 'auditLogs'),
             'settings' => $this->page('settings', 'Pengaturan', 'Kelola informasi publik website dan pantau konfigurasi dengan nilai sensitif tersamarkan.', 'admin.settings', 'settings'),
-            'profile' => $this->page('profile', 'Profil Admin', 'Lihat ringkasan akun admin yang sedang masuk dan status role.', 'admin.profile', 'profile'),
+            'profile' => $this->page('profile', 'Profil Admin', 'Lihat ringkasan akun admin yang sedang masuk dan status peran.', 'admin.profile', 'profile'),
         ];
     }
 
@@ -136,7 +156,7 @@ class AdminDashboardQuery
 
         return collect([
             ['Member aktif', (string) Member::query()->where('status', 'active')->count(), 'Status akun member saat laporan dibuat.'],
-            ['Membership aktif', (string) Membership::query()->where('status', 'active')->whereDate('end_date', '>=', $to)->count(), 'Membership aktif sampai akhir periode.'],
+            ['Membership aktif', (string) Membership::query()->activeForAccess($to)->count(), 'Membership aktif dan siap akses sampai akhir periode.'],
             ['Pembayaran periode ini', $this->money(Payment::query()->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])->sum('amount')), 'Total nominal transaksi pada periode terpilih.'],
             ['Booking periode ini', (string) ClassEnrollment::query()->whereBetween('session_date', [$from->toDateString(), $to->toDateString()])->whereNotIn('status', ['cancelled', 'canceled'])->count(), 'Booking aktif pada periode terpilih.'],
             ['Check-in periode ini', (string) GymCheckIn::query()->whereBetween('check_in_date', [$from->toDateString(), $to->toDateString()])->count(), 'Aktivitas masuk gym pada periode terpilih.'],
@@ -147,10 +167,10 @@ class AdminDashboardQuery
     private function stats(string $today): array
     {
         return [
-            ['label' => 'Member Aktif', 'value' => (string) Member::query()->where('status', 'active')->count(), 'description' => Membership::query()->where('status', 'active')->whereDate('end_date', '>=', $today)->count().' membership aktif'],
-            ['label' => 'Booking Hari Ini', 'value' => (string) ClassEnrollment::query()->whereDate('session_date', $today)->whereNotIn('status', ['cancelled', 'canceled'])->count(), 'description' => 'Kelas dan booking yang perlu dipantau hari ini.'],
-            ['label' => 'Pembayaran Pending', 'value' => (string) Payment::query()->whereIn('status', $this->pendingPaymentStatuses())->count(), 'description' => 'Butuh verifikasi atau tindak lanjut admin.'],
-            ['label' => 'Produk Aktif', 'value' => (string) Product::query()->where('is_active', true)->count(), 'description' => Product::query()->where('is_active', true)->where('stock', '<=', 3)->count().' produk stok rendah'],
+            ['label' => 'Member Aktif', 'value' => (string) Member::query()->where('status', 'active')->count(), 'description' => Membership::query()->activeForAccess($today)->count().' membership sedang aktif'],
+            ['label' => 'Booking hari ini', 'value' => (string) ClassEnrollment::query()->whereDate('session_date', $today)->whereNotIn('status', ['cancelled', 'canceled'])->count(), 'description' => 'Booking kelas yang masuk untuk hari ini.'],
+            ['label' => 'Menunggu Pembayaran', 'value' => (string) Payment::query()->whereIn('status', $this->pendingPaymentStatuses())->count(), 'description' => 'Pembayaran yang belum selesai dicek.'],
+            ['label' => 'Produk Aktif', 'value' => (string) Product::query()->where('is_active', true)->count(), 'description' => Product::query()->where('is_active', true)->where('stock', '<=', 3)->count().' produk perlu dicek stoknya'],
         ];
     }
 
@@ -158,9 +178,9 @@ class AdminDashboardQuery
     private function operationalQueue(string $today): array
     {
         return [
-            ['label' => 'Pembayaran menunggu', 'value' => (string) Payment::query()->whereIn('status', $this->pendingPaymentStatuses())->count(), 'description' => 'Prioritas validasi transfer dan status Midtrans.', 'route' => 'admin.payments'],
-            ['label' => 'Booking kelas hari ini', 'value' => (string) ClassEnrollment::query()->whereDate('session_date', $today)->whereNotIn('status', ['cancelled', 'canceled'])->count(), 'description' => 'Peserta kelas yang perlu dicek kapasitasnya.', 'route' => 'admin.booking'],
-            ['label' => 'Check-in hari ini', 'value' => (string) GymCheckIn::query()->whereDate('check_in_date', $today)->count(), 'description' => 'Aktivitas masuk gym yang sudah tercatat.', 'route' => 'admin.check-in'],
+            ['label' => 'Pembayaran menunggu', 'value' => (string) Payment::query()->whereIn('status', $this->pendingPaymentStatuses())->count(), 'description' => 'Pembayaran yang perlu dicek atau dikonfirmasi.', 'route' => 'admin.payments'],
+            ['label' => 'Booking hari ini', 'value' => (string) ClassEnrollment::query()->whereDate('session_date', $today)->whereNotIn('status', ['cancelled', 'canceled'])->count(), 'description' => 'Booking kelas yang terjadwal hari ini.', 'route' => 'admin.booking'],
+            ['label' => 'Check-in hari ini', 'value' => (string) GymCheckIn::query()->whereDate('check_in_date', $today)->count(), 'description' => 'Member yang sudah tercatat check-in hari ini.', 'route' => 'admin.check-in'],
         ];
     }
 
@@ -190,7 +210,7 @@ class AdminDashboardQuery
     {
         return ClassEnrollment::query()
             ->with(['member.user', 'schedule.gymClass', 'schedule.trainer'])
-            ->whereDate('session_date', $today)
+            ->withExists('attendance')
             ->whereNotIn('status', ['cancelled', 'canceled'])
             ->latest('created_at')
             ->limit(8)
@@ -205,6 +225,16 @@ class AdminDashboardQuery
     private function paymentMembers(): Collection
     {
         return Member::query()->with('user')->where('status', 'active')->latest('created_at')->limit(200)->get();
+    }
+
+    private function bookingMembers(): Collection
+    {
+        return Member::query()
+            ->with(['user', 'memberships.package', 'packageSessions.package'])
+            ->where('status', 'active')
+            ->latest('created_at')
+            ->limit(200)
+            ->get();
     }
 
     private function paymentPackages(): Collection
@@ -229,24 +259,13 @@ class AdminDashboardQuery
             ->get();
     }
 
-    private function checkInCandidates(string $today): Collection
-    {
-        return Member::query()
-            ->with('user')
-            ->where('status', 'active')
-            ->whereHas('memberships', fn (EloquentBuilder $query) => $query->where('status', 'active')->whereDate('end_date', '>=', $today))
-            ->latest('id')
-            ->limit(200)
-            ->get();
-    }
-
     /** @return array<string, array<string, mixed>> */
     private function modules(string $today, User $user, array $filters, ?string $activeModule): array
     {
         return [
             'checkIns' => $this->checkInsModule($today, $filters, $activeModule === 'checkIns'),
             'bookings' => $this->bookingsModule($today, $filters, $activeModule === 'bookings'),
-            'notifications' => $this->notificationsModule(),
+            'notifications' => $this->notificationsModule($filters),
             'members' => $this->membersModule($filters, $activeModule === 'members'),
             'packages' => $this->packagesModule($filters, $activeModule === 'packages'),
             'classes' => $this->classesModule($filters, $activeModule === 'classes'),
@@ -265,50 +284,103 @@ class AdminDashboardQuery
 
     private function checkInsModule(string $today, array $filters, bool $loadRows): array
     {
-        $module = $this->module('Check-in Terbaru', 'Data masuk gym hari ini dari QR atau petugas.', 'Belum ada check-in hari ini.', ['Member', 'Tanggal', 'Jam', 'Metode']);
+        [$from, $to] = $this->dateRange($filters);
+        $displayFilters = array_replace($filters, [
+            'date_from' => $from->toDateString(),
+            'date_to' => $to->toDateString(),
+        ]);
+
+        $module = array_replace(
+            $this->module('Riwayat Check-in & Sesi', 'Data check-in dan penggunaan sesi member dari QR kamera dan aksi admin terkonfirmasi.', 'Belum ada riwayat check-in pada periode ini.', ['Member', 'Tanggal', 'Jam', 'Paket', 'Sisa Sesi', 'Aktivitas']),
+            ['dateFilters' => true, 'pillColumns' => ['Aktivitas'], 'searchPlaceholder' => 'Cari member, kode, paket, aktivitas...']
+        );
         if (! $loadRows) {
             return $module;
         }
 
-        $query = GymCheckIn::query()->with(['member.user'])->whereDate('check_in_date', $today)->latest('check_in_at');
-        $this->applyCheckInSearch($query, $filters['q']);
+        $rows = $this->checkInActivityRows($from, $to);
+        if (filled($filters['q'])) {
+            $rows = $rows->filter(fn (array $row): bool => str_contains($row['search'], str($filters['q'])->lower()->toString()))->values();
+        }
 
-        return $this->withPaginatedRows($module, $query, fn (GymCheckIn $checkIn): array => ['cells' => [
-            $checkIn->member?->user?->name ?? $checkIn->member?->member_code ?? '-',
-            $checkIn->check_in_date?->translatedFormat('d M Y') ?? '-',
-            $checkIn->check_in_at?->format('H:i') ?? '-',
-            $this->headline($checkIn->method),
-        ], 'actions' => []], $filters);
+        $paginator = $this->paginateAdminRows($rows, $displayFilters);
+
+        return array_replace($module, [
+            'rows' => $paginator->getCollection(),
+            'paginator' => $paginator,
+            'filters' => $displayFilters,
+        ]);
     }
 
     private function bookingsModule(string $today, array $filters, bool $loadRows): array
     {
         $options = $this->headlineStatusOptions(['booked', 'confirmed', 'attended', 'cancelled']);
-        $module = array_replace($this->module('Booking Hari Ini', 'Peserta yang tercatat pada jadwal hari ini.', 'Belum ada booking kelas hari ini.', ['Member', 'Kelas', 'Jam', 'Status']), ['statusOptions' => $options]);
+        $module = array_replace($this->module('Riwayat Booking Kelas', 'Pantau semua booking kelas, status peserta, dan tindakan yang masih aman dilakukan.', 'Belum ada riwayat booking kelas.', ['Member', 'Kelas', 'Tanggal', 'Jam', 'Status']), [
+            'statusOptions' => $options,
+            'dateFilters' => true,
+            'searchPlaceholder' => 'Cari member, kode, kelas, status...',
+        ]);
         if (! $loadRows) {
             return $module;
         }
 
-        $query = ClassEnrollment::query()->with(['member.user', 'schedule.gymClass', 'schedule.trainer'])->whereDate('session_date', $today)->latest('created_at');
+        $query = ClassEnrollment::query()
+            ->with(['member.user', 'schedule.gymClass', 'schedule.trainer'])
+            ->withExists('attendance')
+            ->latest('created_at');
+        if (filled($filters['date_from'])) {
+            $query->whereDate('session_date', '>=', $filters['date_from']);
+        }
+        if (filled($filters['date_to'])) {
+            $query->whereDate('session_date', '<=', $filters['date_to']);
+        }
         $this->applyBookingSearch($query, $filters['q']);
         $this->applyExactStatusFilter($query, $filters['status'], array_keys($options));
 
         return $this->withPaginatedRows($module, $query, fn (ClassEnrollment $enrollment): array => ['cells' => [
             $enrollment->member?->user?->name ?? $enrollment->member?->member_code ?? '-',
             $enrollment->schedule?->gymClass?->name ?? 'Kelas Platinum Gym',
+            $enrollment->session_date?->translatedFormat('d M Y') ?? '-',
             substr((string) $enrollment->schedule?->start_time, 0, 5),
-            $this->headline($enrollment->status),
+            $this->statusLabel($enrollment->status),
         ], 'actions' => $this->bookingActions($enrollment)], $filters, $options);
     }
 
-    private function notificationsModule(): array
+    private function notificationsModule(array $filters): array
     {
-        return array_replace($this->module('Kesiapan Notifikasi', 'Area pengingat member, booking, dan pembayaran.', 'Belum ada daftar notifikasi operasional.', ['Area', 'Status', 'Catatan']), [
-            'rows' => collect([
-                ['Membership', 'Siap', 'Pengingat masa aktif dan renewal.'],
-                ['Booking', 'Siap', 'Reminder jadwal kelas dan perubahan kuota.'],
-                ['Pembayaran', 'Siap', 'Follow-up pembayaran menunggu.'],
-            ]),
+        [$from, $to] = $this->dateRange($filters);
+        $displayFilters = array_replace($filters, [
+            'date_from' => $from->toDateString(),
+            'date_to' => $to->toDateString(),
+        ]);
+        $statusOptions = [
+            'booking' => 'Booking Kelas',
+            'membership' => 'Membership',
+            'package_session' => 'Paket Sesi',
+            'payment' => 'Pembayaran',
+            'check_in' => 'Check-in',
+        ];
+        $rows = $this->memberActivityNotificationRows($from, $to);
+
+        if (filled($filters['status']) && array_key_exists($filters['status'], $statusOptions)) {
+            $rows = $rows->filter(fn (array $row): bool => ($row['type'] ?? '') === $filters['status'])->values();
+        }
+
+        if (filled($filters['q'])) {
+            $needle = str($filters['q'])->lower()->toString();
+            $rows = $rows->filter(fn (array $row): bool => str_contains((string) ($row['search'] ?? ''), $needle))->values();
+        }
+
+        $paginator = $this->paginateActivityRows($rows, $displayFilters);
+
+        return array_replace($this->module('Notifikasi Aktivitas Member', 'Pantau aktivitas member terbaru seperti booking kelas, pembelian membership, paket sesi, pembayaran, dan check-in.', 'Belum ada aktivitas member pada periode ini.', ['Aktivitas', 'Member', 'Status', 'Waktu']), [
+            'view' => 'admin.partials.notifications-page',
+            'rows' => $paginator->getCollection(),
+            'paginator' => $paginator,
+            'filters' => $displayFilters,
+            'statusOptions' => $statusOptions,
+            'dateFilters' => true,
+            'searchPlaceholder' => 'Cari member, kode, aktivitas, kelas, atau pembayaran...',
         ]);
     }
 
@@ -335,7 +407,7 @@ class AdminDashboardQuery
     private function packagesModule(array $filters, bool $loadRows): array
     {
         $options = ['active' => 'Aktif', 'inactive' => 'Nonaktif'];
-        $module = array_replace($this->module('Katalog Paket', 'Paket membership dan paket sesi dari database layanan.', 'Belum ada paket.', ['Paket', 'Jenis', 'Harga', 'Status']), ['statusOptions' => $options]);
+        $module = array_replace($this->module('Katalog Paket', 'Paket membership dan paket sesi dari database layanan.', 'Belum ada paket.', ['Paket', 'Jenis', 'Durasi/Sesi', 'Harga', 'Status']), ['statusOptions' => $options]);
         if (! $loadRows) {
             return $module;
         }
@@ -347,6 +419,7 @@ class AdminDashboardQuery
         return $this->withPaginatedRows($module, $query, fn (Package $package): array => $this->actionRow('packages', $package, [
             $package->name,
             $this->headline($package->package_kind),
+            $package->durationMarketingLabel() ?? ($package->session_count ? $package->session_count.' sesi' : '-'),
             $this->money($package->promo_price ?? $package->price),
             $package->is_active ? 'Aktif' : 'Nonaktif',
         ]), $filters, $options);
@@ -367,8 +440,8 @@ class AdminDashboardQuery
         return $this->withPaginatedRows($module, $query, fn (ClassSchedule $schedule): array => $this->actionRow('class-schedules', $schedule, [
             $schedule->gymClass?->name ?? 'Kelas Platinum Gym',
             $this->dayLabel((int) $schedule->day_of_week),
-            substr((string) $schedule->start_time, 0, 5).' - '.substr((string) $schedule->end_time, 0, 5),
-            $schedule->trainer?->name ?? '-',
+            ClassStaffPresenter::timeLabel($schedule),
+            ClassStaffPresenter::roleLabel($schedule).' '.ClassStaffPresenter::displayName($schedule->trainer, $schedule),
             $schedule->is_active ? 'Aktif' : 'Nonaktif',
         ]), $filters, $options);
     }
@@ -389,7 +462,7 @@ class AdminDashboardQuery
             $payment->payment_code,
             $payment->member?->user?->name ?? $payment->member?->member_code ?? '-',
             $this->money($payment->amount),
-            $this->headline($payment->status),
+            $this->statusLabel($payment->status),
         ], 'actions' => []], $filters, $options);
     }
 
@@ -436,7 +509,7 @@ class AdminDashboardQuery
     private function testimonialsModule(array $filters, bool $loadRows): array
     {
         $options = ['published' => 'Tayang', 'draft' => 'Draft'];
-        $module = array_replace($this->module('Testimoni Member', 'Cerita member yang tampil di website publik.', 'Belum ada testimoni.', ['Nama', 'Role', 'Rating', 'Status']), ['statusOptions' => $options]);
+        $module = array_replace($this->module('Testimoni Member', 'Cerita member yang tampil di website publik.', 'Belum ada testimoni.', ['Nama', 'Label', 'Rating', 'Status']), ['statusOptions' => $options]);
         if (! $loadRows) {
             return $module;
         }
@@ -502,7 +575,9 @@ class AdminDashboardQuery
 
     private function auditLogsModule(array $filters, bool $loadRows): array
     {
-        $module = $this->module('Activity Log Terbaru', 'Jejak perubahan sistem dari paket Spatie Activitylog.', 'Belum ada activity log.', ['Aktivitas', 'Event', 'Subjek', 'Waktu']);
+        $module = array_replace($this->module('Log Aktivitas Terbaru', 'Jejak perubahan penting yang tercatat di sistem.', 'Belum ada log aktivitas.', ['Aktivitas', 'Jenis Perubahan', 'Subjek', 'Waktu']), [
+            'searchPlaceholder' => 'Cari aktivitas, subjek, atau admin...',
+        ]);
         if (! $loadRows || ! Schema::hasTable('activity_log')) {
             return $module;
         }
@@ -512,7 +587,7 @@ class AdminDashboardQuery
 
         return $this->withPaginatedRows($module, $query, fn (object $log): array => ['cells' => [
             (string) ($log->description ?? '-'),
-            $this->headline($log->event ?? '-'),
+            $this->activityEventLabel($log->event ?? null),
             class_basename((string) ($log->subject_type ?? '-')),
             filled($log->created_at) ? (string) $log->created_at : '-',
         ], 'actions' => []], $filters);
@@ -520,13 +595,13 @@ class AdminDashboardQuery
 
     private function settingsModule(array $filters, bool $loadRows): array
     {
-        $module = $this->module('Pengaturan Website', 'Nilai sensitif otomatis disamarkan agar aman dilihat dari admin.', 'Belum ada setting.', ['Key', 'Group', 'Type', 'Value']);
+        $module = $this->module('Pengaturan Website', 'Nilai sensitif otomatis disamarkan agar aman dilihat dari admin.', 'Belum ada pengaturan.', ['Kunci', 'Grup', 'Tipe', 'Nilai']);
         if (! $loadRows) {
             return $module;
         }
 
         $query = Setting::query()->orderBy('group')->orderBy('key');
-        $this->applySimpleSearch($query, $filters['q'], ['key', 'group', 'type', 'value']);
+        $this->applySettingsSearch($query, $filters['q']);
 
         return $this->withPaginatedRows($module, $query, fn (Setting $setting): array => ['cells' => [
             $setting->key,
@@ -538,12 +613,13 @@ class AdminDashboardQuery
 
     private function profileModule(User $user): array
     {
-        return array_replace($this->module('Profil Admin', 'Data aman akun admin saat ini.', 'Profil admin belum tersedia.', ['Field', 'Nilai', 'Catatan']), [
+        return array_replace($this->module('Profil Admin', 'Data aman akun admin saat ini.', 'Profil admin belum tersedia.', ['Informasi', 'Nilai', 'Catatan']), [
             'rows' => collect([
                 ['Nama', $user->name, 'Akun yang sedang login.'],
-                ['Email', $user->email, 'Dipakai untuk autentikasi.'],
+                ['Email', $user->email, 'Digunakan untuk masuk ke akun admin.'],
                 ['Telepon', $user->phone ?? '-', 'Opsional.'],
-                ['Role', $user->getRoleNames()->implode(', ') ?: '-', 'Akses admin dijaga middleware role.'],
+                ['Foto profil', filled($user->avatar) ? 'Tersedia' : 'Belum diunggah', 'Ditampilkan hanya di portal admin.'],
+                ['Peran', $user->getRoleNames()->implode(', ') ?: '-', 'Akses admin dibatasi sesuai peran pengguna.'],
                 ['Login terakhir', $user->last_login_at?->translatedFormat('d M Y H:i') ?? '-', 'Diisi saat login berhasil.'],
             ]),
         ]);
@@ -553,13 +629,90 @@ class AdminDashboardQuery
     private function moduleSummaries(string $today): array
     {
         return [
-            ['label' => 'Member', 'value' => (string) Member::query()->count(), 'route' => 'admin.members', 'description' => 'Total anggota terdaftar.'],
-            ['label' => 'Paket', 'value' => (string) Package::query()->where('is_active', true)->count(), 'route' => 'admin.packages', 'description' => 'Paket aktif di katalog.'],
-            ['label' => 'Kelas', 'value' => (string) GymClass::query()->where('is_active', true)->count(), 'route' => 'admin.classes', 'description' => 'Kelas aktif.'],
-            ['label' => 'Pembayaran', 'value' => (string) Payment::query()->whereDate('created_at', $today)->count(), 'route' => 'admin.payments', 'description' => 'Transaksi dibuat hari ini.'],
-            ['label' => 'Produk', 'value' => (string) Product::query()->where('is_active', true)->count(), 'route' => 'admin.products', 'description' => 'Produk tampil.'],
-            ['label' => 'Promo', 'value' => (string) Promo::query()->where('is_published', true)->count(), 'route' => 'admin.promos', 'description' => 'Promo tayang.'],
+            ['label' => 'Member', 'value' => (string) Member::query()->count(), 'route' => 'admin.members', 'description' => 'Total member terdaftar.'],
+            ['label' => 'Paket', 'value' => (string) Package::query()->where('is_active', true)->count(), 'route' => 'admin.packages', 'description' => 'Paket yang sedang aktif.'],
+            ['label' => 'Kelas', 'value' => (string) GymClass::query()->where('is_active', true)->count(), 'route' => 'admin.classes', 'description' => 'Kelas yang tersedia.'],
+            ['label' => 'Pembayaran', 'value' => (string) Payment::query()->whereDate('created_at', $today)->count(), 'route' => 'admin.payments', 'description' => 'Transaksi yang dibuat hari ini.'],
+            ['label' => 'Produk', 'value' => (string) Product::query()->where('is_active', true)->count(), 'route' => 'admin.products', 'description' => 'Produk aktif di katalog.'],
+            ['label' => 'Promo', 'value' => (string) Promo::query()->where('is_published', true)->count(), 'route' => 'admin.promos', 'description' => 'Promo yang sedang tayang.'],
         ];
+    }
+
+    /** @return array<string, mixed> */
+    private function operationalTrend(): array
+    {
+        $end = now()->startOfDay();
+        $start = $end->copy()->subDays(13);
+        $dates = collect(range(0, 13))->map(fn (int $offset): Carbon => $start->copy()->addDays($offset));
+        $dateKeys = $dates->map(fn (Carbon $date): string => $date->toDateString());
+
+        $checkIns = $this->dailyCounts(
+            GymCheckIn::query()
+                ->selectRaw('DATE(check_in_date) as date_key, COUNT(*) as aggregate')
+                ->whereBetween('check_in_date', [$start->toDateString(), $end->toDateString()])
+                ->groupBy('date_key')
+        );
+
+        $bookings = $this->dailyCounts(
+            ClassEnrollment::query()
+                ->selectRaw('DATE(session_date) as date_key, COUNT(*) as aggregate')
+                ->whereBetween('session_date', [$start->toDateString(), $end->toDateString()])
+                ->whereNotIn('status', ['cancelled', 'canceled'])
+                ->groupBy('date_key')
+        );
+
+        $payments = $this->dailyCounts(
+            Payment::query()
+                ->selectRaw('DATE(COALESCE(paid_at, created_at)) as date_key, COUNT(*) as aggregate')
+                ->where('status', 'paid')
+                ->where(function (EloquentBuilder $query) use ($start, $end): void {
+                    $query->whereBetween('paid_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+                        ->orWhere(function (EloquentBuilder $query) use ($start, $end): void {
+                            $query->whereNull('paid_at')
+                                ->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()]);
+                        });
+                })
+                ->groupBy('date_key')
+        );
+
+        $series = collect([
+            ['key' => 'checkIns', 'name' => 'Check-in', 'tone' => 'gold', 'color' => '#FEAC18', 'counts' => $checkIns],
+            ['key' => 'bookings', 'name' => 'Booking', 'tone' => 'sky', 'color' => '#38BDF8', 'counts' => $bookings],
+            ['key' => 'payments', 'name' => 'Pembayaran', 'tone' => 'emerald', 'color' => '#10B981', 'counts' => $payments],
+        ])->map(function (array $series) use ($dateKeys): array {
+            $values = $dateKeys
+                ->map(fn (string $date): int => (int) ($series['counts'][$date] ?? 0))
+                ->values()
+                ->all();
+
+            return [
+                'key' => $series['key'],
+                'name' => $series['name'],
+                'tone' => $series['tone'],
+                'color' => $series['color'],
+                'values' => $values,
+                'total' => array_sum($values),
+            ];
+        })->values();
+
+        $maxValue = max(1, (int) $series->flatMap(fn (array $series): array => $series['values'])->max());
+
+        return [
+            'title' => 'Tren aktivitas',
+            'description' => 'Lihat perkembangan check-in, booking, dan pembayaran yang sudah dikonfirmasi selama 14 hari terakhir.',
+            'period' => '14 hari terakhir',
+            'labels' => $dates->map(fn (Carbon $date): string => $date->translatedFormat('d M'))->all(),
+            'series' => $series->all(),
+            'maxValue' => $maxValue,
+            'isEmpty' => $series->flatMap(fn (array $series): array => $series['values'])->sum() === 0,
+        ];
+    }
+
+    private function dailyCounts(EloquentBuilder $query): Collection
+    {
+        return $query
+            ->get()
+            ->mapWithKeys(fn (Model $row): array => [(string) $row->getAttribute('date_key') => (int) $row->getAttribute('aggregate')]);
     }
 
     private function module(string $title, string $description, string $empty, array $columns): array
@@ -572,6 +725,313 @@ class AdminDashboardQuery
         $paginator = $query->paginate(self::ADMIN_PER_PAGE)->withQueryString();
 
         return array_replace($module, ['rows' => $paginator->getCollection()->map($mapper)->values(), 'paginator' => $paginator, 'statusOptions' => $statusOptions, 'filters' => $filters]);
+    }
+
+    private function paginateAdminRows(Collection $rows, array $filters): LengthAwarePaginator
+    {
+        $page = filled($filters['page'] ?? null)
+            ? max(1, (int) $filters['page'])
+            : max(1, LengthAwarePaginator::resolveCurrentPage());
+
+        $pageRows = $rows
+            ->forPage($page, self::ADMIN_PER_PAGE)
+            ->map(fn (array $row): array => ['cells' => $row['cells'], 'actions' => []])
+            ->values();
+
+        return new LengthAwarePaginator($pageRows, $rows->count(), self::ADMIN_PER_PAGE, $page, [
+            'path' => LengthAwarePaginator::resolveCurrentPath(),
+            'query' => request()->query(),
+        ]);
+    }
+
+    private function paginateActivityRows(Collection $rows, array $filters): LengthAwarePaginator
+    {
+        $page = filled($filters['page'] ?? null)
+            ? max(1, (int) $filters['page'])
+            : max(1, LengthAwarePaginator::resolveCurrentPage());
+
+        return new LengthAwarePaginator(
+            $rows->forPage($page, self::ADMIN_PER_PAGE)->values(),
+            $rows->count(),
+            self::ADMIN_PER_PAGE,
+            $page,
+            [
+                'path' => LengthAwarePaginator::resolveCurrentPath(),
+                'query' => request()->query(),
+            ]
+        );
+    }
+
+    private function memberActivityNotificationRows(Carbon $from, Carbon $to): Collection
+    {
+        return collect()
+            ->merge($this->paymentActivityRows($from, $to))
+            ->merge($this->bookingActivityRows($from, $to))
+            ->merge($this->membershipActivityRows($from, $to))
+            ->merge($this->packageSessionActivityRows($from, $to))
+            ->merge($this->checkInNotificationRows($from, $to))
+            ->sortByDesc('sort_at')
+            ->values();
+    }
+
+    private function paymentActivityRows(Carbon $from, Carbon $to): Collection
+    {
+        return Payment::query()
+            ->with(['member.user', 'payable' => function (MorphTo $morphTo): void {
+                $morphTo->morphWith([
+                    Membership::class => ['package'],
+                    MemberPackageSession::class => ['package'],
+                    ClassEnrollment::class => ['schedule.gymClass'],
+                ]);
+            }])
+            ->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->latest('created_at')
+            ->limit(60)
+            ->get()
+            ->map(fn (Payment $payment): array => $this->activityRow(
+                'payment',
+                'Pembayaran '.$this->statusLabel($payment->status),
+                $payment->member,
+                $this->statusLabel($payment->status),
+                $this->statusKind($payment->status),
+                $payment->payment_code.' - '.$this->money($payment->amount).' untuk '.$this->payableActivityLabel($payment->payable),
+                $payment->created_at,
+                route('admin.payments', ['q' => $payment->payment_code]),
+                [$payment->payment_code, $payment->method]
+            ));
+    }
+
+    private function bookingActivityRows(Carbon $from, Carbon $to): Collection
+    {
+        return ClassEnrollment::query()
+            ->with(['member.user', 'schedule.gymClass', 'schedule.trainer'])
+            ->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->latest('created_at')
+            ->limit(60)
+            ->get()
+            ->map(fn (ClassEnrollment $enrollment): array => $this->activityRow(
+                'booking',
+                'Booking kelas '.$this->statusLabel($enrollment->status),
+                $enrollment->member,
+                $this->statusLabel($enrollment->status),
+                $this->statusKind($enrollment->status),
+                ($enrollment->schedule?->gymClass?->name ?? 'Kelas Platinum Gym').' pada '.($enrollment->session_date?->translatedFormat('d M Y') ?? '-').' pukul '.substr((string) $enrollment->schedule?->start_time, 0, 5),
+                $enrollment->created_at,
+                route('admin.booking', ['q' => $enrollment->member?->member_code]),
+                [$enrollment->schedule?->gymClass?->name, $enrollment->status]
+            ));
+    }
+
+    private function membershipActivityRows(Carbon $from, Carbon $to): Collection
+    {
+        return Membership::query()
+            ->with(['member.user', 'package'])
+            ->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->latest('created_at')
+            ->limit(50)
+            ->get()
+            ->map(fn (Membership $membership): array => $this->activityRow(
+                'membership',
+                'Membership '.$this->statusLabel($membership->status),
+                $membership->member,
+                $this->statusLabel($membership->status),
+                $this->statusKind($membership->status),
+                ($membership->package?->name ?? $membership->code).' - '.$this->money($membership->price),
+                $membership->created_at,
+                route('admin.members', ['q' => $membership->member?->member_code]),
+                [$membership->code, $membership->package?->name]
+            ));
+    }
+
+    private function packageSessionActivityRows(Carbon $from, Carbon $to): Collection
+    {
+        return MemberPackageSession::query()
+            ->with(['member.user', 'package', 'trainer'])
+            ->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->latest('created_at')
+            ->limit(50)
+            ->get()
+            ->map(fn (MemberPackageSession $session): array => $this->activityRow(
+                'package_session',
+                'Paket sesi '.$this->statusLabel($session->status),
+                $session->member,
+                $this->statusLabel($session->status),
+                $this->statusKind($session->status),
+                collect([
+                    $session->package?->name ?? $session->code,
+                    $session->trainer?->name ? 'Coach: '.$session->trainer->name : null,
+                    $session->remaining_sessions.' sesi tersisa',
+                ])->filter()->implode(' - '),
+                $session->created_at,
+                route('admin.members', ['q' => $session->member?->member_code]),
+                [$session->code, $session->package?->name, $session->trainer?->name]
+            ));
+    }
+
+    private function checkInNotificationRows(Carbon $from, Carbon $to): Collection
+    {
+        return GymCheckIn::query()
+            ->with(['member.user'])
+            ->whereBetween('check_in_date', [$from->toDateString(), $to->toDateString()])
+            ->latest('check_in_at')
+            ->limit(50)
+            ->get()
+            ->map(fn (GymCheckIn $checkIn): array => $this->activityRow(
+                'check_in',
+                'Check-in member',
+                $checkIn->member,
+                'Tercatat',
+                'success',
+                'Masuk pada '.$checkIn->check_in_date?->translatedFormat('d M Y').' pukul '.($checkIn->check_in_at?->format('H:i') ?? '-'),
+                $checkIn->check_in_at,
+                route('admin.check-in', ['q' => $checkIn->member?->member_code]),
+                [$checkIn->method]
+            ));
+    }
+
+    private function activityRow(string $type, string $title, ?Member $member, string $status, string $kind, string $note, mixed $date, string $url, array $extraSearch = []): array
+    {
+        $memberName = $member?->user?->name ?? $member?->member_code ?? '-';
+        $memberCode = $member?->member_code ?? '-';
+        $time = $date ? Carbon::parse($date) : now();
+
+        return [
+            'type' => $type,
+            'title' => $title,
+            'member' => $memberName,
+            'member_code' => $memberCode,
+            'status' => $status,
+            'kind' => $kind,
+            'note' => $note,
+            'time' => $time->translatedFormat('d M Y H:i'),
+            'url' => $url,
+            'sort_at' => $time->timestamp,
+            'search' => $this->searchableRowText([$title, $memberName, $memberCode, $status, $note, $type], $extraSearch),
+        ];
+    }
+
+    private function payableActivityLabel(mixed $payable): string
+    {
+        return match (true) {
+            $payable instanceof Membership => $payable->package?->name ?? $payable->code ?? 'Membership',
+            $payable instanceof MemberPackageSession => $payable->package?->name ?? $payable->code ?? 'Paket sesi',
+            $payable instanceof ClassEnrollment => $payable->schedule?->gymClass?->name ?? 'Booking kelas',
+            default => 'layanan Platinum Gym',
+        };
+    }
+
+    private function statusKind(?string $status): string
+    {
+        return match ((string) $status) {
+            'active', 'paid', 'booked', 'confirmed', 'attended' => 'success',
+            'pending', 'waiting_payment', 'waiting_confirmation', 'unpaid', 'pending_payment' => 'warning',
+            'rejected', 'failed', 'expired', 'cancelled', 'canceled' => 'danger',
+            default => 'neutral',
+        };
+    }
+
+    private function checkInActivityRows(Carbon $from, Carbon $to): Collection
+    {
+        $checkIns = GymCheckIn::query()
+            ->with(['member.user', 'membership.package', 'packageSessionUsages.packageSession.package'])
+            ->whereDate('check_in_date', '>=', $from->toDateString())
+            ->whereDate('check_in_date', '<=', $to->toDateString())
+            ->get()
+            ->map(fn (GymCheckIn $checkIn): array => $this->checkInActivityRow($checkIn));
+
+        $standaloneSessionUsages = MemberPackageSessionUsage::query()
+            ->with(['member.user', 'packageSession.package'])
+            ->whereDate('usage_date', '>=', $from->toDateString())
+            ->whereDate('usage_date', '<=', $to->toDateString())
+            ->whereNull('gym_check_in_id')
+            ->get()
+            ->map(fn (MemberPackageSessionUsage $usage): array => $this->standaloneSessionUsageActivityRow($usage));
+
+        return $checkIns
+            ->merge($standaloneSessionUsages)
+            ->sortByDesc('sort_at')
+            ->values();
+    }
+
+    private function checkInActivityRow(GymCheckIn $checkIn): array
+    {
+        $sessionDetails = $this->sessionUsageDetails($checkIn->packageSessionUsages);
+        $activity = $sessionDetails->isNotEmpty() ? 'Check-in + Sesi' : 'Check-in';
+        $membershipPackage = $checkIn->membership?->package?->name ?? 'Membership aktif';
+        $cells = [
+            $checkIn->member?->user?->name ?? $checkIn->member?->member_code ?? '-',
+            $checkIn->check_in_date?->translatedFormat('d M Y') ?? '-',
+            $checkIn->check_in_at?->format('H:i') ?? '-',
+            collect([$membershipPackage])->merge($sessionDetails->pluck('name'))->filter()->implode(' + ') ?: '-',
+            $this->remainingSessionsLabel($sessionDetails),
+            $activity,
+        ];
+
+        return [
+            'cells' => $cells,
+            'sort_at' => ($checkIn->check_in_at ?? $checkIn->check_in_date?->startOfDay() ?? now()->startOfDay())->timestamp,
+            'search' => $this->searchableRowText($cells, [$checkIn->member?->member_code]),
+        ];
+    }
+
+    private function standaloneSessionUsageActivityRow(MemberPackageSessionUsage $usage): array
+    {
+        $sessionDetails = $this->sessionUsageDetails(collect([$usage]));
+        $sessionDetail = $sessionDetails->first();
+        $cells = [
+            $usage->member?->user?->name ?? $usage->member?->member_code ?? '-',
+            $usage->usage_date?->translatedFormat('d M Y') ?? '-',
+            $usage->used_at?->format('H:i') ?? '-',
+            $sessionDetail['name'] ?? 'Paket sesi',
+            $this->remainingSessionsLabel($sessionDetails),
+            'Sesi',
+        ];
+
+        return [
+            'cells' => $cells,
+            'sort_at' => ($usage->used_at ?? $usage->usage_date?->startOfDay() ?? now()->startOfDay())->timestamp,
+            'search' => $this->searchableRowText($cells, [$usage->member?->member_code]),
+        ];
+    }
+
+    private function searchableRowText(array $cells, array $extra = []): string
+    {
+        return collect($cells)->merge($extra)->map(fn (mixed $cell): string => str((string) $cell)->lower()->toString())->implode(' ');
+    }
+
+    private function sessionUsageDetails(Collection $usages): Collection
+    {
+        return $usages
+            ->map(function (MemberPackageSessionUsage $usage): array {
+                $packageSession = $usage->packageSession;
+
+                return [
+                    'name' => $packageSession?->package?->name ?? $packageSession?->code ?? 'Paket sesi',
+                    'remaining_sessions' => filled($packageSession?->remaining_sessions) ? (int) $packageSession->remaining_sessions : null,
+                ];
+            })
+            ->filter(fn (array $detail): bool => filled($detail['name'] ?? null))
+            ->values();
+    }
+
+    private function remainingSessionsLabel(Collection $sessionDetails): string
+    {
+        if ($sessionDetails->isEmpty()) {
+            return '-';
+        }
+
+        if ($sessionDetails->count() === 1) {
+            return $this->remainingSessionText($sessionDetails->first()['remaining_sessions'] ?? null);
+        }
+
+        return $sessionDetails
+            ->map(fn (array $detail): string => ($detail['name'] ?? 'Paket sesi').': '.$this->remainingSessionText($detail['remaining_sessions'] ?? null))
+            ->implode(', ');
+    }
+
+    private function remainingSessionText(?int $remainingSessions): string
+    {
+        return $remainingSessions === null ? '-' : $remainingSessions.' sesi';
     }
 
     private function actionRow(string $resource, Model $model, array $cells, string $toggleField = 'is_active'): array
@@ -589,10 +1049,18 @@ class AdminDashboardQuery
         }
 
         $actions = [];
-        if ($enrollment->status !== 'confirmed') {
+        if (in_array($enrollment->status, ['booked', 'active'], true)) {
             $actions[] = ['label' => 'Konfirmasi', 'url' => route('admin.booking.confirm', $enrollment), 'method' => 'POST', 'variant' => 'primary'];
         }
-        $actions[] = ['label' => 'Batalkan', 'url' => route('admin.booking.cancel', $enrollment), 'method' => 'POST', 'variant' => 'secondary'];
+
+        if (
+            ! in_array($enrollment->status, ['attended'], true)
+            && ! (bool) $enrollment->getAttribute('attendance_exists')
+            && ! ($enrollment->session_date?->isPast() && ! $enrollment->session_date?->isToday())
+            && BookingTimePolicy::canCancel($enrollment)
+        ) {
+            $actions[] = ['label' => 'Batalkan Booking', 'url' => route('admin.booking.cancel', $enrollment), 'method' => 'POST', 'variant' => 'secondary'];
+        }
 
         return $actions;
     }
@@ -711,18 +1179,6 @@ class AdminDashboardQuery
             ->orWhereHas('schedule.gymClass', fn (EloquentBuilder $classQuery) => $classQuery->where('name', 'like', $like)));
     }
 
-    private function applyCheckInSearch(EloquentBuilder $query, string $search): void
-    {
-        if (blank($search)) {
-            return;
-        }
-
-        $like = $this->like($search);
-        $query->where(fn (EloquentBuilder $query) => $query
-            ->where('method', 'like', $like)
-            ->orWhereHas('member', fn (EloquentBuilder $memberQuery) => $memberQuery->where('member_code', 'like', $like)->orWhereHas('user', fn (EloquentBuilder $userQuery) => $userQuery->where('name', 'like', $like))));
-    }
-
     private function applySimpleSearch(EloquentBuilder $query, string $search, array $columns): void
     {
         if (blank($search)) {
@@ -734,6 +1190,29 @@ class AdminDashboardQuery
             foreach ($columns as $column) {
                 $query->orWhere($column, 'like', $like);
             }
+        });
+    }
+
+    private function applySettingsSearch(EloquentBuilder $query, string $search): void
+    {
+        if (blank($search)) {
+            return;
+        }
+
+        $like = $this->like($search);
+        $query->where(function (EloquentBuilder $query) use ($like): void {
+            $query->where('key', 'like', $like)
+                ->orWhere('group', 'like', $like)
+                ->orWhere('type', 'like', $like)
+                ->orWhere(function (EloquentBuilder $query) use ($like): void {
+                    foreach (['secret', 'token', 'password', 'credential', 'client_secret', 'qr_secret', 'prompt', 'oauth', 'api_key'] as $needle) {
+                        $query->where('key', 'not like', '%'.$needle.'%');
+                    }
+
+                    $query->where('key', 'not like', '%\_key')
+                        ->where('key', 'not like', '%key\_%')
+                        ->where('value', 'like', $like);
+                });
         });
     }
 
@@ -811,6 +1290,35 @@ class AdminDashboardQuery
         return filled($value) ? str($value)->replace(['_', '-'], ' ')->headline()->toString() : '-';
     }
 
+    private function statusLabel(?string $status): string
+    {
+        return match ((string) $status) {
+            'active' => 'Aktif',
+            'inactive' => 'Nonaktif',
+            'pending', 'waiting_payment', 'unpaid', 'pending_payment' => 'Menunggu Pembayaran',
+            'waiting_confirmation' => 'Menunggu Konfirmasi',
+            'paid' => 'Lunas',
+            'rejected' => 'Ditolak',
+            'failed' => 'Gagal',
+            'expired' => 'Kedaluwarsa',
+            'cancelled', 'canceled' => 'Dibatalkan',
+            'booked' => 'Terdaftar',
+            'confirmed' => 'Terkonfirmasi',
+            'attended' => 'Hadir',
+            default => $this->headline($status),
+        };
+    }
+
+    private function activityEventLabel(?string $event): string
+    {
+        return match ((string) $event) {
+            'created' => 'Dibuat',
+            'updated' => 'Diperbarui',
+            'deleted' => 'Dihapus',
+            default => $this->headline($event),
+        };
+    }
+
     private function money(mixed $value): string
     {
         return 'Rp '.number_format((float) $value, 0, ',', '.');
@@ -833,7 +1341,7 @@ class AdminDashboardQuery
     /** @return array<string, string> */
     private function headlineStatusOptions(array $statuses): array
     {
-        return collect($statuses)->mapWithKeys(fn (string $status): array => [$status => $this->headline($status)])->all();
+        return collect($statuses)->mapWithKeys(fn (string $status): array => [$status => $this->statusLabel($status)])->all();
     }
 
     /** @return array{q: string, status: string, date_from: string, date_to: string, event: string, causer_id: string, page: string} */

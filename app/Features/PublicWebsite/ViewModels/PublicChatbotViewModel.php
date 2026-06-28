@@ -14,6 +14,8 @@ class PublicChatbotViewModel
         return [
             'name' => 'Gymmi',
             'botInitials' => 'GY',
+            'avatarLightUrl' => asset('images/gymmi/avatar-gymmi-light-96.webp'),
+            'avatarDarkUrl' => asset('images/gymmi/avatar-gymmi-dark-96.webp'),
             'typingLabel' => 'Gymmi sedang mengetik',
             'context' => 'public',
             'endpoint' => route('gymmi.chat'),
@@ -26,7 +28,7 @@ class PublicChatbotViewModel
                 'membership' => 'Paket membership tersedia untuk umum dan mahasiswa. Mulai dari Gym Umum, Gym Mahasiswa, serta paket khusus sesuai promo aktif. Untuk daftar, gunakan tombol Daftar Member.',
                 'schedule' => 'Jadwal kelas meliputi Aerobic, Zumba, Poundfit, dan Muaythai. Buka halaman Kelas untuk melihat hari, jam, pelatih, dan filter jadwal terbaru.',
                 'trainer' => 'Personal Trainer tersedia dalam paket 5x, 10x, dan 24x sesi untuk member aktif. Program latihan dapat disesuaikan dengan target dan kondisi tubuh.',
-                'location' => 'Platinum Gym Padang berlokasi di Jl. H. Agus Salim No.3A, Sawahan, Padang. Jam operasional reguler: Senin-Jumat 06.00-22.00 dan akhir pekan mengikuti jadwal operasional terbaru.',
+                'location' => 'Platinum Gym Padang berlokasi di Jl. H. Agus Salim No.3A, Sawahan, Padang. Jam operasional: Senin-Sabtu 08:00-22:00, Minggu tutup.',
                 'promo' => 'Promo aktif ditampilkan di halaman Beranda dan Layanan. Jika promo berubah, informasi di website mengikuti data terbaru dari admin.',
                 'fallback' => 'Saya belum menemukan jawaban yang cocok. Coba pilih topik cepat di bawah, atau hubungi admin untuk bantuan lanjutan.',
             ],

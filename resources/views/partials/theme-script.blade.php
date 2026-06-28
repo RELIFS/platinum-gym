@@ -4,6 +4,31 @@
         const lightThemeColor = '#fafafa';
         const darkThemeColor = '#09090b';
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        let releaseThemeTransitionSuppressionTimer = null;
+
+        const suppressThemeTransitions = () => {
+            const root = document.documentElement;
+
+            root.classList.add('theme-switching');
+            window.clearTimeout(releaseThemeTransitionSuppressionTimer);
+
+            const release = () => {
+                root.classList.remove('theme-switching');
+                releaseThemeTransitionSuppressionTimer = null;
+            };
+
+            if (typeof window.requestAnimationFrame === 'function') {
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(release);
+                });
+
+                releaseThemeTransitionSuppressionTimer = window.setTimeout(release, 180);
+
+                return;
+            }
+
+            releaseThemeTransitionSuppressionTimer = window.setTimeout(release, 80);
+        };
 
         const readStoredTheme = () => {
             try {
@@ -45,7 +70,11 @@
             });
         };
 
-        const applyTheme = (theme, shouldPersist = false) => {
+        const applyTheme = (theme, shouldPersist = false, shouldSuppressTransitions = false) => {
+            if (shouldSuppressTransitions) {
+                suppressThemeTransitions();
+            }
+
             syncThemeControls(theme);
 
             if (shouldPersist) {
@@ -61,14 +90,14 @@
             document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
                 button.addEventListener('click', () => {
                     const nextTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-                    applyTheme(nextTheme, true);
+                    applyTheme(nextTheme, true, true);
                 });
             });
         });
 
         const handleSystemThemeChange = () => {
             if (!readStoredTheme()) {
-                applyTheme(resolveTheme());
+                applyTheme(resolveTheme(), false, true);
             }
         };
 

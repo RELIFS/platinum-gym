@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers\Member;
 
+use App\Features\MemberPortal\Actions\EnsureMemberCheckoutEligibilityAction;
 use App\Features\MemberPortal\Queries\MemberDashboardQuery;
+use App\Features\MemberPortal\Support\MemberPackageEligibility;
+use App\Features\MemberPortal\ViewModels\MemberPortalStatusViewModel;
 use App\Features\Payments\Actions\CreatePaymentCheckoutAction;
+use App\Features\Payments\Actions\SyncMidtransPaymentStatusAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Member\CheckoutPackageRequest;
 use App\Models\Package;
@@ -15,45 +19,102 @@ use RuntimeException;
 
 class MemberCheckoutController extends Controller
 {
-    public function membership(CheckoutPackageRequest $request, Package $package, CreatePaymentCheckoutAction $checkout): RedirectResponse
+    public function membership(CheckoutPackageRequest $request, Package $package, EnsureMemberCheckoutEligibilityAction $eligibility, CreatePaymentCheckoutAction $checkout): RedirectResponse
     {
+        $member = $request->user()->member()->firstOrFail();
+
         try {
-            $payment = $checkout->membership($request->user()->member()->firstOrFail(), $package);
+            $eligibility->handle($member, $package);
         } catch (RuntimeException $exception) {
-            return back()->with('status', $exception->getMessage())->withInput();
+            return redirect()
+                ->route('member.profile.edit')
+                ->with('status', $exception->getMessage())
+                ->with('status_kind', 'error');
         }
 
-        return redirect()->route('member.transactions.show', $payment)->with('status', 'Checkout membership berhasil dibuat. Lanjutkan pembayaran melalui Midtrans Sandbox.');
+        try {
+            $payment = $checkout->membership($member, $package);
+        } catch (RuntimeException $exception) {
+            return back()
+                ->with('status', $exception->getMessage())
+                ->with('status_kind', 'error')
+                ->withInput();
+        }
+
+        return redirect()->route('member.transactions.show', $payment)->with('status', 'Checkout membership berhasil dibuat. Lanjutkan pembayaran melalui Midtrans.');
     }
 
-    public function packageSession(CheckoutPackageRequest $request, Package $package, CreatePaymentCheckoutAction $checkout): RedirectResponse
+    public function packageSession(CheckoutPackageRequest $request, Package $package, EnsureMemberCheckoutEligibilityAction $eligibility, CreatePaymentCheckoutAction $checkout): RedirectResponse
     {
+        $member = $request->user()->member()->firstOrFail();
+
+        try {
+            $eligibility->handle($member, $package);
+        } catch (RuntimeException $exception) {
+            if (! MemberPackageEligibility::hasCompleteBasicProfile($member)) {
+                return redirect()
+                    ->route('member.profile.edit')
+                    ->with('status', $exception->getMessage())
+                    ->with('status_kind', 'error');
+            }
+
+            return back()
+                ->with('status', $exception->getMessage())
+                ->with('status_kind', 'error')
+                ->withInput();
+        }
+
         try {
             $payment = $checkout->packageSession(
-                $request->user()->member()->firstOrFail(),
+                $member,
                 $package,
                 $request->integer('trainer_id') ?: null,
             );
         } catch (RuntimeException $exception) {
-            return back()->with('status', $exception->getMessage())->withInput();
+            return back()
+                ->with('status', $exception->getMessage())
+                ->with('status_kind', 'error')
+                ->withInput();
         }
 
-        return redirect()->route('member.transactions.show', $payment)->with('status', 'Checkout paket sesi berhasil dibuat. Lanjutkan pembayaran melalui Midtrans Sandbox.');
+        return redirect()->route('member.transactions.show', $payment)->with('status', 'Checkout paket sesi berhasil dibuat. Lanjutkan pembayaran melalui Midtrans.');
     }
 
-    public function show(Request $request, Payment $payment, MemberDashboardQuery $query): View
+    public function show(Request $request, Payment $payment, MemberDashboardQuery $query, SyncMidtransPaymentStatusAction $sync): View
     {
         $this->authorize('view', $payment);
+
+        // Pull the latest Midtrans status before rendering. Acts as a safety net
+        // when webhooks are unreachable (e.g. local dev) or delayed in production.
+        if ($this->shouldSyncBeforeShow($payment)) {
+            $payment = $sync->handle($payment);
+        }
+
+        $payment->load(['invoice', 'payable', 'member.user']);
 
         return view('member.payment-show', [
             'portal' => $query->forUser($request->user()),
-            'payment' => $payment->load(['invoice', 'payable', 'member.user']),
+            'payment' => $payment,
+            'paymentStatus' => MemberPortalStatusViewModel::payment($payment),
+            'invoiceStatusLabel' => MemberPortalStatusViewModel::invoiceLabel($payment->invoice?->status),
         ]);
     }
 
-    public function pay(Request $request, Payment $payment): RedirectResponse
+    public function pay(Request $request, Payment $payment, SyncMidtransPaymentStatusAction $sync): RedirectResponse
     {
         $this->authorize('view', $payment);
+
+        // Re-check status before pushing the user back to Midtrans Snap, in case
+        // the previous attempt has already settled.
+        if ($this->shouldSyncBeforeShow($payment)) {
+            $payment = $sync->handle($payment);
+        }
+
+        if ($payment->status === 'paid') {
+            return redirect()
+                ->route('member.transactions.show', $payment)
+                ->with('status', 'Pembayaran sudah lunas. Layanan Anda telah diperbarui.');
+        }
 
         if (! in_array($payment->status, ['waiting_payment', 'pending', 'unpaid'], true)) {
             return back()->with('status', 'Pembayaran ini tidak membutuhkan tindakan bayar.');
@@ -64,5 +125,18 @@ class MemberCheckoutController extends Controller
         }
 
         return redirect()->away($payment->midtrans_redirect_url);
+    }
+
+    private function shouldSyncBeforeShow(Payment $payment): bool
+    {
+        if ($payment->method !== 'midtrans') {
+            return false;
+        }
+
+        if (blank($payment->midtrans_order_id)) {
+            return false;
+        }
+
+        return in_array($payment->status, ['waiting_payment', 'pending', 'unpaid'], true);
     }
 }

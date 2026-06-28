@@ -23,7 +23,10 @@ class MemberBookingController extends Controller
                 CarbonImmutable::parse($request->validated('session_date')),
             );
         } catch (RuntimeException $exception) {
-            return back()->with('status', $exception->getMessage())->withInput();
+            return back()
+                ->with('status', $exception->getMessage())
+                ->with('status_kind', 'error')
+                ->withInput();
         }
 
         if ($result['payment']) {
@@ -41,7 +44,9 @@ class MemberBookingController extends Controller
         try {
             $cancelClassBooking->handle($enrollment);
         } catch (RuntimeException $exception) {
-            return back()->with('status', $exception->getMessage());
+            return back()
+                ->with('status', $exception->getMessage())
+                ->with('status_kind', 'error');
         }
 
         return redirect()->route('member.bookings')->with('status', 'Booking kelas berhasil dibatalkan.');

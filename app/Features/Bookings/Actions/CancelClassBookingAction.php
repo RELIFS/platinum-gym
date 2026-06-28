@@ -2,7 +2,9 @@
 
 namespace App\Features\Bookings\Actions;
 
+use App\Features\Bookings\Support\BookingTimePolicy;
 use App\Models\ClassEnrollment;
+use App\Notifications\Bookings\BookingCancelledNotification;
 use App\Notifications\MemberOperationalNotification;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -18,12 +20,16 @@ class CancelClassBookingAction
                 return $enrollment;
             }
 
-            if ($enrollment->session_date?->isPast()) {
+            if ($enrollment->session_date?->isPast() && ! $enrollment->session_date?->isToday()) {
                 throw new RuntimeException('Booking kelas yang sudah lewat tidak dapat dibatalkan.');
             }
 
             if ($enrollment->attendance()->exists()) {
                 throw new RuntimeException('Booking yang sudah memiliki kehadiran tidak dapat dibatalkan.');
+            }
+
+            if (! BookingTimePolicy::canCancel($enrollment)) {
+                throw new RuntimeException(BookingTimePolicy::cancelCutoffMessage());
             }
 
             $enrollment->forceFill([
@@ -48,6 +54,7 @@ class CancelClassBookingAction
                 route('member.bookings'),
                 'Lihat Riwayat',
             ));
+            $enrollment->member?->user?->notify((new BookingCancelledNotification($enrollment))->afterCommit());
 
             return $enrollment->refresh();
         });

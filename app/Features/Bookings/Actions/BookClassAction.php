@@ -2,11 +2,13 @@
 
 namespace App\Features\Bookings\Actions;
 
+use App\Features\Bookings\Support\BookingTimePolicy;
 use App\Features\Payments\Actions\CreatePaymentCheckoutAction;
 use App\Models\ClassEnrollment;
 use App\Models\ClassSchedule;
 use App\Models\Member;
 use App\Models\Payment;
+use App\Notifications\Bookings\BookingCreatedNotification;
 use App\Notifications\MemberOperationalNotification;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
@@ -22,42 +24,50 @@ class BookClassAction
      */
     public function handle(Member $member, ClassSchedule $schedule, CarbonImmutable $sessionDate): array
     {
-        $schedule->loadMissing(['gymClass', 'trainer']);
-        $gymClass = $schedule->gymClass;
-
-        if (! $schedule->is_active || ! $gymClass?->is_active) {
-            throw new RuntimeException('Jadwal kelas tidak aktif.');
-        }
-
-        if ($sessionDate->isPast() && ! $sessionDate->isToday()) {
-            throw new RuntimeException('Tanggal kelas tidak boleh lewat.');
-        }
-
-        if ((int) $schedule->day_of_week !== $sessionDate->dayOfWeekIso) {
-            throw new RuntimeException('Tanggal yang dipilih tidak sesuai hari jadwal kelas.');
-        }
-
-        $capacity = (int) ($schedule->capacity ?? $gymClass->capacity ?? 0);
-        $booked = ClassEnrollment::query()
-            ->where('schedule_id', $schedule->id)
-            ->whereDate('session_date', $sessionDate->toDateString())
-            ->whereIn('status', ['booked', 'active', 'confirmed', 'pending_payment'])
-            ->count();
-
-        if ($capacity > 0 && $booked >= $capacity) {
-            throw new RuntimeException('Kuota kelas sudah penuh.');
-        }
-
-        if ($gymClass->access_type === 'included' && ! $this->hasMembershipForClass($member, (string) $gymClass->required_package_type)) {
-            throw new RuntimeException('Kelas ini membutuhkan membership aktif yang sesuai.');
-        }
-
-        if ($gymClass->access_type === 'session_based' && ! $this->hasPackageSessionForClass($member, (string) $gymClass->required_package_type)) {
-            throw new RuntimeException('Kelas ini membutuhkan paket sesi aktif yang sesuai.');
-        }
-
         try {
-            return DB::transaction(function () use ($member, $schedule, $sessionDate, $gymClass): array {
+            return DB::transaction(function () use ($member, $schedule, $sessionDate): array {
+                $schedule = ClassSchedule::query()
+                    ->with(['gymClass', 'trainer'])
+                    ->lockForUpdate()
+                    ->findOrFail($schedule->id);
+
+                $gymClass = $schedule->gymClass;
+
+                if (! $schedule->is_active || ! $gymClass?->is_active) {
+                    throw new RuntimeException('Jadwal kelas tidak aktif.');
+                }
+
+                if (! BookingTimePolicy::canBookForDate($sessionDate)) {
+                    throw new RuntimeException(BookingTimePolicy::bookingDateMessage());
+                }
+
+                if ((int) $schedule->day_of_week !== $sessionDate->dayOfWeekIso) {
+                    throw new RuntimeException('Tanggal yang dipilih tidak sesuai hari jadwal kelas.');
+                }
+
+                if ($existing = $this->existingEnrollment($member, $schedule, $sessionDate)) {
+                    return $this->existingEnrollmentResult($existing);
+                }
+
+                $capacity = (int) ($schedule->capacity ?? $gymClass->capacity ?? 0);
+                $booked = ClassEnrollment::query()
+                    ->where('schedule_id', $schedule->id)
+                    ->whereDate('session_date', $sessionDate->toDateString())
+                    ->whereIn('status', ['booked', 'active', 'confirmed', 'pending_payment'])
+                    ->count();
+
+                if ($capacity > 0 && $booked >= $capacity) {
+                    throw new RuntimeException('Kuota kelas sudah penuh.');
+                }
+
+                if ($gymClass->access_type === 'included' && ! $this->hasMembershipForClass($member, (string) $gymClass->required_package_type)) {
+                    throw new RuntimeException('Kelas ini membutuhkan membership aktif yang sesuai.');
+                }
+
+                if ($gymClass->access_type === 'session_based' && ! $this->hasPackageSessionForSchedule($member, $schedule, (string) $gymClass->required_package_type)) {
+                    throw new RuntimeException('Kelas ini membutuhkan membership aktif yang sesuai.');
+                }
+
                 $status = $gymClass->access_type === 'paid' ? 'pending_payment' : 'booked';
 
                 $enrollment = ClassEnrollment::create([
@@ -84,6 +94,7 @@ class BookClassAction
                         route('member.bookings'),
                         'Lihat Riwayat',
                     ));
+                    $member->user?->notify((new BookingCreatedNotification($enrollment))->afterCommit());
                 }
 
                 return ['enrollment' => $enrollment->refresh(), 'payment' => $payment];
@@ -97,12 +108,42 @@ class BookClassAction
         }
     }
 
+    private function existingEnrollment(Member $member, ClassSchedule $schedule, CarbonImmutable $sessionDate): ?ClassEnrollment
+    {
+        return ClassEnrollment::query()
+            ->where('schedule_id', $schedule->id)
+            ->where('member_id', $member->id)
+            ->whereDate('session_date', $sessionDate->toDateString())
+            ->lockForUpdate()
+            ->first();
+    }
+
+    /**
+     * @return array{enrollment: ClassEnrollment, payment: Payment|null}
+     */
+    private function existingEnrollmentResult(ClassEnrollment $enrollment): array
+    {
+        $payment = $enrollment->payments()
+            ->whereIn('status', ['waiting_payment', 'pending', 'unpaid', 'waiting_confirmation'])
+            ->where(function ($query): void {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->whereNotNull('midtrans_redirect_url')
+            ->latest('created_at')
+            ->first();
+
+        if ($payment && $enrollment->status === 'pending_payment') {
+            return ['enrollment' => $enrollment->refresh(), 'payment' => $payment];
+        }
+
+        throw new RuntimeException('Anda sudah terdaftar pada jadwal kelas ini.');
+    }
+
     private function hasMembershipForClass(Member $member, string $requiredPackageType): bool
     {
         return $member->memberships()
-            ->where('status', 'active')
-            ->whereDate('start_date', '<=', now()->toDateString())
-            ->whereDate('end_date', '>=', now()->toDateString())
+            ->activeForAccess()
             ->whereHas('package', function ($query) use ($requiredPackageType): void {
                 $query->where('package_kind', 'membership')
                     ->where(function ($query) use ($requiredPackageType): void {
@@ -113,15 +154,22 @@ class BookClassAction
             ->exists();
     }
 
-    private function hasPackageSessionForClass(Member $member, string $requiredPackageType): bool
+    private function hasPackageSessionForSchedule(Member $member, ClassSchedule $schedule, string $requiredPackageType): bool
     {
-        return $member->packageSessions()
+        $query = $member->packageSessions()
             ->where('status', 'active')
             ->where('remaining_sessions', '>', 0)
             ->where(function ($query): void {
                 $query->whereNull('expired_at')->orWhereDate('expired_at', '>=', now()->toDateString());
             })
-            ->whereHas('package', fn ($query) => $query->where('type', $requiredPackageType))
-            ->exists();
+            ->whereHas('package', fn ($query) => $query->where('type', $requiredPackageType));
+
+        if ($requiredPackageType === 'muaythai' && filled($schedule->trainer_id)) {
+            $query->where(function ($query) use ($schedule): void {
+                $query->whereNull('trainer_id')->orWhere('trainer_id', $schedule->trainer_id);
+            });
+        }
+
+        return $query->exists();
     }
 }

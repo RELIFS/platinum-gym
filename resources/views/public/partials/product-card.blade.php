@@ -1,4 +1,6 @@
-<article class="group public-card public-card-hover public-product-card flex h-full flex-col overflow-hidden">
+@php($motionDelay = (($loop->index ?? 0) % 4) * 80)
+
+<article class="group public-card public-card-hover public-motion-card public-motion-reveal public-product-card flex h-full flex-col overflow-hidden" data-motion="reveal card" data-motion-delay="{{ $motionDelay }}">
     <div class="public-media-frame public-product-media aspect-[4/3] bg-zinc-100 dark:bg-zinc-900">
         @if ($product->image_path)
             <img src="{{ asset($product->image_path) }}" alt="{{ $product->image_alt ?? 'Foto produk '.$product->name.' Platinum Gym Padang' }}" class="h-full w-full object-contain p-3 transition duration-500 group-hover:scale-105" width="640" height="480" loading="lazy">
