@@ -127,6 +127,7 @@ test('booking page shows pay button label and price for paid class', function ()
 
 test('checkout pt package requires trainer selection matching specialization', function () {
     [$user, $member] = MemberFixtures::improvementsMember('PG-PORTAL-PT-TRAINER');
+    MemberFixtures::makeCheckoutEligible($user);
 
     $gymPackage = ServicePackage::create([
         'name' => 'Gym For PT Trainer Test',
@@ -203,6 +204,7 @@ test('checkout pt package requires trainer selection matching specialization', f
 
 test('membership page shows trainer dropdown only for pt and muaythai packages', function () {
     [$user, $member] = MemberFixtures::improvementsMember('PG-PORTAL-TRAINER-DROPDOWN');
+    MemberFixtures::makeCheckoutEligible($user);
 
     $gymPackage = ServicePackage::create([
         'name' => 'Gym Dropdown Active Test',

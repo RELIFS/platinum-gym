@@ -44,30 +44,31 @@ test('member mobile navigation keeps neutral hamburger styling', function () {
         ->assertDontSee('bg-zinc-950 text-white', false);
 });
 
-test('member profile uses nim wording and system check helper', function () {
-    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-NIM-COPY');
+test('member profile uses student proof wording and upload helper', function () {
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-STUDENT-PROOF-COPY');
     $member->forceFill([
         'is_student' => true,
-        'student_id_number' => '2200012345',
+        'student_proof_path' => 'member/student-proofs/current-proof.jpg',
         'student_verification_status' => 'pending_review',
     ])->save();
 
     $this->actingAs($user)->get(route('member.profile.edit'))
         ->assertOk()
-        ->assertSee('Nomor Induk Mahasiswa (NIM)')
-        ->assertSee('Masukkan Nomor Induk Mahasiswa (NIM) yang terdaftar di PDDIKTI, karena data akan dicek secara otomatis oleh sistem.')
-        ->assertDontSee('No. Identitas Mahasiswa')
-        ->assertDontSee('nomor identitas mahasiswa')
-        ->assertDontSee('Admin akan memverifikasi data ini sebelum checkout paket mahasiswa.');
+        ->assertSee('Bukti Mahasiswa')
+        ->assertSee('Upload KTM atau screenshot akun portal mahasiswa untuk checkout paket mahasiswa.')
+        ->assertSee('name="student_proof"', false)
+        ->assertDontSee('Nomor Induk Mahasiswa (NIM)')
+        ->assertDontSee('PDDIKTI');
 
     $this->actingAs($user)->get(route('member.profile'))
         ->assertOk()
-        ->assertSee('NIM')
-        ->assertDontSee('No. Identitas Mahasiswa');
+        ->assertSee('Bukti Mahasiswa')
+        ->assertSee('Sudah diunggah')
+        ->assertDontSee('NIM');
 });
 
-test('student profile validation uses nim attribute', function () {
-    [$user] = MemberFixtures::portalMember('PG-PORTAL-NIM-VALIDATION');
+test('student profile validation requires proof image', function () {
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-STUDENT-PROOF-VALIDATION');
 
     $this->actingAs($user)->from(route('member.profile.edit'))->patch(route('member.profile.update'), [
         'name' => 'Andi Portal',
@@ -77,10 +78,12 @@ test('student profile validation uses nim attribute', function () {
         'birth_date' => '2000-01-01',
         'is_student' => '1',
     ])->assertRedirect(route('member.profile.edit'))
-        ->assertSessionHasErrors(['student_id_number' => 'The NIM field is required.']);
+        ->assertSessionHasErrors('student_proof');
 });
 
 test('member can update profile from member portal', function () {
+    Storage::fake('local');
+
     [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-UPDATE');
 
     $this->actingAs($user)->patch(route('member.profile.update'), [
@@ -94,22 +97,27 @@ test('member can update profile from member portal', function () {
         'address' => 'Jl. Khatib Sulaiman No. 10',
         'emergency_contact' => '6281299990001',
         'is_student' => '1',
-        'student_id_number' => 'MHS-12345',
+        'student_proof' => UploadedFile::fake()->image('ktm.jpg', 480, 320)->size(256),
     ])->assertRedirect(route('verification.notice'));
+
+    $member->refresh();
 
     expect($user->refresh())
         ->name->toBe('Andi Updated')
         ->email->toBe('andi.updated@example.com')
         ->phone->toBe('081234567899')
         ->email_verified_at->toBeNull()
-        ->and($member->refresh())
+        ->and($member)
         ->gender->toBe('female')
         ->birth_date->toDateString()->toBe('1999-02-03')
         ->address->toBe('Jl. Khatib Sulaiman No. 10')
         ->emergency_contact->toBe('081299990001')
         ->is_student->toBeTrue()
-        ->student_id_number->toBe('MHS-12345')
-        ->student_verification_status->toBe('pending_review');
+        ->student_proof_path->toStartWith('member/student-proofs/')
+        ->student_verification_status->toBe('pending_review')
+        ->student_verification_source->toBe('member_upload');
+
+    Storage::disk('local')->assertExists($member->student_proof_path);
 });
 
 test('member profile update rejects duplicate whatsapp number', function () {
@@ -541,6 +549,33 @@ test('member package catalog uses server side pagination and filters', function 
         ->assertSee('Checkout Membership');
 });
 
+test('member package catalog shows bonus duration and effective checkout copy', function () {
+    [$user] = MemberFixtures::portalMember('PG-PORTAL-BONUS-DURATION');
+    MemberFixtures::makeCheckoutEligible($user);
+
+    ServicePackage::create([
+        'name' => 'Gym Umum 3 Bulan Member QA',
+        'slug' => 'gym-umum-3-bulan-member-qa',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'category' => 'umum',
+        'price' => 747000,
+        'duration_days' => 120,
+        'base_duration_days' => 90,
+        'bonus_duration_days' => 30,
+        'bonus_label' => 'Gratis 1 bulan',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('member.membership'))
+        ->assertOk()
+        ->assertSee('Gym Umum 3 Bulan Member QA')
+        ->assertSee('Masa aktif: 3 bulan + gratis 1 bulan')
+        ->assertSee('Gratis 1 bulan')
+        ->assertSee('Masa aktif total 120 hari, mulai saat check-in pertama.');
+});
+
 test('membership page groups packages and hides empty poundfit section', function () {
     [$user] = MemberFixtures::portalMember('PG-PORTAL-MEMBERSHIP-GROUPS');
     MemberFixtures::makeCheckoutEligible($user);
@@ -602,6 +637,7 @@ test('poundfit package appears in membership catalog and activates as package se
     ]);
 
     [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-POUNDFIT-PACKAGE');
+    MemberFixtures::makeCheckoutEligible($user);
 
     $package = ServicePackage::create([
         'name' => 'Poundfit 1x',
@@ -695,6 +731,9 @@ test('personal trainer package requires active gym or include membership', funct
     [$noGymUser, $noGymMember] = MemberFixtures::portalMember('PG-PORTAL-PT-NO-GYM', 'pt.no.gym@example.com', '081222220001');
     [$senamUser, $senamMember] = MemberFixtures::portalMember('PG-PORTAL-PT-SENAM', 'pt.senam@example.com', '081222220002');
     [$gymUser, $gymMember] = MemberFixtures::portalMember('PG-PORTAL-PT-GYM', 'pt.gym@example.com', '081222220003');
+    MemberFixtures::makeCheckoutEligible($noGymUser);
+    MemberFixtures::makeCheckoutEligible($senamUser);
+    MemberFixtures::makeCheckoutEligible($gymUser);
 
     $senamPackage = ServicePackage::create([
         'name' => 'Senam PT Guard Test',
@@ -1185,12 +1224,16 @@ test('member can checkout membership with midtrans sandbox token', function () {
     MemberFixtures::makeCheckoutEligible($user);
 
     $package = ServicePackage::create([
-        'name' => 'Gym Checkout Test',
-        'slug' => 'gym-checkout-test',
+        'name' => 'Gym Checkout Bonus Test',
+        'slug' => 'gym-checkout-bonus-test',
         'package_kind' => 'membership',
         'type' => 'gym',
-        'price' => 250000,
-        'duration_days' => 30,
+        'category' => 'umum',
+        'price' => 747000,
+        'duration_days' => 120,
+        'base_duration_days' => 90,
+        'bonus_duration_days' => 30,
+        'bonus_label' => 'Gratis 1 bulan',
         'is_active' => true,
     ]);
 
@@ -1203,6 +1246,8 @@ test('member can checkout membership with midtrans sandbox token', function () {
     $response->assertRedirect(route('member.transactions.show', $payment));
     expect($payment->status)->toBe('waiting_payment')
         ->and($payment->midtrans_snap_token)->toBe('snap-token-test')
+        ->and($payment->payable)->toBeInstanceOf(Membership::class)
+        ->and($payment->payable->duration_days_snapshot)->toBe(120)
         ->and($payment->invoice)->not->toBeNull();
 });
 
@@ -1229,7 +1274,135 @@ test('membership checkout requires complete profile avatar before creating payme
         ->and(Payment::query()->where('member_id', $member->id)->count())->toBe(0);
 });
 
-test('student membership checkout opens after nim profile and avatar are complete', function () {
+test('package session catalog and direct checkout require complete profile before payment', function () {
+    config(['services.midtrans.server_key' => 'server-test-key']);
+    Http::fake();
+
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-SESSION-NEEDS-PROFILE');
+
+    $muaythaiPackage = ServicePackage::create([
+        'name' => 'Muaythai Needs Profile',
+        'slug' => 'muaythai-needs-profile',
+        'package_kind' => 'session',
+        'type' => 'muaythai',
+        'category' => 'umum',
+        'price' => 85000,
+        'session_count' => 1,
+        'is_active' => true,
+    ]);
+
+    $poundfitPackage = ServicePackage::create([
+        'name' => 'Poundfit Needs Profile',
+        'slug' => 'poundfit-needs-profile',
+        'package_kind' => 'session',
+        'type' => 'poundfit',
+        'category' => 'umum',
+        'price' => 50000,
+        'session_count' => 1,
+        'is_active' => true,
+    ]);
+
+    $ptPackage = ServicePackage::create([
+        'name' => 'PT Needs Profile',
+        'slug' => 'pt-needs-profile',
+        'package_kind' => 'personal_trainer',
+        'type' => 'pt',
+        'category' => 'umum',
+        'price' => 650000,
+        'session_count' => 5,
+        'is_active' => true,
+    ]);
+
+    $trainer = Trainer::create([
+        'name' => 'Coach Needs Profile',
+        'specialization' => 'Muaythai',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)->get(route('member.membership'))
+        ->assertOk()
+        ->assertSee('Muaythai Needs Profile')
+        ->assertSee('Poundfit Needs Profile')
+        ->assertSee('PT Needs Profile')
+        ->assertSee('Lengkapi profil dan foto profil sebelum checkout paket sesi.')
+        ->assertSee('Lengkapi data')
+        ->assertDontSee('Pilih trainer...', false);
+
+    foreach ([$muaythaiPackage, $poundfitPackage, $ptPackage] as $package) {
+        $this->actingAs($user)->post(route('member.package-sessions.checkout', $package), [
+            'trainer_id' => $trainer->id,
+        ])
+            ->assertRedirect(route('member.profile.edit'))
+            ->assertSessionHas('status', 'Lengkapi profil dan foto profil sebelum checkout paket sesi.')
+            ->assertSessionHas('status_kind', 'error')
+            ->assertSessionHasNoErrors();
+    }
+
+    $this->actingAs($user)->post(route('member.package-sessions.checkout', $muaythaiPackage), [
+        'trainer_id' => 999999,
+    ])
+        ->assertRedirect(route('member.profile.edit'))
+        ->assertSessionHas('status', 'Lengkapi profil dan foto profil sebelum checkout paket sesi.')
+        ->assertSessionHas('status_kind', 'error')
+        ->assertSessionHasNoErrors();
+
+    expect(Payment::query()->where('member_id', $member->id)->count())->toBe(0)
+        ->and(MemberPackageSession::query()->where('member_id', $member->id)->count())->toBe(0);
+});
+
+test('student package session requires proof image after basic profile is complete', function () {
+    config(['services.midtrans.server_key' => 'server-test-key']);
+    Http::fake();
+
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-STUDENT-SESSION-PROOF');
+    MemberFixtures::makeCheckoutEligible($user);
+    $member->forceFill([
+        'birth_date' => now()->subYears(20)->toDateString(),
+        'is_student' => true,
+        'student_id_number' => 'LEGACY-NIM-SHOULD-NOT-PASS',
+        'student_proof_path' => null,
+        'student_verification_status' => 'verified',
+    ])->save();
+
+    $package = ServicePackage::create([
+        'name' => 'Muaythai Mahasiswa Needs Proof',
+        'slug' => 'muaythai-mahasiswa-needs-proof',
+        'package_kind' => 'session',
+        'type' => 'muaythai',
+        'category' => 'mahasiswa',
+        'price' => 250000,
+        'session_count' => 4,
+        'max_age' => 22,
+        'is_active' => true,
+    ]);
+
+    $trainer = Trainer::create([
+        'name' => 'Coach Student Proof',
+        'specialization' => 'Muaythai',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)->get(route('member.membership'))
+        ->assertOk()
+        ->assertSee('Muaythai Mahasiswa Needs Proof')
+        ->assertSee('Upload KTM atau screenshot akun portal mahasiswa.')
+        ->assertSee('Lengkapi data')
+        ->assertDontSee('Pilih trainer...', false);
+
+    $this->actingAs($user)
+        ->from(route('member.membership'))
+        ->post(route('member.package-sessions.checkout', $package), [
+            'trainer_id' => $trainer->id,
+        ])
+        ->assertRedirect(route('member.membership'))
+        ->assertSessionHas('status', 'Upload KTM atau screenshot akun portal mahasiswa sebelum checkout paket mahasiswa.')
+        ->assertSessionHas('status_kind', 'error');
+
+    expect(Payment::query()->where('member_id', $member->id)->count())->toBe(0)
+        ->and(MemberPackageSession::query()->where('member_id', $member->id)->count())->toBe(0);
+});
+
+test('student membership checkout opens after proof image and avatar are complete', function () {
     config(['services.midtrans.server_key' => 'server-test-key']);
     Http::fake([
         'app.sandbox.midtrans.com/*' => Http::response([
@@ -1243,7 +1416,7 @@ test('student membership checkout opens after nim profile and avatar are complet
     $member->forceFill([
         'birth_date' => now()->subYears(20)->toDateString(),
         'is_student' => true,
-        'student_id_number' => '2200012345',
+        'student_proof_path' => 'member/student-proofs/student-checkout.jpg',
         'student_verification_status' => 'pending_review',
     ])->save();
 
@@ -1270,7 +1443,7 @@ test('student membership checkout opens after nim profile and avatar are complet
     expect(Payment::query()->where('member_id', $member->id)->count())->toBe(1);
 });
 
-test('student membership checkout accepts unverified status when nim is present', function () {
+test('student membership checkout accepts unverified status when proof image is present', function () {
     config(['services.midtrans.server_key' => 'server-test-key']);
     Http::fake([
         'app.sandbox.midtrans.com/*' => Http::response([
@@ -1284,7 +1457,7 @@ test('student membership checkout accepts unverified status when nim is present'
     $member->forceFill([
         'birth_date' => now()->subYears(20)->toDateString(),
         'is_student' => true,
-        'student_id_number' => '2200099999',
+        'student_proof_path' => 'member/student-proofs/student-unverified.jpg',
         'student_verification_status' => 'unverified',
     ])->save();
 
@@ -1305,16 +1478,17 @@ test('student membership checkout accepts unverified status when nim is present'
     expect(Payment::query()->where('member_id', $member->id)->count())->toBe(1);
 });
 
-test('student membership checkout still requires nim and valid age', function () {
+test('student membership checkout still requires proof image and valid age', function () {
     config(['services.midtrans.server_key' => 'server-test-key']);
     Http::fake();
 
-    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-STUDENT-NIM-AGE');
+    [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-STUDENT-PROOF-AGE');
     MemberFixtures::makeCheckoutEligible($user);
     $member->forceFill([
         'birth_date' => now()->subYears(20)->toDateString(),
         'is_student' => true,
-        'student_id_number' => null,
+        'student_id_number' => 'LEGACY-NIM-SHOULD-NOT-PASS',
+        'student_proof_path' => null,
         'student_verification_status' => 'verified',
     ])->save();
 
@@ -1332,7 +1506,7 @@ test('student membership checkout still requires nim and valid age', function ()
 
     $this->actingAs($user)->get(route('member.membership'))
         ->assertOk()
-        ->assertSee('Lengkapi NIM yang terdaftar di PDDIKTI.')
+        ->assertSee('Upload KTM atau screenshot akun portal mahasiswa.')
         ->assertSee('min-h-10', false)
         ->assertSee(route('member.profile.edit'), false);
 
@@ -1341,7 +1515,7 @@ test('student membership checkout still requires nim and valid age', function ()
 
     $member->forceFill([
         'birth_date' => now()->subYears(23)->subDay()->toDateString(),
-        'student_id_number' => '2200012345',
+        'student_proof_path' => 'member/student-proofs/student-age.jpg',
     ])->save();
 
     $this->actingAs($user)->post(route('member.membership.checkout', $package))
@@ -1805,6 +1979,7 @@ test('member package session checkout reuses open payment on repeated submit', f
     ]);
 
     [$user, $member] = MemberFixtures::portalMember('PG-PORTAL-IDEMPOTENT-SESSION');
+    MemberFixtures::makeCheckoutEligible($user);
 
     $package = ServicePackage::create([
         'name' => 'Sesi Gym Idempotent',

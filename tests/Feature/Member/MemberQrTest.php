@@ -34,6 +34,25 @@ test('member qr download is blocked when member has no active membership', funct
         ->assertSessionHas('status_kind', 'error');
 });
 
+test('member qr is active for paid membership awaiting first check in', function () {
+    [$user, $member] = MemberFixtures::member('PG-MEMBER-QR-AWAITING');
+    MemberFixtures::activeMembership($member, overrides: [
+        'start_date' => null,
+        'end_date' => null,
+        'duration_days_snapshot' => 30,
+        'activated_at' => now(),
+    ]);
+    MemberFixtures::qrToken($member);
+
+    $this->actingAs($user)->get(route('member.qr'))
+        ->assertOk()
+        ->assertSee('QR aktif')
+        ->assertSee('Download QR');
+
+    $this->actingAs($user)->get(route('member.qr.download'))
+        ->assertOk();
+});
+
 test('revoked member qr token is rendered as inactive and cannot be downloaded', function () {
     [$user, $member] = MemberFixtures::member('PG-MEMBER-QR-REVOKED');
     MemberFixtures::activeMembership($member);
