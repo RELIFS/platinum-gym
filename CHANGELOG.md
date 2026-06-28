@@ -4,6 +4,27 @@ Semua perubahan penting pada proyek Platinum Gym Padang dicatat pada dokumen ini
 
 Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Dependency`, `Refactor`, dan `Testing`.
 
+## [Unreleased] - Production Hardening, Gymmi, Member, Admin, Dan Public Polish
+
+### Added
+
+- Menambahkan kode verifikasi email 6 digit, undangan akun member dari admin, dan template email operasional branded untuk auth, pembayaran, dan booking.
+- Menambahkan upload bukti mahasiswa pada profil member sebagai pengganti input NIM di UI member.
+- Menambahkan Gymmi hybrid RAG berbasis knowledge JSON terkompilasi, database live aman, key pool Gemini, dan command sync key yang tidak mencetak secret.
+- Menambahkan notifikasi aktivitas admin untuk booking, membership/paket sesi, pembayaran, dan check-in member.
+
+### Changed
+
+- Menyamakan eligibility checkout semua paket agar membership, Muaythai, Poundfit, dan Personal Trainer wajib melewati profil dasar lengkap sebelum payment/session dibuat.
+- Menyempurnakan booking kelas: label Instruktur/Pro/Coach, jadwal Muaythai per trainer, aturan booking H-1, aturan cancel H-3 jam, dan card Aerobic/Zumba/Poundfit yang konsisten.
+- Memoles sidebar admin/member, shortcut Website Utama, home public responsif, copy halaman Tentang untuk tim pelatih, serta widget Gymmi public/member.
+- Memperbarui knowledge Gymmi dari workbook internal menjadi FAQ 137 dan Alias 1578 tanpa membaca Excel saat runtime.
+
+### Testing
+
+- Menambahkan dan memperbarui coverage Auth, Member, Admin, Public Website, Booking, Gymmi, dan command key sync.
+- Validasi akhir harus dijalankan sebelum commit/push: `php artisan test --no-ansi`, `vendor\bin\pint --test`, `npm.cmd run build`, dan `git diff --check`.
+
 ## [Unreleased] - Owner Portal, Reports, Invoice, Dan Portal Polish
 
 ### Added

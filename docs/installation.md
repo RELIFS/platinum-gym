@@ -110,6 +110,39 @@ MAIL_FROM_ADDRESS=
 MAIL_FROM_NAME="Platinum Gym Padang"
 ```
 
+Email production memakai Laravel notification/Markdown mail branded Platinum Gym untuk verifikasi email, reset password, undangan akun member dari admin, pembayaran, dan booking. Default lokal tetap boleh memakai `MAIL_MAILER=log`; production memakai `MAIL_MAILER=resend` dengan domain/from address yang sudah diverifikasi.
+
+Untuk hosting sementara berbasis shared CWP/cPanel yang belum jelas memiliki Supervisor atau queue worker permanen, gunakan mode sync agar email Resend terkirim otomatis saat request register/resend/reset/invitation/payment/booking diproses:
+
+```env
+QUEUE_CONNECTION=sync
+```
+
+Mode ini praktis untuk trafik awal dan hosting terbatas. Jika nanti memakai VPS atau hosting yang mendukung worker permanen, gunakan queue database:
+
+```env
+QUEUE_CONNECTION=database
+```
+
+Jalankan worker pada server production melalui process manager:
+
+```bash
+php artisan queue:work --tries=3 --timeout=90
+```
+
+Notification penting tetap dibuat queued dan dipanggil `afterCommit()` supaya email tidak keluar sebelum transaksi database selesai. Dengan `QUEUE_CONNECTION=sync`, Laravel memproses job tersebut langsung pada request setelah transaksi commit.
+
+Jika email verifikasi register tidak masuk saat `QUEUE_CONNECTION=database`, cek dulu apakah job masih menunggu worker:
+
+```bash
+php artisan tinker --execute="dump(['mail_default'=>config('mail.default'),'queue_default'=>config('queue.default'),'jobs'=>DB::table('jobs')->count(),'failed_jobs'=>DB::table('failed_jobs')->count()]);"
+php artisan queue:failed --no-ansi
+```
+
+Jika `jobs` bertambah dan `failed_jobs=0`, form register sudah membuat email dengan benar; jalankan queue worker dan minta user memeriksa Inbox, Spam, atau Promosi.
+
+Catatan untuk shared hosting: kuota mailbox cPanel/CWP seperti `Email 0/0` tidak menghalangi pengiriman melalui Resend API. Yang penting adalah `MAIL_MAILER=resend`, sender domain terverifikasi, API key valid di `.env`, dan mode queue sesuai kemampuan hosting.
+
 Untuk Midtrans Sandbox, isi nilai berikut pada `.env` lokal atau server:
 
 ```env
@@ -123,9 +156,32 @@ Untuk Gymmi Gemini, isi minimal satu API key Gemini pada `.env`:
 ```env
 GEMINI_API_KEY=
 GEMINI_API_KEYS=
+GEMINI_MODEL=gemini-2.0-flash
+GEMINI_TIMEOUT=12
+GEMINI_MAX_RETRIES=2
 ```
 
 Nilai key tidak boleh ditulis di dokumentasi, commit, screenshot, atau output terminal yang dibagikan.
+
+Jika tim memiliki banyak key Gemini di file private, sinkronkan ke `.env` lokal lewat command aman. Default command hanya dry-run dan menampilkan jumlah/fingerprint non-secret:
+
+```bash
+php artisan gymmi:sync-gemini-keys
+php artisan gymmi:sync-gemini-keys --status
+php artisan gymmi:sync-gemini-keys --write-env
+```
+
+`GEMINI_API_KEYS` mendukung format comma-separated atau newline-separated. Command tidak mencetak nilai key, melakukan trim/deduplicate/validasi format, dan menolak `--write-env` saat `APP_ENV=production` tanpa `--force`. Untuk production/cPanel, masukkan key melalui environment/secret manager hosting, bukan membaca file `.txt` pada runtime request.
+
+Knowledge base Gymmi dikompilasi dari workbook internal tim ke JSON runtime. Jalankan ulang command ini setelah `data_AI_Chatbot.xlsx` berubah:
+
+```bash
+php artisan gymmi:import-knowledge
+```
+
+Runtime membaca `resources/data/gymmi/knowledge-base.json`, bukan file Excel per request. File `Gymmi API Key.txt` tidak dipakai runtime dan tidak boleh dibaca, dicetak, atau disalin ke source code.
+
+Saat runtime, Gymmi memakai pola hybrid RAG: JSON knowledge base untuk FAQ/Alias/Config/knowledge stabil dan database live untuk data yang berubah seperti paket aktif, promo valid, jadwal kelas aktif, produk aktif/stok, setting publik whitelist, serta ringkasan data member login sendiri. Artifact workbook terbaru berisi FAQ 137 dan Alias 1578. File `resources/data/gymmi/knowledge-overrides.json` boleh dipakai untuk koreksi kecil yang sudah divalidasi setelah import workbook, tanpa membuat CSV runtime baru. Gemini hanya menyusun jawaban dari snippet yang sudah dipilih; jika provider rate limit/gagal, fallback lokal tetap dipakai dan tetap menjawab natural dari data resmi.
 
 ## Build Asset Frontend
 
@@ -171,7 +227,7 @@ Role yang disiapkan pada proyek:
 - `admin`
 - `owner`
 
-Saat registrasi member berhasil, sistem membuat user, membuat data member, memberikan role `member`, mengirim email verifikasi, lalu mengarahkan user ke halaman verifikasi email.
+Saat registrasi member berhasil, sistem membuat user, membuat data member, memberikan role `member`, mengirim email verifikasi berisi kode 6 digit plus tombol signed-link fallback, lalu mengarahkan user ke halaman verifikasi email. Jika admin membuat member dari panel admin, sistem mengirim undangan akun sekali pakai agar member mengatur kata sandi sendiri.
 
 Akun seeded untuk local/development setelah `php artisan migrate --seed`:
 

@@ -82,7 +82,7 @@ Scan `resources/js/**/*.js` diperlukan karena renderer Gymmi membuat sebagian cl
 
 | Integrasi | Fungsi | Modul | Alasan | Status |
 |---|---|---|---|---|
-| Google Gemini API REST | AI assistant Gymmi | Public/member chatbot | Laravel HTTP client cukup untuk timeout, retry, fallback, dan test tanpa menambah package Composer | Sudah digunakan |
+| Google Gemini API REST | AI assistant Gymmi | Public/member chatbot | Laravel HTTP client cukup untuk hybrid RAG, timeout, retry, fallback, dan test tanpa menambah package Composer | Sudah digunakan |
 | Native streamed CSV | Export laporan ringan | Admin/owner reports | Response streaming Laravel tetap dipakai untuk backward compatibility dan export CSV cepat | Sudah digunakan |
 | Local SVG chart renderer | Grafik dashboard ringan | Admin/owner dashboard | Mengganti dependency chart berat dengan renderer kecil di bundle lokal | Sudah digunakan |
 
@@ -164,11 +164,11 @@ Referensi:
 | 5W+1H | Penjelasan |
 |---|---|
 | What | `resend/resend-php` adalah library PHP untuk mengirim email melalui Resend. |
-| Why | Package ini dipakai agar email verifikasi, reset password, dan notifikasi operasional bisa dikirim lewat provider email yang punya free tier. |
-| Who | Digunakan oleh sistem untuk mengirim email kepada member dan admin sesuai flow aplikasi. |
+| Why | Package ini dipakai agar email verifikasi kode 6 digit, reset password, undangan akun, pembayaran, dan booking bisa dikirim lewat provider email yang punya free tier. |
+| Who | Digunakan oleh sistem untuk mengirim email transaksional kepada member sesuai flow aplikasi. |
 | When | Digunakan saat mailer aplikasi memakai `MAIL_MAILER=resend` dan `RESEND_API_KEY` tersedia di `.env`. |
-| Where | Digunakan pada konfigurasi mail Laravel dan notifikasi/email transaksional. |
-| How | Laravel mailer memakai transport `resend`; secret hanya dibaca dari `.env`, bukan dari source code. |
+| Where | Digunakan pada konfigurasi mail Laravel, Laravel notification, dan template Markdown mail branded Platinum Gym. |
+| How | Laravel mailer memakai transport `resend`; secret hanya dibaca dari `.env`, bukan dari source code. Notification penting berjalan melalui queue dan `afterCommit()` agar sinkron dengan transaksi database. Pada shared CWP/cPanel tanpa worker permanen, gunakan `QUEUE_CONNECTION=sync` agar email terkirim saat request. Saat `QUEUE_CONNECTION=database`, worker `php artisan queue:work --tries=3 --timeout=90` harus aktif agar email benar-benar terkirim. Kuota mailbox cPanel/CWP seperti `Email 0/0` tidak menghalangi Resend API sending. |
 
 Referensi:
 
@@ -195,11 +195,11 @@ Referensi:
 | 5W+1H | Penjelasan |
 |---|---|
 | What | Maatwebsite Laravel Excel adalah package untuk import dan export Excel/CSV pada Laravel. |
-| Why | Package ini dipakai untuk export laporan Admin dan Owner dalam format `.xlsx` yang mudah dibuka di spreadsheet. |
-| Who | Digunakan oleh admin dan owner. |
-| When | Digunakan saat admin atau owner mengunduh laporan dengan format Excel. |
-| Where | Digunakan pada route export laporan Admin dan Owner. |
-| How | Sistem memakai class Export terpisah dengan heading dan generator/query source agar controller tetap tipis. |
+| Why | Package ini dipakai untuk export laporan Admin/Owner dan import workbook knowledge base Gymmi ke JSON runtime. |
+| Who | Digunakan oleh admin/owner saat export laporan dan developer/operator saat menjalankan `php artisan gymmi:import-knowledge`. |
+| When | Digunakan saat admin atau owner mengunduh laporan Excel, serta saat `data_AI_Chatbot.xlsx` berubah dan knowledge base Gymmi perlu dikompilasi ulang. |
+| Where | Digunakan pada route export laporan Admin/Owner dan command `app/Console/Commands/ImportGymmiKnowledgeCommand.php`. |
+| How | Export laporan memakai class Export terpisah. Import Gymmi membaca workbook internal tim, memfilter status `Aktif`/`Tersedia`, melewati config bernilai `Tidak tersedia`, lalu menulis `resources/data/gymmi/knowledge-base.json` agar request chat tidak membaca Excel langsung. Artifact Gymmi terbaru memuat FAQ 137 dan Alias 1578. |
 
 Referensi:
 
@@ -230,7 +230,7 @@ Referensi:
 | Who | Digunakan oleh pengunjung dan member saat bertanya lewat Gymmi. Admin automation belum dibuat. |
 | When | Digunakan saat user mengirim pesan dari widget Gymmi public atau member. |
 | Where | Endpoint `POST /gymmi/chat`, frontend `resources/js/public-chatbot.js`, dan partial public/member chatbot. |
-| How | Sistem membangun konteks aman, memilih salah satu key Gemini dari `.env`, memanggil `generateContent`, menyimpan conversation log, dan memakai fallback lokal jika provider gagal. |
+| How | Sistem menjalankan input guard, memilih FAQ/Alias/Config/catalog snippets dari `resources/data/gymmi/knowledge-base.json` plus override kecil tervalidasi, menambahkan snippet database live yang aman untuk paket/promo/jadwal/produk/settings publik dan data member login sendiri, lalu memanggil Gemini hanya untuk merangkai jawaban dari snippet valid. Intent ringan membatasi retrieval agar pertanyaan spesifik seperti Muaythai/privat tidak menarik kelas lain. Key pool dibaca dari `.env` (`GEMINI_API_KEY`/`GEMINI_API_KEYS`), 429 membuka cooldown, 401/403 menandai key invalid sementara, 404 membuka cooldown model, timeout/5xx retry terbatas, dan fallback knowledge dipakai jika provider gagal dengan jawaban natural, bukan snippet mentah. Command `php artisan gymmi:sync-gemini-keys` tersedia untuk dry-run/status/sinkronisasi `.env` lokal dari file private tanpa mencetak nilai key; production tetap memakai environment/secret manager hosting. Log tidak memuat key, raw prompt, payload sensitif, raw QR token, atau secret. |
 
 Referensi:
 
