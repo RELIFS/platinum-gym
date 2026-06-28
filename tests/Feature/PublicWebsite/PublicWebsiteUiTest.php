@@ -37,6 +37,24 @@ test('public buttons and cards keep stable responsive utility contracts', functi
         ->assertSee('max-w-[calc(100%-4rem)]', false);
 });
 
+test('public home uses scoped responsive sizing primitives', function () {
+    PublicFixtures::package(['name' => 'Public Responsive Package']);
+    PublicFixtures::product(overrides: ['name' => 'Public Responsive Product']);
+    PublicFixtures::schedule(['name' => 'Public Responsive Class']);
+    PublicFixtures::gallery(['title' => 'Public Responsive Gallery']);
+
+    $this->get(route('public.home'))
+        ->assertOk()
+        ->assertSee('public-home-hero-grid', false)
+        ->assertSee('public-home-hero-title', false)
+        ->assertSee('public-home-hero-visual', false)
+        ->assertSee('public-home-stat-grid', false)
+        ->assertSee('public-home-section-toolbar', false)
+        ->assertSee('public-home-cta-frame', false)
+        ->assertSee('w-full public-button-primary public-motion-cta sm:w-auto', false)
+        ->assertSee('grid min-w-0 gap-8', false);
+});
+
 test('public page hero exposes polished reusable hero and reduced motion safe animation tokens', function () {
     $this->get(route('public.services'))
         ->assertOk()

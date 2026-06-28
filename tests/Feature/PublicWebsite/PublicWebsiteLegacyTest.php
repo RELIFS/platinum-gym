@@ -88,8 +88,12 @@ test('services page shows seeded packages', function () {
         ->assertSee('Muaythai Umum 8x')
         ->assertSee('Daftar Membership')
         ->assertSee('Daftar Paket')
-        ->assertDontSee('Lihat Detail Paket')
-        ->assertDontSee('Promo aktif untuk paket pilihan')
+        ->assertSee('Promo aktif untuk paket pilihan')
+        ->assertSee('Beli Gym Umum 3 Bulan Gratis 1 Bulan')
+        ->assertSee('Beli Gym Umum 6 Bulan Gratis 2 Bulan')
+        ->assertSee('Untuk: Gym Umum 3 Bulan')
+        ->assertSee('Untuk: Gym Umum 6 Bulan')
+        ->assertSee('Lihat Detail Paket')
         ->assertDontSee('Member Baru Lebih Hemat')
         ->assertDontSee('Konsultasi Paket')
         ->assertDontSee('Tanya Paket');
@@ -190,13 +194,14 @@ test('public light theme keeps utility map and final cta from using large black 
 
     $location
         ->assertOk()
-        ->assertSee('public-card flex min-h-[32rem] flex-col justify-between overflow-hidden p-0', false)
+        ->assertSee('public-card public-motion-reveal flex min-h-[32rem] flex-col justify-between overflow-hidden p-0', false)
         ->assertSee('bg-zinc-100 sm:min-h-[30rem] dark:bg-zinc-950', false)
         ->assertDontSee('public-card flex min-h-[32rem] flex-col justify-between overflow-hidden bg-zinc-950 p-0 text-white', false);
 
     $this->get('/')
         ->assertOk()
-        ->assertSee('border border-zinc-200 bg-white/95', false)
+        ->assertSee('public-home-cta-frame', false)
+        ->assertSee('public-home-cta-panel', false)
         ->assertSee('text-zinc-950 dark:text-white', false)
         ->assertDontSee('overflow-hidden rounded-[2rem] bg-zinc-950 p-6 text-white shadow-2xl', false);
 

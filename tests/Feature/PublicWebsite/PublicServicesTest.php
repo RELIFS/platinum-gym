@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Promo;
+use Database\Seeders\PackageSeeder;
+use Database\Seeders\PromoSeeder;
 use Tests\Feature\PublicWebsite\Support\PublicWebsiteFixtures as PublicFixtures;
 
 test('services page lists active packages and hides inactive packages', function () {
@@ -24,6 +27,50 @@ test('services promo strip only renders valid published promos', function () {
         ->assertSee('Public Valid Promo')
         ->assertDontSee('Public Unpublished Promo')
         ->assertDontSee('Public Expired Promo');
+});
+
+test('services page shows membership bonus duration labels without misleading total only copy', function () {
+    PublicFixtures::package([
+        'name' => 'Gym Umum 3 Bulan Public QA',
+        'slug' => 'gym-umum-3-bulan-public-qa',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'category' => 'umum',
+        'price' => 747000,
+        'duration_days' => 120,
+        'base_duration_days' => 90,
+        'bonus_duration_days' => 30,
+        'bonus_label' => 'Gratis 1 bulan',
+    ]);
+
+    $this->get(route('public.services'))
+        ->assertOk()
+        ->assertSee('Gym Umum 3 Bulan Public QA')
+        ->assertSee('Gratis 1 bulan')
+        ->assertSee('/3 bulan + gratis 1 bulan');
+});
+
+test('services page shows official seeded gym duration promos with package labels', function () {
+    $this->seed([PackageSeeder::class, PromoSeeder::class]);
+
+    $this->get(route('public.services'))
+        ->assertOk()
+        ->assertSee('Promo aktif untuk paket pilihan.')
+        ->assertSee('Beli Gym Umum 3 Bulan Gratis 1 Bulan')
+        ->assertSee('Beli Gym Umum 6 Bulan Gratis 2 Bulan')
+        ->assertSee('Untuk: Gym Umum 3 Bulan')
+        ->assertSee('Untuk: Gym Umum 6 Bulan')
+        ->assertSee('Promo aktif')
+        ->assertDontSee('Hemat 0%');
+
+    $promo = Promo::query()->where('title', 'Beli Gym Umum 3 Bulan Gratis 1 Bulan')->firstOrFail();
+
+    expect($promo->package_id)->not->toBeNull()
+        ->and($promo->discount_type)->toBe('none')
+        ->and($promo->discount_value)->toBeNull()
+        ->and($promo->is_published)->toBeTrue()
+        ->and($promo->starts_at)->toBeNull()
+        ->and($promo->ends_at)->toBeNull();
 });
 
 test('services page orders membership and muaythai packages by public sales priority', function () {

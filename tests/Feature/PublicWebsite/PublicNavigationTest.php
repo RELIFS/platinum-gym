@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
+
 test('public header and footer expose stable navigation and safe ctas', function () {
     $response = $this->get(route('public.home'));
 
@@ -17,6 +20,20 @@ test('public header and footer expose stable navigation and safe ctas', function
         ->assertDontSee('Beli Sekarang')
         ->assertDontSee('Pesan Produk')
         ->assertDontSee('Konfirmasi Kelas');
+});
+
+test('public hamburger menu exposes logged in dashboard action without tablet topbar shortcut', function () {
+    $this->seed(RolePermissionSeeder::class);
+    $user = User::factory()->create();
+    $user->assignRole('member');
+
+    $this->actingAs($user)
+        ->get(route('public.home'))
+        ->assertOk()
+        ->assertSee('data-public-dashboard-link="mobile-menu"', false)
+        ->assertDontSee('data-public-dashboard-shortcut="tablet"', false)
+        ->assertSee(route('dashboard'), false)
+        ->assertSee('Dashboard');
 });
 
 test('public location external links use safe new tab attributes', function () {
