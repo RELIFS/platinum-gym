@@ -11,6 +11,7 @@ use App\Models\Member;
 use App\Models\Package;
 use App\Models\Payment;
 use App\Notifications\MemberOperationalNotification;
+use App\Notifications\Payments\PaymentRejectedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,10 +29,13 @@ class AdminPaymentController extends Controller
                 $request->validated('note'),
             );
         } catch (\RuntimeException $exception) {
-            return back()->with('status', $exception->getMessage())->withInput();
+            return back()
+                ->with('status', $exception->getMessage())
+                ->with('status_kind', 'error')
+                ->withInput();
         }
 
-        return back()->with('status', 'Pembayaran cash '.$payment->payment_code.' berhasil dicatat dan layanan member sudah aktif.');
+        return back()->with('status', 'Pembayaran tunai '.$payment->payment_code.' berhasil dicatat dan layanan member sudah aktif.');
     }
 
     public function approve(Request $request, Payment $payment, FulfillPaidPaymentAction $fulfillPaidPayment): RedirectResponse
@@ -71,8 +75,8 @@ class AdminPaymentController extends Controller
                 'Pembayaran '.$payment->payment_code.' ditolak. Periksa catatan transaksi untuk informasi lanjut.',
                 route('member.transactions'),
                 'Lihat Transaksi',
-                true,
             ));
+            $payment->member?->user?->notify((new PaymentRejectedNotification($payment))->afterCommit());
         });
 
         return back()->with('status', 'Pembayaran berhasil ditolak.');

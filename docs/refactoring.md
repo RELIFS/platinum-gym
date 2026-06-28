@@ -1,6 +1,6 @@
 # Refactoring Documentation
 
-Status: Updated 2026-06-14. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
+Status: Updated 2026-06-22. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
 
 Dokumen ini mencatat perubahan struktur kode yang dilakukan untuk meningkatkan keterbacaan, maintainability, dan kesiapan evolusi sistem.
 
@@ -178,11 +178,10 @@ Test lebih mudah dibaca dan disesuaikan dengan behavior sistem.
 
 Refactoring berikut akan dievaluasi saat kompleksitas fitur bertambah:
 
-- Penyempurnaan dashboard owner dan laporan/export saat scope owner dimulai.
 - Penyempurnaan action pembayaran, booking, dan check-in jika aturan bisnis bertambah.
 - Export queue untuk laporan besar.
-- Invoice PDF/download dan upload bukti pembayaran jika dibutuhkan.
-- Cleanup route dan komponen bila scope owner atau modul baru bertambah.
+- Upload bukti pembayaran jika dibutuhkan.
+- Cleanup route dan komponen bila modul baru bertambah.
 
 ## 6. Feature-Based Clean Architecture Foundation
 
@@ -349,6 +348,7 @@ Perubahan utama:
 ```text
 resources/views/public/partials/header.blade.php
 resources/views/public/partials/footer.blade.php
+resources/views/public/partials/page-hero.blade.php
 resources/views/public/home.blade.php
 resources/views/public/location.blade.php
 resources/views/public/partials/chatbot.blade.php
@@ -364,7 +364,10 @@ resources/js/public-chatbot.js
 - Dynamic content diberi wrapping guard untuk mencegah horizontal overflow.
 - Chatbot memakai focus return, `aria-live`, dan scroll containment ringan.
 - Home hero mobile dibuat compact dengan visual gym/strength umum sebagai visual utama; Muaythai tetap menjadi visual pendukung di desktop collage.
+- `page-hero` public dipusatkan sebagai partial compact-premium dengan token CSS reusable, animasi masuk halus, dan guard `prefers-reduced-motion`.
 - Image public statis diberi dimensi eksplisit, dan hero image above-the-fold memakai `fetchpriority="high"`.
+- Urutan paket layanan dijaga di `PublicServicesQuery`, bukan Blade, sehingga ranking membership, Muaythai, Personal Trainer, dan Session tetap stabil untuk data seed maupun database production.
+- `PublicClassScheduleQuery` mengelompokkan jadwal ke section Aerobic, Zumba, Muaythai, dan Poundfit dengan resolver yang tetap menerima data lama bertipe `senam`.
 
 ### Dampak
 
@@ -436,13 +439,15 @@ Controller tetap tipis, query data terpusat, Blade fokus pada presentasi, dan ak
 - Dashboard menjadi pusat kerja operasional dengan status strip, KPI ringkas, quick links, dan data terbaru.
 - Partial tabel admin reusable mendukung server-side search, status filter, pagination, count, empty/no-result state, caption/aria polish, mobile card fallback, dan row actions aman.
 - Data sensitif pada setting disamarkan di query layer, sedangkan update setting hanya membuka whitelist kontak/maps/jam operasional/invoice publik.
-- Test `AdminPortalTest` menjaga auth guard, role guard, render route, data operasional, masking setting, approval/cash pembayaran, check-in QR/manual, report export, resource CRUD, dan toggle status.
+- Test `AdminPortalTest` menjaga auth guard, role guard, render route, data operasional, masking setting, approval/cash pembayaran, check-in QR preview-confirm, report export, resource CRUD, dan toggle status.
 
 ## 13. Gymmi Chatbot Identity
 
 ### Perubahan
 
-Chatbot public dan member diberi identitas produk `Gymmi` melalui ViewModel, Blade shell, dan renderer pusat di `resources/js/public-chatbot.js`. Initial bot berubah ke `GY`, user bubble kanan tidak lagi memakai avatar `AN`, FAQ quick reply menjadi chip kanan, action link bot wrap aman, dan export JS lama tetap dipertahankan untuk kompatibilitas.
+Chatbot public dan member diberi identitas produk `Gymmi` melalui ViewModel, Blade shell, dan renderer pusat di `resources/js/public-chatbot.js`. Initial bot berubah ke `GY`, user bubble kanan tidak lagi memakai avatar `AN`, FAQ quick reply menjadi rail horizontal, action link bot wrap aman, dan export JS lama tetap dipertahankan untuk kompatibilitas.
+
+Avatar Gymmi memakai asset gambar light/dark dari `public/images/gymmi/` dengan fallback initial jika gambar gagal termuat. Theme public disamakan dengan member: light mode memakai panel terang, dark mode memakai panel gelap, sementara bubble, typing state, quick reply, dan action link mengikuti kontras tema aktif.
 
 Tailwind scan mencakup `resources/js/**/*.js` karena beberapa class bubble Gymmi dibuat dari JavaScript.
 
@@ -480,7 +485,7 @@ Checkout, webhook payment, booking, QR check-in, dan approval admin menyentuh ba
 ### Dampak
 
 - Member dapat checkout membership/paket sesi, booking kelas, melihat transaksi/detail invoice, membayar lewat Midtrans Sandbox, melihat QR, dan mengelola notifikasi.
-- Admin dapat create/update master data, mencatat pembayaran cash, approve/reject pembayaran, create/confirm/cancel booking, scan/input QR/manual check-in, update setting publik whitelist, export laporan CSV, dan toggle status/tayang data operasional.
+- Admin dapat create/update master data, mencatat pembayaran cash, approve/reject pembayaran, create/confirm/cancel booking, scan QR kamera ke preview lalu confirm check-in/pemakaian sesi, update setting publik whitelist, export laporan CSV, dan toggle status/tayang data operasional.
 - Midtrans Sandbox dan Resend dikonfigurasi lewat `.env`; secret tidak masuk source code.
 - Produk tetap katalog informasi, bukan checkout produk.
 ## 15. Gymmi Gemini Backend
@@ -530,3 +535,160 @@ Admin membutuhkan workbench yang tetap cepat, dapat dicari lintas seluruh data, 
 - Halaman seperti produk, anggota, pembayaran, kelas, booking, check-in, galeri, testimoni, promo, trainer, audit log, dan pengaturan dapat memuat data bertahap.
 - Search dan filter bekerja dari query database, bukan hanya data yang sedang terlihat.
 - Mobile card fallback dan tabel desktop tetap memakai komponen yang sama.
+
+## 17. Member Server-Side Pagination Dan Status ViewModel
+
+### Sebelum
+
+Halaman member yang berisi daftar memakai data terbatas dari dashboard query. Beberapa status pembayaran, booking, notifikasi, paket, dan jadwal juga masih diformat langsung di Blade.
+
+### Masalah
+
+Saat data member bertambah, pencarian dan filter perlu berlaku pada seluruh data milik member, bukan hanya data yang sedang tampil. Logic status yang berulang di Blade juga membuat halaman lebih sulit dipelihara.
+
+### Perubahan
+
+`MemberDashboardQuery` sekarang membedakan kebutuhan dashboard ringkas dan halaman list aktif. Halaman membership, booking kelas, riwayat booking, transaksi, dan notifikasi memakai pagination Laravel dengan query string dan batas tetap per halaman.
+
+Status label/class dipusatkan pada:
+
+```text
+app/Features/MemberPortal/ViewModels/MemberPortalStatusViewModel.php
+```
+
+Partial member reusable ditambahkan untuk toolbar filter, pagination, dan empty state:
+
+```text
+resources/views/member/partials/filter-toolbar.blade.php
+resources/views/member/partials/pagination.blade.php
+resources/views/member/partials/empty-state.blade.php
+```
+
+### Alasan
+
+- Query tetap own-data dan bekerja dari database.
+- Blade fokus pada render markup.
+- Search/filter tetap akurat ketika transaksi, booking, paket, atau notifikasi bertambah.
+- UI member memakai pola yang lebih konsisten tanpa mengulang markup filter dan pagination.
+
+### Dampak
+
+- List member menjadi lebih siap untuk data production.
+- Copy member lebih fokus dan tidak menampilkan label internal.
+- Sidebar/drawer member lebih minimal dengan footer `Keluar` saja.
+- Test `MemberPortalTest` menjaga pagination/filter, own-data boundary, dan copy production member.
+
+## 18. Owner Portal, Reports, Dan Invoice Web
+
+### Sebelum
+
+Owner dashboard masih berupa halaman dasar untuk validasi role dan belum memiliki layout, laporan, grafik, atau invoice web.
+
+### Masalah
+
+Owner membutuhkan monitoring bisnis yang berbeda dari admin. Admin fokus operasional harian, sedangkan owner perlu membaca pendapatan, transaksi, member, membership, booking kelas, dan invoice secara read-only.
+
+### Perubahan
+
+Owner portal dipisahkan ke controller, query, layout, dan view sendiri:
+
+```text
+app/Http/Controllers/Owner
+app/Features/OwnerPortal/Queries
+app/Features/Reports/Data
+app/Features/Reports/Queries
+app/Features/Invoices/Queries
+app/View/Components/OwnerLayout.php
+resources/views/layouts/owner.blade.php
+resources/views/owner
+resources/views/invoices
+```
+
+Reports owner memakai filter periode/status/metode/tipe laporan dan export CSV/Excel/PDF. Invoice web, PDF invoice, dan struk POS compact memakai data transaksi yang sudah ada dan tidak membuat logic pembayaran baru.
+
+### Alasan
+
+- Owner tetap read-only dan tidak membawa aksi mutasi admin ke area bisnis.
+- Query laporan berada di layer fitur, bukan di Blade.
+- CSV tetap kompatibel, sedangkan Excel/PDF memakai package produksi yang sesuai untuk dokumen laporan.
+- Invoice web, PDF, dan struk menjadi presentasi dokumen transaksi tanpa mengekspos token, payload provider, secret, atau data internal.
+
+### Dampak
+
+- `/owner` menjadi dashboard bisnis dengan KPI, grafik pendapatan, breakdown, transaksi terbaru, dan membership yang akan berakhir.
+- `/owner/laporan` dan halaman laporan detail dapat membaca ringkasan serta tabel preview.
+- `/owner/laporan/export` menghasilkan CSV, Excel, atau PDF laporan sesuai filter.
+- `/owner/invoice/{invoice}`, `/member/invoice/{invoice}`, dan `/admin/invoice/{invoice}` menampilkan invoice web sesuai policy.
+- Route `/struk` dan `/download` menghasilkan struk web serta PDF invoice/struk.
+- `PaymentPolicy` dan `InvoicePolicy` memberi akses owner untuk membaca laporan/invoice, sementara aksi mutasi tetap tidak diberikan.
+
+## 19. Reports Export PDF/Excel Dan Struk POS
+
+### Perubahan
+
+Laporan Admin dan Owner sekarang memakai layer export terpisah untuk CSV, Excel, dan PDF:
+
+```text
+app/Features/Reports/Actions
+app/Features/Reports/Exports
+resources/views/reports/pdf
+```
+
+Invoice transaksi juga diperluas menjadi dokumen formal dan struk POS compact:
+
+```text
+app/Features/Invoices/Actions/RenderInvoicePdfAction.php
+resources/views/invoices/pdf.blade.php
+resources/views/invoices/receipt.blade.php
+resources/views/invoices/receipt-pdf.blade.php
+resources/views/invoices/partials/receipt-paper.blade.php
+```
+
+### Alasan
+
+- Controller tetap hanya mengatur authorization, filter, dan response format.
+- CSV lama tetap kompatibel, sementara Excel `.xlsx` dan PDF memenuhi kebutuhan dokumen production.
+- Struk POS menjadi format ringkas untuk bukti transaksi tanpa mengganti invoice formal.
+- Template PDF memakai CSS sederhana agar aman dirender DomPDF dan tidak bergantung pada Vite/Tailwind runtime.
+
+### Dampak
+
+- `/admin/laporan/export` dan `/owner/laporan/export` menerima `format=csv|xlsx|pdf`.
+- `/member/invoice/{invoice}`, `/owner/invoice/{invoice}`, dan `/admin/invoice/{invoice}` memiliki tampilan invoice, struk, dan download PDF.
+- Profil Owner di `/profile` memakai layout/copy Owner, bukan shell Admin.
+- Dokumen invoice/struk tetap tidak menampilkan token QR mentah, Midtrans snap token, redirect URL, raw response, note internal, atau secret provider.
+
+## 20. Renderer Grafik Lokal Dan Cleanup Test Domain
+
+### Perubahan
+
+Grafik tren Admin dan Owner dipindahkan dari dependency chart eksternal ke renderer SVG lokal kecil:
+
+```text
+resources/js/shared/svg-trend-chart.js
+resources/js/admin/operational-trend-chart.js
+resources/js/owner/business-trend-chart.js
+```
+
+Suite feature test juga dirapikan dari file legacy root ke folder domain:
+
+```text
+tests/Feature/Admin
+tests/Feature/Member
+tests/Feature/Owner
+tests/Feature/PublicWebsite
+tests/Feature/Gymmi
+tests/Feature/Invoices
+```
+
+### Alasan
+
+- Bundle frontend lebih ringan dan tidak membawa dependency chart besar untuk visual sederhana.
+- Test domain lebih mudah dirawat daripada file monolith root yang mencampur banyak perilaku.
+- File legacy tetap dipertahankan sebagai `*LegacyTest` pada domain terkait saat masih menyimpan coverage penting.
+
+### Dampak
+
+- `apexcharts` tidak lagi menjadi dependency frontend aktif.
+- Mount ID dan payload chart tetap kompatibel dengan Blade existing.
+- Root `tests/Feature` lebih fokus pada folder domain dan cross-domain yang jelas.

@@ -2,6 +2,7 @@ export function initAuthFormFeedback() {
     bindPasswordToggles();
     bindPasswordFeedback();
     bindPhoneFeedback();
+    focusFirstInvalidField();
 }
 
 function bindPasswordToggles() {
@@ -25,6 +26,20 @@ function bindPasswordToggles() {
             button.querySelector('[data-eye-open]')?.classList.toggle('hidden', shouldShow);
             button.querySelector('[data-eye-closed]')?.classList.toggle('hidden', !shouldShow);
         });
+    });
+}
+
+function focusFirstInvalidField() {
+    const invalidField = document.querySelector('input[aria-invalid="true"]:not([type="hidden"]), select[aria-invalid="true"], textarea[aria-invalid="true"]');
+
+    if (!invalidField) {
+        return;
+    }
+
+    invalidField.focus({ preventScroll: true });
+    invalidField.scrollIntoView({
+        block: 'center',
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
     });
 }
 
@@ -72,8 +87,20 @@ function bindPhoneFeedback() {
         feedback.setAttribute('role', 'status');
         feedback.setAttribute('aria-live', 'polite');
 
+        const normalizePhoneInputValue = () => {
+            const currentValue = input.value;
+            const digits = currentValue.replace(/\D+/g, '');
+            const normalized = digits.startsWith('62') ? `0${digits.slice(2)}` : digits;
+
+            if (currentValue !== normalized) {
+                input.value = normalized;
+            }
+
+            return normalized;
+        };
+
         const updatePhoneFeedback = () => {
-            const normalized = input.value.replace(/\D+/g, '');
+            const normalized = normalizePhoneInputValue();
             const shouldShow = normalized.length >= 2 && !phonePattern.test(normalized);
             feedback.classList.toggle('hidden', !shouldShow);
         };

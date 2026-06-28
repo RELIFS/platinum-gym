@@ -2,7 +2,7 @@
 
 use App\Models\Member;
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
+use App\Notifications\Auth\EmailVerificationCodeNotification;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
 
@@ -13,7 +13,64 @@ beforeEach(function () {
 test('registration screen can be rendered', function () {
     $response = $this->get('/register');
 
-    $response->assertStatus(200);
+    $response->assertStatus(200)
+        ->assertSee('name="birth_date_display"', false)
+        ->assertSee('name="birth_date"', false)
+        ->assertSee('placeholder="dd/mm/yyyy"', false)
+        ->assertSee('x-modelable="isoValue"', false)
+        ->assertSee('aria-label="Pilih tanggal lahir"', false)
+        ->assertSee('auth-terms-row', false)
+        ->assertSee('auth-terms-checkbox', false)
+        ->assertSee('auth-terms-copy', false)
+        ->assertSee('auth-inline-link', false)
+        ->assertSee('name="terms"', false)
+        ->assertSee(route('legal.terms', absolute: false), false)
+        ->assertSee(route('legal.privacy', absolute: false), false)
+        ->assertDontSee('Pilih tanggal lahir sesuai identitas.')
+        ->assertDontSee('class="auth-link">Syarat &amp; Ketentuan', false)
+        ->assertDontSee('name="birth_day"', false)
+        ->assertDontSee('name="birth_month"', false)
+        ->assertDontSee('name="birth_year"', false);
+});
+
+test('new members can register with dd mm yyyy birth date display', function () {
+    Notification::fake();
+
+    $this->post('/register', [
+        'name' => 'Display Date Member',
+        'birth_date_display' => '15/01/2000',
+        'gender' => 'male',
+        'phone' => '081234567894',
+        'email' => 'display-date@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'terms' => '1',
+    ])->assertRedirect(route('verification.notice', absolute: false));
+
+    $member = User::where('email', 'display-date@example.com')->firstOrFail()->member;
+
+    expect($member->birth_date->toDateString())->toBe('2000-01-15');
+});
+
+test('new members can register with separated birth date fields', function () {
+    Notification::fake();
+
+    $this->post('/register', [
+        'name' => 'Tanggal Member',
+        'birth_day' => '15',
+        'birth_month' => '1',
+        'birth_year' => '2000',
+        'gender' => 'male',
+        'phone' => '081234567892',
+        'email' => 'tanggal@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'terms' => '1',
+    ])->assertRedirect(route('verification.notice', absolute: false));
+
+    $member = User::where('email', 'tanggal@example.com')->firstOrFail()->member;
+
+    expect($member->birth_date->toDateString())->toBe('2000-01-15');
 });
 
 test('new members can register', function () {
@@ -48,7 +105,13 @@ test('new members can register', function () {
         ->and($member->birth_date->toDateString())->toBe('2000-01-15')
         ->and($member->status)->toBe('active');
 
-    Notification::assertSentTo($user, VerifyEmail::class);
+    Notification::assertSentTo($user, EmailVerificationCodeNotification::class, function (EmailVerificationCodeNotification $notification) use ($user): bool {
+        $mail = $notification->toMail($user);
+
+        return $mail->subject === 'Kode Verifikasi Email Platinum Gym'
+            && strlen($notification->code) === 6
+            && str_contains($mail->render(), 'Verifikasi Email');
+    });
 });
 
 test('registration requires member fields and terms', function () {
@@ -60,6 +123,22 @@ test('registration requires member fields and terms', function () {
     ]);
 
     $response->assertSessionHasErrors(['birth_date', 'gender', 'phone', 'terms']);
+    $this->assertGuest();
+});
+
+test('registration validation uses production indonesian copy', function () {
+    $response = $this->post('/register', []);
+
+    $response->assertSessionHasErrors([
+        'name' => 'Nama lengkap wajib diisi.',
+        'birth_date' => 'Tanggal lahir wajib diisi.',
+        'gender' => 'Jenis kelamin wajib dipilih.',
+        'phone' => 'No. WhatsApp wajib diisi.',
+        'email' => 'Alamat email wajib diisi.',
+        'password' => 'Kata sandi wajib diisi.',
+        'terms' => 'Anda perlu menyetujui Syarat & Ketentuan dan Kebijakan Privasi.',
+    ]);
+
     $this->assertGuest();
 });
 
@@ -92,7 +171,29 @@ test('registration rejects duplicate whatsapp number', function () {
         'terms' => '1',
     ]);
 
-    $response->assertSessionHasErrors('phone');
+    $response->assertSessionHasErrors([
+        'phone' => 'No. WhatsApp sudah terdaftar.',
+    ]);
+    $this->assertGuest();
+});
+
+test('registration rejects duplicate email with production copy', function () {
+    User::factory()->create(['email' => 'duplicate-email@example.com']);
+
+    $response = $this->post('/register', [
+        'name' => 'Test Member',
+        'birth_date' => '2000-01-15',
+        'gender' => 'male',
+        'phone' => '081234567890',
+        'email' => 'duplicate-email@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasErrors([
+        'email' => 'Alamat email sudah terdaftar. Silakan masuk atau gunakan email lain.',
+    ]);
     $this->assertGuest();
 });
 
@@ -108,6 +209,86 @@ test('registration rejects invalid member fields', function () {
         'terms' => '1',
     ]);
 
-    $response->assertSessionHasErrors(['birth_date', 'gender', 'phone']);
+    $response->assertSessionHasErrors([
+        'birth_date' => 'Tanggal lahir harus sebelum hari ini.',
+        'gender' => 'Pilih jenis kelamin yang tersedia.',
+        'phone' => 'Gunakan format No. WhatsApp 08xxxxxxxxxx.',
+    ]);
+    $this->assertGuest();
+});
+
+test('registration rejects invalid separated birth date fields', function () {
+    $response = $this->post('/register', [
+        'name' => 'Invalid Date Member',
+        'birth_day' => '31',
+        'birth_month' => '2',
+        'birth_year' => '2000',
+        'gender' => 'male',
+        'phone' => '081234567893',
+        'email' => 'invalid-date@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasErrors([
+        'birth_date' => 'Tanggal lahir belum valid. Gunakan format dd/mm/yyyy.',
+    ]);
+    $this->assertGuest();
+});
+
+test('registration rejects invalid dd mm yyyy birth date display', function () {
+    $response = $this->post('/register', [
+        'name' => 'Invalid Display Member',
+        'birth_date_display' => '31/02/2000',
+        'gender' => 'male',
+        'phone' => '081234567895',
+        'email' => 'invalid-display@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasErrors([
+        'birth_date' => 'Tanggal lahir belum valid. Gunakan format dd/mm/yyyy.',
+    ]);
+    $this->assertGuest();
+});
+
+test('registration rejects password confirmation mismatch with production copy', function () {
+    $response = $this->post('/register', [
+        'name' => 'Mismatch Password Member',
+        'birth_date_display' => '15/01/2000',
+        'gender' => 'male',
+        'phone' => '081234567896',
+        'email' => 'mismatch-password@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'different-password',
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasErrors([
+        'password' => 'Konfirmasi kata sandi belum sama.',
+    ]);
+
+    $this->assertGuest();
+});
+
+test('registration rejects short password with production copy', function () {
+    $response = $this->post('/register', [
+        'name' => 'Short Password Member',
+        'birth_date_display' => '15/01/2000',
+        'gender' => 'male',
+        'phone' => '081234567897',
+        'email' => 'short-password@example.com',
+        'password' => 'short',
+        'password_confirmation' => 'short',
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasErrors([
+        'password' => 'Kata sandi minimal 8 karakter.',
+    ]);
+
     $this->assertGuest();
 });

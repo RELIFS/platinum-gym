@@ -2,7 +2,10 @@
 
 use App\Http\Controllers\Admin\AdminBookingController;
 use App\Http\Controllers\Admin\AdminCheckInController;
+use App\Http\Controllers\Admin\AdminInvoiceController;
+use App\Http\Controllers\Admin\AdminMemberInvitationController;
 use App\Http\Controllers\Admin\AdminPaymentController;
+use App\Http\Controllers\Admin\AdminProfilePhotoController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminResourceController;
 use App\Http\Controllers\Admin\AdminResourceStatusController;
@@ -11,9 +14,14 @@ use App\Http\Controllers\AdminPortalController;
 use App\Http\Controllers\GymmiChatController;
 use App\Http\Controllers\Member\MemberBookingController;
 use App\Http\Controllers\Member\MemberCheckoutController;
+use App\Http\Controllers\Member\MemberInvoiceController;
 use App\Http\Controllers\Member\MemberNotificationController;
 use App\Http\Controllers\Member\MemberProfileController;
 use App\Http\Controllers\MemberPortalController;
+use App\Http\Controllers\Owner\OwnerDashboardController;
+use App\Http\Controllers\Owner\OwnerInvoiceController;
+use App\Http\Controllers\Owner\OwnerProfilePhotoController;
+use App\Http\Controllers\Owner\OwnerReportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicWebsiteController;
 use App\Http\Controllers\Webhook\MidtransWebhookController;
@@ -46,6 +54,8 @@ Route::middleware(['auth', 'verified', 'role:member', 'member.profile.complete']
     ->group(function () {
         Route::get('/dashboard', [MemberPortalController::class, 'dashboard'])->name('dashboard');
         Route::get('/profil', [MemberPortalController::class, 'profile'])->name('profile');
+        Route::get('/profil/edit', [MemberPortalController::class, 'profileEdit'])->name('profile.edit');
+        Route::get('/profil/bukti-mahasiswa', [MemberProfileController::class, 'studentProof'])->name('profile.student-proof');
         Route::patch('/profil', [MemberProfileController::class, 'update'])->name('profile.update');
         Route::get('/membership', [MemberPortalController::class, 'membership'])->name('membership');
         Route::post('/membership/{package}/checkout', [MemberCheckoutController::class, 'membership'])->name('membership.checkout');
@@ -57,10 +67,14 @@ Route::middleware(['auth', 'verified', 'role:member', 'member.profile.complete']
         Route::get('/transaksi', [MemberPortalController::class, 'transactions'])->name('transactions');
         Route::get('/transaksi/{payment}', [MemberCheckoutController::class, 'show'])->name('transactions.show');
         Route::post('/transaksi/{payment}/bayar', [MemberCheckoutController::class, 'pay'])->name('transactions.pay');
+        Route::get('/invoice/{invoice}', [MemberInvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('/invoice/{invoice}/struk', [MemberInvoiceController::class, 'receipt'])->name('invoices.receipt');
+        Route::get('/invoice/{invoice}/download', [MemberInvoiceController::class, 'download'])->name('invoices.download');
         Route::get('/qr', [MemberPortalController::class, 'qr'])->name('qr');
+        Route::get('/qr/download', [MemberPortalController::class, 'downloadQr'])->name('qr.download');
         Route::get('/notifikasi', [MemberPortalController::class, 'notifications'])->name('notifications');
-        Route::post('/notifikasi/{notification}/baca', [MemberNotificationController::class, 'read'])->name('notifications.read');
         Route::post('/notifikasi/baca-semua', [MemberNotificationController::class, 'readAll'])->name('notifications.read-all');
+        Route::post('/notifikasi/{notification}/baca', [MemberNotificationController::class, 'read'])->name('notifications.read');
     });
 
 Route::middleware(['auth', 'verified', 'role:admin'])
@@ -69,8 +83,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->group(function () {
         Route::get('/', [AdminPortalController::class, 'dashboard'])->name('dashboard');
         Route::get('/check-in', [AdminPortalController::class, 'checkIn'])->name('check-in');
+        Route::post('/check-in/preview', [AdminCheckInController::class, 'preview'])->name('check-in.preview');
         Route::post('/check-in/scan', [AdminCheckInController::class, 'scan'])->name('check-in.scan');
-        Route::post('/check-in/manual', [AdminCheckInController::class, 'manual'])->name('check-in.manual');
+        Route::post('/check-in/confirm', [AdminCheckInController::class, 'confirm'])->name('check-in.confirm');
         Route::get('/booking', [AdminPortalController::class, 'booking'])->name('booking');
         Route::post('/booking', [AdminBookingController::class, 'store'])->name('booking.store');
         Route::post('/booking/{enrollment}/confirm', [AdminBookingController::class, 'confirm'])->name('booking.confirm');
@@ -82,12 +97,16 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::patch('/resource/{resource}/{id}', [AdminResourceController::class, 'update'])->name('resources.update');
         Route::patch('/resource/{resource}/{id}/toggle', [AdminResourceStatusController::class, 'toggle'])->name('resources.toggle');
         Route::get('/anggota', [AdminPortalController::class, 'members'])->name('members');
+        Route::post('/anggota/{member}/undangan', AdminMemberInvitationController::class)->name('members.invitation.send');
         Route::get('/paket', [AdminPortalController::class, 'packages'])->name('packages');
         Route::get('/kelas', [AdminPortalController::class, 'classes'])->name('classes');
         Route::get('/pembayaran', [AdminPortalController::class, 'payments'])->name('payments');
         Route::post('/pembayaran/cash', [AdminPaymentController::class, 'storeCash'])->name('payments.cash');
         Route::post('/pembayaran/{payment}/approve', [AdminPaymentController::class, 'approve'])->name('payments.approve');
         Route::post('/pembayaran/{payment}/reject', [AdminPaymentController::class, 'reject'])->name('payments.reject');
+        Route::get('/invoice/{invoice}', [AdminInvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('/invoice/{invoice}/struk', [AdminInvoiceController::class, 'receipt'])->name('invoices.receipt');
+        Route::get('/invoice/{invoice}/download', [AdminInvoiceController::class, 'download'])->name('invoices.download');
         Route::get('/produk', [AdminPortalController::class, 'products'])->name('products');
         Route::get('/galeri', [AdminPortalController::class, 'gallery'])->name('gallery');
         Route::get('/testimoni', [AdminPortalController::class, 'testimonials'])->name('testimonials');
@@ -99,13 +118,23 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/pengaturan', [AdminPortalController::class, 'settings'])->name('settings');
         Route::patch('/pengaturan', [AdminSettingsController::class, 'update'])->name('settings.update');
         Route::get('/profil', [AdminPortalController::class, 'profile'])->name('profile');
+        Route::patch('/profil/foto', AdminProfilePhotoController::class)->name('profile-photo.update');
     });
 
 Route::middleware(['auth', 'verified', 'role:owner'])
     ->prefix('owner')
     ->name('owner.')
     ->group(function () {
-        Route::view('/', 'owner.dashboard')->name('dashboard');
+        Route::get('/', [OwnerDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/laporan', [OwnerReportController::class, 'index'])->name('reports.index');
+        Route::get('/laporan/keuangan', [OwnerReportController::class, 'finance'])->name('reports.finance');
+        Route::get('/laporan/member', [OwnerReportController::class, 'members'])->name('reports.members');
+        Route::get('/laporan/booking-kelas', [OwnerReportController::class, 'classes'])->name('reports.classes');
+        Route::get('/laporan/export', [OwnerReportController::class, 'export'])->name('reports.export');
+        Route::get('/invoice/{invoice}', [OwnerInvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('/invoice/{invoice}/struk', [OwnerInvoiceController::class, 'receipt'])->name('invoices.receipt');
+        Route::get('/invoice/{invoice}/download', [OwnerInvoiceController::class, 'download'])->name('invoices.download');
+        Route::patch('/profil/foto', OwnerProfilePhotoController::class)->name('profile-photo.update');
     });
 
 Route::middleware('auth')->group(function () {

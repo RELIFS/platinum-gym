@@ -4,6 +4,9 @@
     $nonMemberPrice = $class?->non_member_price;
     $promoPrice = $class?->promo_price;
     $dayLabel = $dayLabels[$schedule->day_of_week] ?? 'Jadwal';
+    $staffRoleLabel = \App\Features\Classes\Support\ClassStaffPresenter::roleLabel($schedule);
+    $staffDisplayName = \App\Features\Classes\Support\ClassStaffPresenter::displayName($schedule->trainer, $schedule);
+    $timeLabel = \App\Features\Classes\Support\ClassStaffPresenter::timeLabel($schedule);
     $classType = \Illuminate\Support\Str::lower((string) $class?->class_type);
     $visual = match (true) {
         str_contains($classType, 'pound') => 'platinum-gym-padang-instagram-02.webp',
@@ -11,9 +14,10 @@
         str_contains($classType, 'zumba'), str_contains($classType, 'aerobic'), str_contains($classType, 'senam') => 'platinum-gym-padang-instagram-06.webp',
         default => 'platinum-gym-padang-training-floor.webp',
     };
+    $motionDelay = (($loop->index ?? 0) % 4) * 80;
 @endphp
 
-<article class="group public-card public-card-hover flex h-full flex-col">
+<article class="group public-card public-card-hover public-motion-card public-motion-reveal flex h-full flex-col" data-motion="reveal card" data-motion-delay="{{ $motionDelay }}">
     <div class="public-media-frame -mx-2 -mt-2 mb-5 aspect-[4/3]">
         <img src="{{ asset('images/public/gallery/'.$visual) }}" alt="Ilustrasi {{ $class?->name ?? 'kelas' }} Platinum Gym Padang" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" width="600" height="336" loading="lazy">
         <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-zinc-950/15 to-transparent"></div>
@@ -35,11 +39,11 @@
     <dl class="mt-5 space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
         <div class="flex min-w-0 justify-between gap-4">
             <dt class="shrink-0 font-semibold text-zinc-500 dark:text-zinc-500">Waktu</dt>
-            <dd class="min-w-0 break-words text-right font-bold text-zinc-900 dark:text-zinc-100">{{ substr((string) $schedule->start_time, 0, 5) }} - {{ substr((string) $schedule->end_time, 0, 5) }}</dd>
+            <dd class="min-w-0 break-words text-right font-bold text-zinc-900 dark:text-zinc-100">{{ $timeLabel }}</dd>
         </div>
         <div class="flex min-w-0 justify-between gap-4">
-            <dt class="shrink-0 font-semibold text-zinc-500 dark:text-zinc-500">Coach</dt>
-            <dd class="min-w-0 break-words text-right font-bold text-zinc-900 dark:text-zinc-100">{{ $schedule->trainer?->name ?? 'Tim Platinum' }}</dd>
+            <dt class="shrink-0 font-semibold text-zinc-500 dark:text-zinc-500">{{ $staffRoleLabel }}</dt>
+            <dd class="min-w-0 break-words text-right font-bold text-zinc-900 dark:text-zinc-100">{{ $staffDisplayName !== '-' ? $staffDisplayName : 'Tim Platinum' }}</dd>
         </div>
         <div class="flex min-w-0 justify-between gap-4">
             <dt class="shrink-0 font-semibold text-zinc-500 dark:text-zinc-500">Kuota</dt>

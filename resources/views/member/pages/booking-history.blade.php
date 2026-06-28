@@ -1,45 +1,62 @@
 <section class="member-card mt-6">
-    <p class="member-eyebrow">Booking</p>
-    <h3 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Riwayat kelas</h3>
-    <div class="mt-5 grid gap-4 md:grid-cols-2">
-        @forelse ($recentEnrollments as $enrollment)
-            @php
-                $canCancel = ! in_array($enrollment->status, ['cancelled', 'canceled'], true) && $enrollment->session_date?->isFuture();
-                $bookingStatusLabel = match ((string) $enrollment->status) {
-                    'booked', 'active', 'confirmed' => 'Terdaftar',
-                    'pending_payment' => 'Menunggu Bayar',
-                    'cancelled', 'canceled' => 'Dibatalkan',
-                    default => str((string) $enrollment->status)->headline()->toString(),
-                };
-                $bookingStatusClass = match ((string) $enrollment->status) {
-                    'booked', 'active', 'confirmed' => 'member-status-success',
-                    'pending_payment' => 'member-status-warning',
-                    'cancelled', 'canceled' => 'member-status-danger',
-                    default => 'member-status-neutral',
-                };
-            @endphp
-            <article class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/45">
-                <div class="flex items-start justify-between gap-3">
-                    <div class="min-w-0">
-                        <h4 class="break-words font-black text-zinc-950 dark:text-white">{{ $enrollment->schedule?->gymClass?->name ?? 'Kelas Platinum Gym' }}</h4>
-                        <p class="mt-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ $enrollment->session_date?->translatedFormat('l, d M Y') }} - {{ substr((string) $enrollment->schedule?->start_time, 0, 5) }}</p>
-                    </div>
-                    <span class="member-status-pill {{ $bookingStatusClass }}">{{ $bookingStatusLabel }}</span>
-                </div>
-                @if ($canCancel)
-                    <form method="POST" action="{{ route('member.bookings.destroy', $enrollment) }}" class="mt-4">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="member-button-secondary w-full">Batalkan Booking</button>
-                        <p class="mt-2 text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">Booking bisa dibatalkan selama jadwal kelas belum lewat.</p>
-                    </form>
-                @endif
-            </article>
-        @empty
-            <div class="member-soft-panel md:col-span-2">
-                <h4 class="font-black text-zinc-950 dark:text-white">Belum ada riwayat booking</h4>
-                <p class="mt-2 member-copy">Riwayat kelas akan tampil setelah pendaftaran atau booking tercatat di sistem.</p>
-            </div>
-        @endforelse
+    <div class="member-section-header">
+        <div>
+            <p class="member-eyebrow">Booking</p>
+            <h3 class="member-section-title">Riwayat kelas</h3>
+        </div>
+        <a href="{{ route('member.booking') }}" class="member-button-secondary">Booking Kelas</a>
     </div>
+
+    @include('member.partials.filter-toolbar', [
+        'filters' => $portal['pageFilters'] ?? [],
+        'searchLabel' => 'Cari riwayat booking',
+        'searchPlaceholder' => 'Cari kelas, pelatih, status...',
+        'selects' => [
+            [
+                'name' => 'status',
+                'label' => 'Filter status booking',
+                'placeholder' => 'Semua status',
+                'options' => $portal['filterOptions']['bookingStatuses'] ?? [],
+            ],
+        ],
+    ])
+
+    @if ($recentEnrollments->count() > 0)
+        <div class="mt-5 grid gap-4 md:grid-cols-2">
+            @foreach ($recentEnrollments as $enrollment)
+                @php($bookingMeta = $enrollment->member_status_meta ?? ['label' => str((string) $enrollment->status)->headline()->toString(), 'class' => 'member-status-neutral', 'can_cancel' => false])
+                <article class="member-list-card">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <h4 class="break-words font-black text-zinc-950 dark:text-white">{{ $enrollment->schedule?->gymClass?->name ?? 'Kelas Platinum Gym' }}</h4>
+                            <p class="mt-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ $enrollment->session_date?->translatedFormat('l, d M Y') }} - {{ substr((string) $enrollment->schedule?->start_time, 0, 5) }}</p>
+                        </div>
+                        <span class="member-status-pill {{ $bookingMeta['class'] }}">{{ $bookingMeta['label'] }}</span>
+                    </div>
+                    @if ($bookingMeta['can_cancel'])
+                        <x-confirm-form
+                            :action="route('member.bookings.destroy', $enrollment)"
+                            method="DELETE"
+                            :message="'Yakin ingin membatalkan booking ' . ($enrollment->schedule?->gymClass?->name ?? 'kelas ini') . '? Tindakan ini tidak bisa dibatalkan.'"
+                            variant="danger"
+                            confirm-label="Batalkan Jadwal Booking"
+                            class="mt-4"
+                        >
+                            <button type="submit" class="member-button-danger w-full">Batalkan Jadwal Booking</button>
+                            <p class="mt-2 text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">Booking bisa dibatalkan paling lambat 3 jam sebelum kelas dimulai.</p>
+                        </x-confirm-form>
+                    @endif
+                </article>
+            @endforeach
+        </div>
+    @else
+        @include('member.partials.empty-state', [
+            'icon' => 'calendar',
+            'title' => 'Belum ada riwayat booking',
+            'body' => 'Riwayat kelas akan tampil setelah pendaftaran atau booking tercatat di sistem.',
+            'class' => 'mt-5 md:col-span-2',
+        ])
+    @endif
+
+    @include('member.partials.pagination', ['paginator' => $recentEnrollments, 'label' => 'riwayat booking'])
 </section>

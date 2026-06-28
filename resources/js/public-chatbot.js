@@ -127,6 +127,8 @@ function initChatbotRoot(root) {
     const input = root.querySelector('[data-chatbot-input]');
     const send = root.querySelector('[data-chatbot-send]');
     const escalation = root.querySelector('[data-chatbot-escalation]');
+    const triggerImages = root.querySelectorAll('[data-gymmi-trigger-image]');
+    const panelAvatars = root.querySelectorAll('[data-gymmi-panel-avatar]');
     let open = false;
     let typing = false;
     let lastFocusedElement = null;
@@ -136,19 +138,27 @@ function initChatbotRoot(root) {
     }
 
     renderMessage(messages, 'bot', normalizeBotReply(config.initialMessage ?? ''), root.dataset.chatbotVariant, config);
-    renderQuickReplies(quickReplies, config.quickReplies ?? [], (reply) => {
+    renderQuickReplies(quickReplies, config.quickReplies ?? [], root.dataset.chatbotVariant, (reply) => {
         if (typing) {
             return;
         }
 
         addUserMessage(reply, true);
-        queueReply(reply);
+        queueReply(reply, true);
     });
 
     if (escalation) {
         escalation.hidden = config.showEscalation === false;
         escalation.href = config.whatsappUrl ?? '#';
     }
+
+    triggerImages.forEach((image) => {
+        image.addEventListener('error', () => {
+            image.hidden = true;
+            image.nextElementSibling?.removeAttribute('hidden');
+        });
+    });
+    panelAvatars.forEach(bindPanelAvatarFallback);
 
     const setTypingState = (nextTyping) => {
         typing = nextTyping;
@@ -178,12 +188,18 @@ function initChatbotRoot(root) {
             }
 
             if (returnFocus) {
-                (lastFocusedElement ?? trigger).focus?.({ preventScroll: true });
+                const restoreFocus = () => (lastFocusedElement ?? trigger).focus?.({ preventScroll: true });
+
+                restoreFocus();
+                window.setTimeout(restoreFocus, 50);
             }
         });
     };
 
-    const close = () => setOpen(false);
+    const close = () => {
+        setOpen(false);
+        window.setTimeout(() => (lastFocusedElement ?? trigger).focus?.({ preventScroll: true }), 150);
+    };
 
     const submit = () => {
         const text = input.value.trim();
@@ -195,7 +211,7 @@ function initChatbotRoot(root) {
         addUserMessage(text, false);
         input.value = '';
         syncSendState(input, send, typing);
-        queueReply(text);
+        queueReply(text, false);
     };
 
     function addUserMessage(text, quickReply = false) {
@@ -203,16 +219,16 @@ function initChatbotRoot(root) {
         scrollToEnd(messagesEnd);
     }
 
-    async function queueReply(text) {
+    async function queueReply(text, preferLocal = false) {
         if (typing) {
             return;
         }
 
         setTypingState(true);
-        const typingEl = renderTyping(messages, config);
+        const typingEl = renderTyping(messages, config, root.dataset.chatbotVariant);
         scrollToEnd(messagesEnd);
 
-        const reply = await resolveAssistantReply(text, config, collectHistory(messages));
+        const reply = await resolveAssistantReply(text, config, collectHistory(messages), preferLocal);
 
         typingEl.remove();
         renderMessage(messages, 'bot', normalizeBotReply(reply), root.dataset.chatbotVariant, config);
@@ -222,8 +238,8 @@ function initChatbotRoot(root) {
     }
 
     trigger.addEventListener('click', () => {
-        lastFocusedElement = document.activeElement;
-        setOpen(true, false);
+        lastFocusedElement = trigger;
+        setOpen(true);
     });
 
     overlay?.addEventListener('click', close);
@@ -262,8 +278,12 @@ function initChatbotRoot(root) {
     setOpen(false, false);
 }
 
-async function resolveAssistantReply(text, config = {}, history = []) {
+async function resolveAssistantReply(text, config = {}, history = [], preferLocal = false) {
     const localReply = normalizeBotReply(resolveChatbotReply(text, config));
+
+    if (preferLocal) {
+        return localReply;
+    }
 
     if (!config.aiEnabled || !config.endpoint) {
         return localReply;
@@ -364,7 +384,7 @@ function resolveChatbotReply(text, config = {}) {
     return replies.fallback;
 }
 
-function renderQuickReplies(container, replies, onClick) {
+function renderQuickReplies(container, replies, variant = 'public', onClick) {
     if (!container) {
         return;
     }
@@ -374,7 +394,7 @@ function renderQuickReplies(container, replies, onClick) {
         const button = document.createElement('button');
         button.type = 'button';
         button.dataset.chatbotQuickReply = 'true';
-        button.className = 'inline-flex min-h-10 min-w-0 max-w-full touch-manipulation items-center whitespace-normal break-words rounded-full border border-zinc-700 bg-zinc-900 px-3 py-2 text-left text-xs font-bold leading-4 text-zinc-300 transition hover:border-gold-500/60 hover:text-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/30 disabled:cursor-not-allowed disabled:opacity-45';
+        button.className = 'inline-flex min-h-10 shrink-0 snap-start touch-manipulation items-center whitespace-nowrap rounded-full border border-zinc-200 bg-zinc-50 px-3 py-2 text-left text-xs font-bold leading-4 text-zinc-700 transition hover:border-gold-500/60 hover:text-gold-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/30 disabled:cursor-not-allowed disabled:opacity-45 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:text-gold-400';
         button.textContent = reply;
         button.addEventListener('click', () => {
             if (button.disabled) {
@@ -401,14 +421,14 @@ function renderMessage(container, from, reply, variant = 'public', config = {}, 
         : `${variant === 'member' ? 'max-w-[84%]' : 'max-w-[82%]'} flex min-w-0 flex-col items-start`;
 
     const bubble = document.createElement('p');
-    bubble.className = messageBubbleClass(isUser, options.quickReply === true);
+    bubble.className = messageBubbleClass(isUser, options.quickReply === true, variant);
     bubble.textContent = reply.text ?? '';
     bubbleWrap.append(bubble);
 
     if (reply.actionUrl && reply.actionLabel) {
         const action = document.createElement('a');
         action.href = reply.actionUrl;
-        action.className = 'mt-2 inline-flex min-h-10 max-w-full items-center justify-center whitespace-normal break-words rounded-lg border border-gold-500/40 px-3 py-2 text-center text-xs font-black leading-5 text-gold-400 transition hover:border-gold-500 hover:text-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40';
+        action.className = 'mt-2 inline-flex min-h-10 max-w-full items-center justify-center whitespace-normal break-words rounded-lg border border-gold-500/35 bg-gold-500/10 px-3 py-2 text-center text-xs font-black leading-5 text-gold-700 transition hover:border-gold-500 hover:text-gold-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:text-gold-400 dark:hover:text-gold-400';
         action.textContent = reply.actionLabel;
         bubbleWrap.append(action);
     }
@@ -416,28 +436,19 @@ function renderMessage(container, from, reply, variant = 'public', config = {}, 
     if (isUser) {
         item.append(bubbleWrap);
     } else {
-        const avatar = document.createElement('span');
-        avatar.className = 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-xs font-black text-zinc-200';
-        avatar.textContent = config.botInitials ?? 'GY';
-        avatar.setAttribute('aria-hidden', 'true');
-        item.append(avatar, bubbleWrap);
+        item.append(renderBotAvatar(config), bubbleWrap);
     }
 
     container.append(item);
 }
 
-function renderTyping(container, config = {}) {
+function renderTyping(container, config = {}, variant = 'public') {
     const item = document.createElement('div');
     item.className = 'flex min-w-0 items-start gap-2';
     item.setAttribute('aria-label', config.typingLabel ?? 'Gymmi sedang mengetik');
 
-    const avatar = document.createElement('span');
-    avatar.className = 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-xs font-black text-zinc-200';
-    avatar.textContent = config.botInitials ?? 'GY';
-    avatar.setAttribute('aria-hidden', 'true');
-
     const bubble = document.createElement('div');
-    bubble.className = 'flex items-center gap-1 rounded-2xl rounded-tl-sm bg-zinc-800 px-4 py-3';
+    bubble.className = 'flex items-center gap-1 rounded-2xl rounded-tl-sm border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-transparent dark:bg-zinc-800';
     bubble.setAttribute('role', 'status');
     bubble.setAttribute('aria-label', config.typingLabel ?? 'Gymmi sedang mengetik');
 
@@ -449,13 +460,88 @@ function renderTyping(container, config = {}) {
         bubble.append(dot);
     });
 
-    item.append(avatar, bubble);
+    item.append(renderBotAvatar(config), bubble);
     container.append(item);
 
     return item;
 }
 
-function messageBubbleClass(isUser, quickReply) {
+function renderBotAvatar(config = {}) {
+    const avatar = document.createElement('span');
+    avatar.className = 'gymmi-avatar';
+    avatar.setAttribute('aria-hidden', 'true');
+
+    const lightUrl = config.avatarLightUrl ?? null;
+    const darkUrl = config.avatarDarkUrl ?? lightUrl;
+
+    if (!lightUrl && !darkUrl) {
+        avatar.textContent = config.botInitials ?? 'GY';
+
+        return avatar;
+    }
+
+    const showFallback = () => {
+        if (!avatar.querySelector('img')) {
+            avatar.textContent = config.botInitials ?? 'GY';
+        }
+    };
+
+    if (lightUrl) {
+        avatar.append(createAvatarImage(lightUrl, darkUrl && darkUrl !== lightUrl ? 'block h-full w-full object-cover dark:hidden' : 'h-full w-full object-cover', showFallback));
+    }
+
+    if (darkUrl && darkUrl !== lightUrl) {
+        avatar.append(createAvatarImage(darkUrl, 'hidden h-full w-full object-cover dark:block', showFallback));
+    }
+
+    return avatar;
+}
+
+function createAvatarImage(src, className, onError) {
+    const image = document.createElement('img');
+    image.src = src;
+    image.alt = '';
+    image.loading = 'lazy';
+    image.decoding = 'async';
+    image.className = className;
+    image.addEventListener('error', () => {
+        image.remove();
+        onError();
+    });
+
+    return image;
+}
+
+function bindPanelAvatarFallback(avatar) {
+    const images = Array.from(avatar.querySelectorAll('[data-gymmi-panel-avatar-image]'));
+    const fallback = avatar.querySelector('.gymmi-panel-avatar-fallback');
+
+    if (!fallback || images.length === 0) {
+        return;
+    }
+
+    const syncFallback = () => {
+        const isDark = document.documentElement.classList.contains('dark');
+        const activeImages = images.filter((image) => (
+            isDark ? image.classList.contains('dark:block') : !image.classList.contains('dark:block')
+        ));
+
+        fallback.hidden = activeImages.some((image) => !image.hidden);
+    };
+
+    images.forEach((image) => {
+        image.addEventListener('error', () => {
+            image.hidden = true;
+            syncFallback();
+        });
+    });
+
+    syncFallback();
+
+    new MutationObserver(syncFallback).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+}
+
+function messageBubbleClass(isUser, quickReply, variant = 'public') {
     if (quickReply) {
         return 'max-w-full break-words rounded-full bg-gold-500 px-3 py-2 text-xs font-black leading-5 text-zinc-950 shadow-sm';
     }
@@ -464,7 +550,7 @@ function messageBubbleClass(isUser, quickReply) {
         return 'max-w-full break-words rounded-2xl rounded-tr-sm bg-gold-500 px-3.5 py-2.5 text-sm font-semibold leading-6 text-zinc-950 shadow-sm';
     }
 
-    return 'max-w-full break-words rounded-2xl rounded-tl-sm bg-zinc-800 px-3.5 py-2.5 text-sm leading-6 text-zinc-200';
+    return 'max-w-full break-words rounded-2xl rounded-tl-sm border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm leading-6 text-zinc-700 dark:border-transparent dark:bg-zinc-800 dark:text-zinc-200';
 }
 
 function syncSendState(input, send, typing = false) {

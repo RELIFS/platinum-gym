@@ -27,17 +27,26 @@ class CreatePaymentCheckoutAction
             throw new RuntimeException('Paket membership tidak tersedia.');
         }
 
-        $membership = Membership::create([
-            'member_id' => $member->id,
-            'package_id' => $package->id,
-            'code' => PaymentCode::membership(),
-            'start_date' => now()->toDateString(),
-            'end_date' => now()->addDays(max((int) ($package->duration_days ?? 30), 1) - 1)->toDateString(),
-            'price' => $this->packagePrice($package),
-            'status' => 'pending_payment',
-        ]);
+        return DB::transaction(function () use ($member, $package): Payment {
+            $member = $this->lockMember($member);
 
-        return $this->paymentFor($member, $membership, $this->packagePrice($package));
+            if ($payment = $this->openMembershipPayment($member, $package)) {
+                return $payment;
+            }
+
+            $membership = Membership::create([
+                'member_id' => $member->id,
+                'package_id' => $package->id,
+                'code' => PaymentCode::membership(),
+                'start_date' => null,
+                'end_date' => null,
+                'price' => $this->packagePrice($package),
+                'duration_days_snapshot' => max((int) ($package->effectiveDurationDays() ?? 30), 1),
+                'status' => 'pending_payment',
+            ]);
+
+            return $this->paymentFor($member, $membership, $this->packagePrice($package));
+        });
     }
 
     public function packageSession(Member $member, Package $package, ?int $trainerId = null): Payment
@@ -50,55 +59,124 @@ class CreatePaymentCheckoutAction
             throw new RuntimeException('Paket ini membutuhkan membership aktif.');
         }
 
-        $session = MemberPackageSession::create([
-            'member_id' => $member->id,
-            'package_id' => $package->id,
-            'trainer_id' => $trainerId,
-            'code' => PaymentCode::packageSession(),
-            'total_sessions' => (int) $package->session_count,
-            'used_sessions' => 0,
-            'remaining_sessions' => (int) $package->session_count,
-            'price' => $this->packagePrice($package),
-            'status' => 'pending_payment',
-        ]);
+        return DB::transaction(function () use ($member, $package, $trainerId): Payment {
+            $member = $this->lockMember($member);
 
-        return $this->paymentFor($member, $session, $this->packagePrice($package));
+            if ($payment = $this->openPackageSessionPayment($member, $package, $trainerId)) {
+                return $payment;
+            }
+
+            $session = MemberPackageSession::create([
+                'member_id' => $member->id,
+                'package_id' => $package->id,
+                'trainer_id' => $trainerId,
+                'code' => PaymentCode::packageSession(),
+                'total_sessions' => (int) $package->session_count,
+                'used_sessions' => 0,
+                'remaining_sessions' => (int) $package->session_count,
+                'price' => $this->packagePrice($package),
+                'status' => 'pending_payment',
+            ]);
+
+            return $this->paymentFor($member, $session, $this->packagePrice($package));
+        });
     }
 
     public function classEnrollment(Member $member, ClassEnrollment $enrollment, int|float $amount): Payment
     {
-        return $this->paymentFor($member, $enrollment, $amount);
+        return DB::transaction(function () use ($member, $enrollment, $amount): Payment {
+            $member = $this->lockMember($member);
+
+            if ($payment = $this->openPaymentForPayable($member, $enrollment)) {
+                return $payment;
+            }
+
+            return $this->paymentFor($member, $enrollment, $amount);
+        });
     }
 
     private function paymentFor(Member $member, Model $payable, int|float $amount): Payment
     {
-        return DB::transaction(function () use ($member, $payable, $amount): Payment {
-            $paymentCode = PaymentCode::payment();
+        $paymentCode = PaymentCode::payment();
 
-            $payment = Payment::create([
-                'payment_code' => $paymentCode,
-                'member_id' => $member->id,
-                'payable_type' => $payable::class,
-                'payable_id' => $payable->id,
-                'method' => 'midtrans',
-                'amount' => $amount,
-                'status' => 'waiting_payment',
-                'midtrans_order_id' => PaymentCode::midtransOrder($paymentCode),
-                'expires_at' => now()->addDay(),
-            ]);
+        $payment = Payment::create([
+            'payment_code' => $paymentCode,
+            'member_id' => $member->id,
+            'payable_type' => $payable::class,
+            'payable_id' => $payable->id,
+            'method' => 'midtrans',
+            'amount' => $amount,
+            'status' => 'waiting_payment',
+            'midtrans_order_id' => PaymentCode::midtransOrder($paymentCode),
+            'expires_at' => now()->addDay(),
+        ]);
 
-            $gateway = $this->gateway->createSnapTransaction($payment);
+        $gateway = $this->gateway->createSnapTransaction($payment);
 
-            $payment->forceFill([
-                'midtrans_snap_token' => $gateway['token'],
-                'midtrans_redirect_url' => $gateway['redirect_url'],
-                'midtrans_raw_response' => $gateway['raw'],
-            ])->save();
+        $payment->forceFill([
+            'midtrans_snap_token' => $gateway['token'],
+            'midtrans_redirect_url' => $gateway['redirect_url'],
+            'midtrans_raw_response' => $gateway['raw'],
+        ])->save();
 
-            $this->createInvoice->handle($payment);
+        $this->createInvoice->handle($payment);
 
-            return $payment->refresh();
-        });
+        return $payment->refresh();
+    }
+
+    private function lockMember(Member $member): Member
+    {
+        return Member::query()->lockForUpdate()->findOrFail($member->id);
+    }
+
+    private function openMembershipPayment(Member $member, Package $package): ?Payment
+    {
+        return Payment::query()
+            ->where('member_id', $member->id)
+            ->where('payable_type', Membership::class)
+            ->whereHasMorph('payable', [Membership::class], function ($query) use ($package): void {
+                $query->where('package_id', $package->id)
+                    ->where('status', 'pending_payment');
+            })
+            ->tap(fn ($query) => $this->openPaymentConstraints($query))
+            ->latest('created_at')
+            ->first();
+    }
+
+    private function openPackageSessionPayment(Member $member, Package $package, ?int $trainerId): ?Payment
+    {
+        return Payment::query()
+            ->where('member_id', $member->id)
+            ->where('payable_type', MemberPackageSession::class)
+            ->whereHasMorph('payable', [MemberPackageSession::class], function ($query) use ($package, $trainerId): void {
+                $query->where('package_id', $package->id)
+                    ->where('status', 'pending_payment')
+                    ->where('trainer_id', $trainerId);
+            })
+            ->tap(fn ($query) => $this->openPaymentConstraints($query))
+            ->latest('created_at')
+            ->first();
+    }
+
+    private function openPaymentForPayable(Member $member, Model $payable): ?Payment
+    {
+        return Payment::query()
+            ->where('member_id', $member->id)
+            ->where('payable_type', $payable::class)
+            ->where('payable_id', $payable->id)
+            ->tap(fn ($query) => $this->openPaymentConstraints($query))
+            ->latest('created_at')
+            ->first();
+    }
+
+    private function openPaymentConstraints(mixed $query): void
+    {
+        $query->whereIn('status', ['waiting_payment', 'pending', 'unpaid', 'waiting_confirmation'])
+            ->where(function ($query): void {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->whereNotNull('midtrans_redirect_url');
     }
 
     private function packagePrice(Package $package): float
@@ -109,9 +187,7 @@ class CreatePaymentCheckoutAction
     private function hasActiveMembership(Member $member): bool
     {
         return $member->memberships()
-            ->where('status', 'active')
-            ->whereDate('start_date', '<=', now()->toDateString())
-            ->whereDate('end_date', '>=', now()->toDateString())
+            ->activeForAccess()
             ->exists();
     }
 }

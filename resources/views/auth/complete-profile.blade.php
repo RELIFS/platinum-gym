@@ -13,11 +13,7 @@
             @csrf
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                    <label for="birth_date" class="auth-label">Tanggal Lahir</label>
-                    <input id="birth_date" class="auth-input" type="date" name="birth_date" value="{{ old('birth_date') }}" required max="{{ now()->subDay()->toDateString() }}" @error('birth_date') aria-invalid="true" @enderror>
-                    <x-input-error :messages="$errors->get('birth_date')" class="auth-error" />
-                </div>
+                <x-birth-date-selects />
 
                 <div>
                     <label for="gender" class="auth-label">Jenis Kelamin</label>
@@ -37,15 +33,7 @@
                 <x-input-error :messages="$errors->get('phone')" class="auth-error" />
             </div>
 
-            <div>
-                <label for="terms" class="flex cursor-pointer items-start gap-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                    <input id="terms" type="checkbox" name="terms" value="1" @checked(old('terms')) class="mt-0.5 rounded border-zinc-300 bg-white text-gold-500 shadow-sm focus:ring-gold-500 dark:border-zinc-700 dark:bg-zinc-950" required @error('terms') aria-invalid="true" @enderror>
-                    <span>
-                        Saya menyetujui <a href="{{ route('legal.terms') }}" class="auth-link">Syarat &amp; Ketentuan</a> dan <a href="{{ route('legal.privacy') }}" class="auth-link">Kebijakan Privasi</a> Platinum Gym Padang.
-                    </span>
-                </label>
-                <x-input-error :messages="$errors->get('terms')" class="auth-error" />
-            </div>
+            <x-auth.terms-checkbox />
 
             <button type="submit" class="auth-button-primary">
                 Simpan Profil Member

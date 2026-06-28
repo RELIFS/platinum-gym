@@ -150,10 +150,62 @@ test('complete profile screen can be rendered for google member onboarding', fun
         ->assertOk()
         ->assertSee('Lengkapi')
         ->assertSee('Profil')
+        ->assertSee('name="birth_date_display"', false)
         ->assertSee('name="birth_date"', false)
+        ->assertSee('placeholder="dd/mm/yyyy"', false)
+        ->assertSee('x-modelable="isoValue"', false)
+        ->assertSee('aria-label="Pilih tanggal lahir"', false)
+        ->assertSee('auth-terms-row', false)
+        ->assertSee('auth-terms-checkbox', false)
+        ->assertSee('auth-inline-link', false)
+        ->assertDontSee('Pilih tanggal lahir sesuai identitas.')
+        ->assertDontSee('class="auth-link">Syarat &amp; Ketentuan', false)
+        ->assertDontSee('name="birth_day"', false)
+        ->assertDontSee('name="birth_month"', false)
+        ->assertDontSee('name="birth_year"', false)
         ->assertSee('name="gender"', false)
         ->assertSee('name="phone"', false)
         ->assertSee('name="terms"', false);
+});
+
+test('complete profile accepts dd mm yyyy birth date display', function () {
+    $user = User::factory()->create([
+        'email' => 'complete-display@example.com',
+        'email_verified_at' => now(),
+        'phone' => null,
+    ]);
+    $user->assignRole('member');
+
+    $this->actingAs($user)->post('/member/complete-profile', [
+        'birth_date_display' => '15/01/2000',
+        'gender' => 'female',
+        'phone' => '+62 812-3456-7895',
+        'terms' => '1',
+    ])->assertRedirect('/member/dashboard');
+
+    expect($user->fresh()->member)->not->toBeNull()
+        ->and($user->member->birth_date->toDateString())->toBe('2000-01-15');
+});
+
+test('complete profile accepts separated birth date fields', function () {
+    $user = User::factory()->create([
+        'email' => 'complete-parts@example.com',
+        'email_verified_at' => now(),
+        'phone' => null,
+    ]);
+    $user->assignRole('member');
+
+    $this->actingAs($user)->post('/member/complete-profile', [
+        'birth_day' => '1',
+        'birth_month' => '1',
+        'birth_year' => '2000',
+        'gender' => 'female',
+        'phone' => '+62 812-3456-7892',
+        'terms' => '1',
+    ])->assertRedirect('/member/dashboard');
+
+    expect($user->fresh()->member)->not->toBeNull()
+        ->and($user->member->birth_date->toDateString())->toBe('2000-01-01');
 });
 
 test('complete profile creates member profile for google user', function () {
@@ -224,5 +276,43 @@ test('complete profile validation errors do not create member profile', function
     ]);
 
     $response->assertSessionHasErrors(['birth_date', 'gender', 'phone']);
+    expect($user->fresh()->member)->toBeNull();
+});
+
+test('complete profile rejects invalid separated birth date fields', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'phone' => null,
+    ]);
+    $user->assignRole('member');
+
+    $response = $this->actingAs($user)->post('/member/complete-profile', [
+        'birth_day' => '31',
+        'birth_month' => '2',
+        'birth_year' => '2000',
+        'gender' => 'male',
+        'phone' => '081234567894',
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasErrors(['birth_date']);
+    expect($user->fresh()->member)->toBeNull();
+});
+
+test('complete profile rejects invalid dd mm yyyy birth date display', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'phone' => null,
+    ]);
+    $user->assignRole('member');
+
+    $response = $this->actingAs($user)->post('/member/complete-profile', [
+        'birth_date_display' => '31/02/2000',
+        'gender' => 'male',
+        'phone' => '081234567896',
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasErrors(['birth_date']);
     expect($user->fresh()->member)->toBeNull();
 });

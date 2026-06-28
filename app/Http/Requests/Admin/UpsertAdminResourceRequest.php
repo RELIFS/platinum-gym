@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Features\Admin\Support\AdminResourceRegistry;
+use App\Features\Shared\Support\IndonesianDateFormat;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpsertAdminResourceRequest extends FormRequest
@@ -27,11 +28,27 @@ class UpsertAdminResourceRequest extends FormRequest
     {
         $registry = app(AdminResourceRegistry::class);
         $resource = (string) $this->route('resource');
+        $dates = collect($registry->definition($resource)['fields'])
+            ->filter(fn (array $field): bool => in_array($field['type'], ['date', 'datetime-local'], true))
+            ->mapWithKeys(function (array $field): array {
+                $name = $field['name'];
+
+                if (blank($this->input($name)) && filled($this->input($name.'_display'))) {
+                    $value = $field['type'] === 'datetime-local'
+                        ? IndonesianDateFormat::dateTimeFromDisplay($this->input($name.'_display'))
+                        : IndonesianDateFormat::dateFromDisplay($this->input($name.'_display'));
+
+                    return [$name => $value ?? 'invalid-date'];
+                }
+
+                return [];
+            })
+            ->all();
         $booleans = collect($registry->booleanFields($resource))
             ->mapWithKeys(fn (string $field): array => [$field => $this->boolean($field)])
             ->all();
 
-        $this->merge($booleans);
+        $this->merge($dates + $booleans);
     }
 
     public function attributes(): array
