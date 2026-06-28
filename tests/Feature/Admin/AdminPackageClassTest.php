@@ -21,7 +21,9 @@ test('admin can create package resource and benefits are stored as structured li
             'type' => 'gym',
             'gender_restriction' => 'all',
             'price' => 300000,
-            'duration_days' => 30,
+            'base_duration_days' => 90,
+            'bonus_duration_days' => 30,
+            'bonus_label' => 'Gratis 1 bulan',
             'benefits' => "Akses gym\nLoker harian",
             'is_active' => '1',
         ])
@@ -31,7 +33,39 @@ test('admin can create package resource and benefits are stored as structured li
 
     expect($package->slug)->toBe('paket-strength-qa')
         ->and($package->benefits)->toBe(['Akses gym', 'Loker harian'])
+        ->and($package->base_duration_days)->toBe(90)
+        ->and($package->bonus_duration_days)->toBe(30)
+        ->and($package->bonus_label)->toBe('Gratis 1 bulan')
+        ->and($package->duration_days)->toBe(120)
+        ->and($package->durationMarketingLabel())->toBe('3 bulan + gratis 1 bulan')
         ->and($package->is_active)->toBeTrue();
+});
+
+test('admin package form renders bonus duration fields and package table shows marketing duration', function () {
+    $admin = AdminFixture::admin();
+
+    AdminFixture::package([
+        'name' => 'Gym Umum 3 Bulan QA',
+        'slug' => 'gym-umum-3-bulan-qa',
+        'base_duration_days' => 90,
+        'bonus_duration_days' => 30,
+        'bonus_label' => 'Gratis 1 bulan',
+        'duration_days' => 120,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.resources.create', 'packages'))
+        ->assertOk()
+        ->assertSee('Durasi Dasar Hari')
+        ->assertSee('Bonus Durasi Hari')
+        ->assertSee('Label Bonus')
+        ->assertSee('Durasi Total Hari');
+
+    $this->actingAs($admin)
+        ->get(route('admin.packages'))
+        ->assertOk()
+        ->assertSee('Gym Umum 3 Bulan QA')
+        ->assertSee('3 bulan + gratis 1 bulan');
 });
 
 test('admin can create class and valid schedule resource', function () {

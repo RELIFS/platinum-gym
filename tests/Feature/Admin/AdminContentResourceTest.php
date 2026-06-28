@@ -1,6 +1,10 @@
 <?php
 
 use App\Models\Product;
+use App\Models\Promo;
+use App\Models\Testimonial;
+use Database\Seeders\PackageSeeder;
+use Database\Seeders\PromoSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -61,6 +65,71 @@ test('admin promo resource validates date range without saving invalid data', fu
         ->assertSessionHasErrors('ends_at');
 
     $this->assertDatabaseMissing('promos', ['title' => 'Promo Tanggal Salah']);
+});
+
+test('admin promo resource can be linked to a package', function () {
+    $admin = AdminFixture::admin();
+    $package = AdminFixture::package(['name' => 'Paket Promo Linked QA']);
+
+    $this->actingAs($admin)
+        ->post(route('admin.resources.store', 'promos'), [
+            'package_id' => $package->id,
+            'title' => 'Promo Paket Linked QA',
+            'starts_at_display' => now()->addDay()->format('d/m/Y H:i'),
+            'ends_at_display' => now()->addWeek()->format('d/m/Y H:i'),
+            'discount_type' => 'percentage',
+            'discount_value' => 15,
+            'is_published' => '1',
+        ])
+        ->assertRedirect(route('admin.promos'));
+
+    expect(Promo::where('title', 'Promo Paket Linked QA')->firstOrFail()->package_id)->toBe($package->id);
+});
+
+test('admin promo page renders official seeded gym duration promos as published content', function () {
+    $admin = AdminFixture::admin();
+    $this->seed([PackageSeeder::class, PromoSeeder::class]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.promos'))
+        ->assertOk()
+        ->assertSee('Beli Gym Umum 3 Bulan Gratis 1 Bulan')
+        ->assertSee('Beli Gym Umum 6 Bulan Gratis 2 Bulan')
+        ->assertSee('Tayang')
+        ->assertDontSee('Hemat 0%');
+});
+
+test('admin testimonial resource renders star rating and stores rating value', function () {
+    $admin = AdminFixture::admin();
+
+    $this->actingAs($admin)
+        ->get(route('admin.resources.create', 'testimonials'))
+        ->assertOk()
+        ->assertSee('role="radiogroup"', false)
+        ->assertSee('admin-star-rating', false)
+        ->assertSee('admin-star-rating-star', false)
+        ->assertSee('Klik bintang untuk memilih rating.')
+        ->assertSee('&#9733;', false)
+        ->assertSee('5 dari 5');
+
+    $this->actingAs($admin)
+        ->post(route('admin.resources.store', 'testimonials'), [
+            'name' => 'Testimoni Bintang QA',
+            'role' => 'Member',
+            'content' => 'Latihan makin konsisten.',
+            'rating' => 4,
+            'is_published' => '1',
+        ])
+        ->assertRedirect(route('admin.testimonials'));
+
+    $testimonial = Testimonial::where('name', 'Testimoni Bintang QA')->firstOrFail();
+
+    expect($testimonial->rating)->toBe(4);
+
+    $this->actingAs($admin)
+        ->get(route('admin.resources.edit', ['resource' => 'testimonials', 'id' => $testimonial->id]))
+        ->assertOk()
+        ->assertSee('value="4" class="admin-star-rating-input" checked', false);
 });
 
 test('admin can toggle boolean publication and active state resources', function () {

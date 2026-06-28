@@ -137,7 +137,8 @@ test('admin layout and data tables expose color polish utility classes', functio
         ->assertSee('admin-mobile-menu-button', false)
         ->assertSee('aria-controls="admin-mobile-navigation"', false)
         ->assertDontSee('bg-zinc-950 text-white shadow-[0_12px_28px_rgba(24,24,27,0.22)]', false)
-        ->assertSee('admin-nav-link-active', false)
+        ->assertSee('admin-sidebar-nav-link-active', false)
+        ->assertSee('admin-sidebar-icon-frame-active', false)
         ->assertSee('admin-table-head', false)
         ->assertSee('admin-table-row', false)
         ->assertSee('admin-table-cell', false)
@@ -148,6 +149,7 @@ test('admin layout and data tables expose color polish utility classes', functio
 test('admin booking widget renders status as semantic pill', function () {
     $admin = AdminFixtures::improvementsAdmin();
     [, $member] = AdminFixtures::improvementsMember('PG-ADMIN-IMP-BOOKING');
+    $sessionDate = now()->addDay();
 
     $gymClass = GymClass::create([
         'name' => 'Aerobic Pill Admin',
@@ -161,7 +163,7 @@ test('admin booking widget renders status as semantic pill', function () {
 
     $schedule = ClassSchedule::create([
         'gym_class_id' => $gymClass->id,
-        'day_of_week' => (int) now()->dayOfWeekIso,
+        'day_of_week' => (int) $sessionDate->dayOfWeekIso,
         'start_time' => '17:00:00',
         'end_time' => '18:00:00',
         'capacity' => 20,
@@ -171,7 +173,7 @@ test('admin booking widget renders status as semantic pill', function () {
     ClassEnrollment::create([
         'schedule_id' => $schedule->id,
         'member_id' => $member->id,
-        'session_date' => now()->toDateString(),
+        'session_date' => $sessionDate->toDateString(),
         'status' => 'booked',
     ]);
 
@@ -247,7 +249,7 @@ test('admin audit log uses user friendly wording', function () {
         ->assertOk()
         ->assertSee('Log Aktivitas Terbaru')
         ->assertSee('Jejak perubahan penting yang tercatat di sistem.')
-        ->assertSee('Jenis Perubahan')
+        ->assertSee('Jenis perubahan')
         ->assertSee('Semua aktivitas')
         ->assertSee('Admin')
         ->assertDontSee('Spatie Activitylog')
@@ -281,14 +283,21 @@ test('admin settings save form requires confirmation', function () {
         ->assertDontSee('Prefix Invoice');
 });
 
-test('admin notifications page renders semantic success status pill', function () {
+test('admin notifications page renders member activity feed', function () {
     $admin = AdminFixtures::improvementsAdmin();
+    [, $member] = AdminFixtures::improvementsMember('PG-ADMIN-NOTIF-ACTIVITY');
+    AdminFixtures::payment($member, overrides: [
+        'payment_code' => 'PAY-ADMIN-ACTIVITY',
+        'status' => 'paid',
+        'paid_at' => now(),
+    ]);
 
     $this->actingAs($admin)->get('/admin/notifikasi')
         ->assertOk()
-        ->assertSee('Kesiapan Notifikasi')
-        ->assertSee('Membership')
-        ->assertSee('Siap')
+        ->assertSee('Notifikasi Aktivitas Member')
+        ->assertSee('PAY-ADMIN-ACTIVITY')
+        ->assertSee('Pembayaran Lunas')
+        ->assertSee('PG-ADMIN-NOTIF-ACTIVITY')
         ->assertSee('admin-status-success', false);
 });
 
@@ -324,7 +333,7 @@ test('admin profile edit dispatches to admin account security page using admin l
         ->assertSee('Keamanan Akun Admin')
         ->assertSee('Informasi Akun')
         ->assertSee('Ubah Kata Sandi')
-        ->assertSee('Kata Sandi Saat Ini')
+        ->assertSee('Kata sandi saat ini')
         ->assertSee('Simpan Kata Sandi')
         ->assertDontSee('Ubah Password')
         ->assertSee('admin-card', false)
@@ -342,10 +351,10 @@ test('admin check-in page exposes camera scan region without manual check in fal
         ->assertSee('Pindai QR')
         ->assertSee('Cek Pratinjau')
         ->assertSee('Riwayat Check-in &amp; Sesi', false)
-        ->assertSee('Cari member, kode, paket, aktivitas...')
+        ->assertSee('Cari member, kode, paket, aktivitas')
         ->assertSee('name="date_from"', false)
         ->assertSee('name="date_to"', false)
-        ->assertSee('admin-toolbar', false)
+        ->assertSee('admin-filter-bar', false)
         ->assertSee('Belum ada riwayat check-in pada periode ini.')
         ->assertSee('Pantau check-in gym harian dan proses masuk member melalui QR kamera.')
         ->assertSee('id="admin-qr-camera-region"', false)

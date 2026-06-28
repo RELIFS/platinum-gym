@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\AccountInvitation;
 use App\Models\Member;
 use App\Models\User;
+use App\Notifications\Auth\MemberAccountInvitationNotification;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Support\Facades\Notification;
 use Tests\Feature\Admin\Support\AdminPortalFixtures as AdminFixture;
@@ -34,9 +36,20 @@ test('admin can create member resource with member role and profile record', fun
     $member = Member::query()->where('user_id', $user->id)->firstOrFail();
 
     expect($user->hasRole('member'))->toBeTrue()
+        ->and($user->hasVerifiedEmail())->toBeFalse()
         ->and($member->gender)->toBe('female')
         ->and($member->student_verification_status)->toBe('verified')
-        ->and($member->student_verified_at)->not->toBeNull();
+        ->and($member->student_verified_at)->not->toBeNull()
+        ->and(AccountInvitation::query()->where('user_id', $user->id)->whereNull('accepted_at')->exists())->toBeTrue();
+
+    Notification::assertSentTo($user, MemberAccountInvitationNotification::class, function (MemberAccountInvitationNotification $notification) use ($user): bool {
+        $rendered = $notification->toMail($user)->render();
+
+        return str_contains($notification->acceptUrl, '/undangan-akun/')
+            && str_contains($rendered, 'Atur Password &amp; Aktifkan Akun')
+            && str_contains($rendered, 'Undangan member')
+            && str_contains($rendered, 'hanya bisa dipakai satu kali');
+    });
 });
 
 test('admin member resource protects unique user email validation', function () {

@@ -642,7 +642,7 @@ test('admin can record cash payment and activate membership', function () {
         ->assertOk()
         ->assertSee('Pembayaran Tunai')
         ->assertSee('Catat Pembayaran Tunai')
-        ->assertSee('Tulis alasan penolakan')
+        ->assertSee('Contoh: Bukti pembayaran belum sesuai')
         ->assertDontSee('Pembayaran Cash')
         ->assertDontSee('Catat Cash');
 });
@@ -700,7 +700,7 @@ test('admin booking confirm uses guarded domain action', function () {
 test('admin booking cancel uses safe cancellation action', function () {
     $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
     [, $member] = AdminFixtures::member('PG-ADMIN-BOOKING-CANCEL');
-    [, , $enrollment] = AdminFixtures::classBooking($member, 'pending_payment');
+    [, , $enrollment] = AdminFixtures::classBooking($member, 'pending_payment', now()->addDay()->toDateString());
 
     $payment = Payment::create([
         'payment_code' => 'PAY-ADMIN-BOOKING-CANCEL',
@@ -741,7 +741,7 @@ test('admin booking cancel rejects attended and past bookings', function () {
     $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
     [, $member] = AdminFixtures::member('PG-ADMIN-BOOKING-CANCEL-GUARD');
 
-    [, $schedule, $attended] = AdminFixtures::classBooking($member, 'booked');
+    [, $schedule, $attended] = AdminFixtures::classBooking($member, 'booked', now()->addDay()->toDateString());
     ClassAttendance::create([
         'enrollment_id' => $attended->id,
         'schedule_id' => $schedule->id,
@@ -777,8 +777,9 @@ test('admin booking form shows synced schedule date metadata and indonesian vali
 
     $this->actingAs($admin)->get(route('admin.booking'))
         ->assertOk()
-        ->assertSee('Tanggal otomatis disesuaikan dengan hari jadwal kelas.')
-        ->assertSee('data-day-of-week="'.((int) $schedule->day_of_week).'"', false)
+        ->assertSee('Tanggal mengikuti hari jadwal kelas dan minimal 1 hari sebelum jadwal.')
+        ->assertSee('Jadwal mengikuti paket aktif member.')
+        ->assertSee('x-bind:data-day-of-week="schedule.day_of_week"', false)
         ->assertSee('adminBookingForm', false);
 
     $this->actingAs($admin)->post(route('admin.booking.store'), [
@@ -787,7 +788,7 @@ test('admin booking form shows synced schedule date metadata and indonesian vali
         'session_date' => now()->subDay()->toDateString(),
     ])
         ->assertRedirect()
-        ->assertSessionHasErrors(['session_date' => 'Tanggal kelas tidak boleh lebih awal dari hari ini.']);
+        ->assertSessionHasErrors(['session_date' => 'Booking kelas minimal 1 hari sebelum jadwal.']);
 });
 
 test('admin can update whitelisted public settings without exposing secrets', function () {
