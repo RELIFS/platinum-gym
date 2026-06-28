@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Features\Admin\Queries\AdminDashboardQuery;
+use App\Features\Auth\Actions\SendEmailVerificationCodeAction;
 use App\Features\MemberPortal\Queries\MemberDashboardQuery;
 use App\Features\Reports\Queries\OwnerReportQuery;
 use App\Http\Requests\ProfileUpdateRequest;
@@ -58,15 +59,22 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(ProfileUpdateRequest $request, SendEmailVerificationCodeAction $sendVerificationCode): RedirectResponse
     {
         $request->user()->fill($request->validated());
+        $emailChanged = $request->user()->isDirty('email');
 
-        if ($request->user()->isDirty('email')) {
+        if ($emailChanged) {
             $request->user()->email_verified_at = null;
         }
 
         $request->user()->save();
+
+        if ($emailChanged) {
+            $sendVerificationCode->handle($request->user());
+
+            return Redirect::route('verification.notice')->with('status', 'verification-code-sent');
+        }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

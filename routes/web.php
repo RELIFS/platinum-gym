@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminBookingController;
 use App\Http\Controllers\Admin\AdminCheckInController;
 use App\Http\Controllers\Admin\AdminInvoiceController;
+use App\Http\Controllers\Admin\AdminMemberInvitationController;
 use App\Http\Controllers\Admin\AdminPaymentController;
 use App\Http\Controllers\Admin\AdminProfilePhotoController;
 use App\Http\Controllers\Admin\AdminReportController;
@@ -54,6 +55,7 @@ Route::middleware(['auth', 'verified', 'role:member', 'member.profile.complete']
         Route::get('/dashboard', [MemberPortalController::class, 'dashboard'])->name('dashboard');
         Route::get('/profil', [MemberPortalController::class, 'profile'])->name('profile');
         Route::get('/profil/edit', [MemberPortalController::class, 'profileEdit'])->name('profile.edit');
+        Route::get('/profil/bukti-mahasiswa', [MemberProfileController::class, 'studentProof'])->name('profile.student-proof');
         Route::patch('/profil', [MemberProfileController::class, 'update'])->name('profile.update');
         Route::get('/membership', [MemberPortalController::class, 'membership'])->name('membership');
         Route::post('/membership/{package}/checkout', [MemberCheckoutController::class, 'membership'])->name('membership.checkout');
@@ -95,6 +97,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::patch('/resource/{resource}/{id}', [AdminResourceController::class, 'update'])->name('resources.update');
         Route::patch('/resource/{resource}/{id}/toggle', [AdminResourceStatusController::class, 'toggle'])->name('resources.toggle');
         Route::get('/anggota', [AdminPortalController::class, 'members'])->name('members');
+        Route::post('/anggota/{member}/undangan', AdminMemberInvitationController::class)->name('members.invitation.send');
         Route::get('/paket', [AdminPortalController::class, 'packages'])->name('packages');
         Route::get('/kelas', [AdminPortalController::class, 'classes'])->name('classes');
         Route::get('/pembayaran', [AdminPortalController::class, 'payments'])->name('payments');
