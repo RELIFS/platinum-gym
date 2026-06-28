@@ -14,14 +14,14 @@
             'label' => 'Utama',
             'items' => [
                 ['label' => 'Dashboard', 'route' => 'member.dashboard', 'active' => 'member.dashboard', 'icon' => 'dashboard'],
-                ['label' => 'Membership', 'route' => 'member.membership', 'active' => 'member.membership', 'icon' => 'card'],
-                ['label' => 'QR Member', 'route' => 'member.qr', 'active' => 'member.qr', 'icon' => 'qr'],
+                ['label' => 'Membership', 'route' => 'member.membership', 'active' => 'member.membership', 'icon' => 'membership-card'],
+                ['label' => 'QR Member', 'route' => 'member.qr', 'active' => 'member.qr', 'icon' => 'qr-scan'],
             ],
         ],
         [
             'label' => 'Aktivitas',
             'items' => [
-                ['label' => 'Booking Kelas', 'route' => 'member.booking', 'active' => 'member.booking', 'icon' => 'calendar'],
+                ['label' => 'Booking Kelas', 'route' => 'member.booking', 'active' => 'member.booking', 'icon' => 'calendar-check'],
                 ['label' => 'Riwayat Booking', 'route' => 'member.bookings', 'active' => 'member.bookings', 'icon' => 'history'],
                 ['label' => 'Transaksi', 'route' => 'member.transactions', 'active' => 'member.transactions', 'icon' => 'receipt'],
                 ['label' => 'Notifikasi', 'route' => 'member.notifications', 'active' => 'member.notifications', 'icon' => 'bell', 'count' => $unreadNotificationsCount],
@@ -71,28 +71,20 @@
                                 <p class="mb-2 px-3 text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-400 dark:text-zinc-500">{{ $group['label'] }}</p>
                                 <div class="space-y-1">
                                     @foreach ($group['items'] as $item)
-                                        @php($isActive = request()->routeIs($item['active']))
-                                        <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="group flex min-h-11 items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-950 {{ $isActive ? 'border-gold-500/35 bg-gold-500/10 text-gold-700 dark:border-white/10 dark:bg-white/[0.09] dark:text-white' : 'border-transparent text-zinc-600 hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/[0.07] dark:hover:text-white' }}">
-                                            <span class="grid h-8 w-8 shrink-0 place-items-center rounded-md {{ $isActive ? 'bg-gold-500 text-zinc-950' : 'bg-zinc-100 text-zinc-500 group-hover:text-gold-600 dark:bg-white/[0.06] dark:text-zinc-400 dark:group-hover:text-gold-400' }}">
-                                                @include('member.partials.icon', ['name' => $item['icon'], 'class' => 'h-4 w-4'])
-                                            </span>
-                                            <span class="min-w-0 flex-1 truncate">{{ $item['label'] }}</span>
-                                            @if (($item['count'] ?? 0) > 0)
-                                                <span class="rounded-full bg-gold-500 px-2 py-0.5 text-[0.65rem] font-black text-zinc-950">{{ $item['count'] }}</span>
-                                            @endif
-                                        </a>
+                                        @include('member.partials.sidebar-navigation-item', ['item' => $item])
                                     @endforeach
                                 </div>
                             </div>
                         @endforeach
 
                         <div class="border-t border-zinc-200 pt-5 dark:border-white/10">
-                            <a href="{{ route('public.home') }}" class="group flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-bold text-zinc-600 transition hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/[0.07] dark:hover:text-white dark:focus-visible:ring-offset-zinc-950" data-member-website-link="desktop" data-member-website-placement="menu">
-                                <span class="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-zinc-100 text-zinc-500 group-hover:text-gold-600 dark:bg-white/[0.06] dark:text-zinc-400 dark:group-hover:text-gold-400">
-                                    @include('member.partials.icon', ['name' => 'arrow', 'class' => 'h-4 w-4'])
-                                </span>
-                                <span class="min-w-0 flex-1 truncate">Website Utama</span>
-                            </a>
+                            @include('member.partials.sidebar-navigation-item', [
+                                'item' => [],
+                                'href' => route('public.home'),
+                                'label' => 'Website Utama',
+                                'icon' => 'globe',
+                                'websiteLink' => 'desktop',
+                            ])
                         </div>
                     </nav>
                 </div>
@@ -133,24 +125,21 @@
                                 <p class="mb-2 px-3 text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-500">{{ $group['label'] }}</p>
                                 <div class="grid gap-1">
                                     @foreach ($group['items'] as $item)
-                                        @php($isActive = request()->routeIs($item['active']))
-                                        <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 {{ $isActive ? 'border-gold-500/35 bg-gold-500/10 text-gold-700 dark:text-gold-400' : 'text-zinc-600 hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/10 dark:hover:text-white' }}" x-on:click="closeMemberMenu()">
-                                            @include('member.partials.icon', ['name' => $item['icon'], 'class' => 'h-5 w-5 shrink-0'])
-                                            <span class="min-w-0 flex-1 truncate">{{ $item['label'] }}</span>
-                                            @if (($item['count'] ?? 0) > 0)
-                                                <span class="rounded-full bg-gold-500 px-2 py-0.5 text-[0.65rem] font-black text-zinc-950">{{ $item['count'] }}</span>
-                                            @endif
-                                        </a>
+                                        @include('member.partials.sidebar-navigation-item', ['item' => $item, 'mobile' => true])
                                     @endforeach
                                 </div>
                             </div>
                         @endforeach
 
                         <div class="border-t border-zinc-200 pt-5 dark:border-white/10">
-                            <a href="{{ route('public.home') }}" class="flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-bold text-zinc-600 transition hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/10 dark:hover:text-white" data-member-website-link="mobile" data-member-website-placement="menu" x-on:click="closeMemberMenu()">
-                                @include('member.partials.icon', ['name' => 'arrow', 'class' => 'h-5 w-5 shrink-0'])
-                                <span class="min-w-0 flex-1 truncate">Website Utama</span>
-                            </a>
+                            @include('member.partials.sidebar-navigation-item', [
+                                'item' => [],
+                                'mobile' => true,
+                                'href' => route('public.home'),
+                                'label' => 'Website Utama',
+                                'icon' => 'globe',
+                                'websiteLink' => 'mobile',
+                            ])
                         </div>
                     </nav>
                 </div>
