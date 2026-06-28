@@ -21,6 +21,9 @@ use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
@@ -44,15 +47,105 @@ function configureGeminiForTest(array $overrides = []): void
     ], $overrides));
 }
 
+function writeGymmiKnowledgeWorkbookFixture(string $path): void
+{
+    File::ensureDirectoryExists(dirname($path));
+    File::delete($path);
+
+    $workbook = new Spreadsheet;
+
+    fillGymmiKnowledgeSheet($workbook->getActiveSheet()->setTitle('Config'), [
+        ['Config Key', 'Value', 'Status'],
+        ['Jam Operasional Senin Sabtu', '08:00-22:00', 'Aktif'],
+        ['Email', 'Tidak tersedia', 'Aktif'],
+    ]);
+
+    $sheets = [
+        'FAQ' => [
+            ['ID', 'Kategori', 'Pertanyaan', 'Jawaban', 'Sumber Sheet', 'Status'],
+            ['FAQ-001', 'Membership', 'Apakah membership sudah termasuk Personal Trainer?', 'Tidak. Personal Trainer adalah layanan terpisah dengan paket 5x, 10x, dan 24x pertemuan.', 'FAQ', 'Aktif'],
+            ['FAQ-002', 'Draft', 'Pertanyaan draft', 'Jawaban draft', 'FAQ', 'Draft'],
+        ],
+        'Alias' => [
+            ['ID', 'Kategori', 'Kata User', 'Maksud', 'Status'],
+            ['AL-001', 'Layanan Gym', 'fitnes padang', 'gym', 'Aktif'],
+            ['AL-002', 'Class', 'jam muaythai', 'jadwal Muaythai', 'Aktif'],
+            ['AL-003', 'Pendaftaran', 'bukti mahasiswa', 'syarat mahasiswa / KTM', 'Aktif'],
+            ['AL-004', 'Duplikat', 'Fitnes Padang', 'duplikat yang harus diabaikan', 'Aktif'],
+            ['AL-005', 'Draft', 'alias draft', 'draft', 'Draft'],
+        ],
+        'Membership' => [
+            ['ID', 'Nama', 'Status'],
+            ['MBR-001', 'Gym Umum', 'Aktif'],
+            ['MBR-002', 'Gym Draft', 'Draft'],
+        ],
+        'Fasilitas' => [['ID', 'Nama', 'Status']],
+        'Alat_Gym' => [['ID', 'Nama', 'Status']],
+        'Coach' => [['ID', 'Nama', 'Status']],
+        'Personal_Trainer' => [['ID', 'Nama', 'Status']],
+        'Class_Senam' => [['ID', 'Nama', 'Status']],
+        'Class_Terpisah' => [['ID', 'Nama', 'Status']],
+        'Makanan' => [['ID', 'Nama', 'Status']],
+        'Minuman' => [['ID', 'Nama', 'Status']],
+        'Produk_Lainnya' => [['ID', 'Nama', 'Status']],
+        'Kebijakan' => [['ID', 'Nama', 'Status']],
+        'Validasi_Data' => [
+            ['ID', 'Item', 'Status'],
+            ['VAL-001', 'Fixture import', 'Selesai'],
+        ],
+    ];
+
+    foreach ($sheets as $title => $rows) {
+        fillGymmiKnowledgeSheet($workbook->createSheet()->setTitle($title), $rows);
+    }
+
+    (new Xlsx($workbook))->save($path);
+    $workbook->disconnectWorksheets();
+}
+
+/**
+ * @param  array<int, array<int, string>>  $rows
+ */
+function fillGymmiKnowledgeSheet(Worksheet $sheet, array $rows): void
+{
+    $sheet->fromArray($rows, null, 'A1');
+}
+
 test('gymmi imports workbook knowledge without unavailable email config', function () {
+    $source = storage_path('framework/testing/gymmi-knowledge-source.xlsx');
     $output = storage_path('framework/testing/gymmi-knowledge-test.json');
-    File::ensureDirectoryExists(dirname($output));
     File::delete($output);
 
-    $this->artisan('gymmi:import-knowledge', ['--output' => $output])
+    writeGymmiKnowledgeWorkbookFixture($source);
+
+    $this->artisan('gymmi:import-knowledge', ['source' => $source, '--output' => $output])
         ->assertExitCode(0);
 
     $payload = json_decode((string) File::get($output), true);
+
+    expect($payload['metadata']['available'])->toBeTrue()
+        ->and($payload['metadata']['counts']['faq'])->toBe(1)
+        ->and($payload['metadata']['counts']['aliases'])->toBe(3)
+        ->and($payload['config'])->not->toHaveKey('email')
+        ->and($payload['config']['jam_operasional_senin_sabtu']['value'])->toBe('08:00-22:00')
+        ->and($payload['catalog']['membership'])->toHaveCount(1)
+        ->and($payload['validation'])->toHaveCount(1);
+
+    expect(collect($payload['faq'])->firstWhere('question', 'Apakah membership sudah termasuk Personal Trainer?'))
+        ->toMatchArray([
+            'category' => 'Membership',
+            'answer' => 'Tidak. Personal Trainer adalah layanan terpisah dengan paket 5x, 10x, dan 24x pertemuan.',
+        ])
+        ->and(collect($payload['aliases'])->firstWhere('phrase', 'fitnes padang'))
+        ->toMatchArray(['category' => 'Layanan Gym', 'intent' => 'gym'])
+        ->and(collect($payload['aliases'])->firstWhere('phrase', 'jam muaythai'))
+        ->toMatchArray(['category' => 'Class', 'intent' => 'jadwal Muaythai'])
+        ->and(collect($payload['aliases'])->firstWhere('phrase', 'bukti mahasiswa'))
+        ->toMatchArray(['category' => 'Pendaftaran', 'intent' => 'syarat mahasiswa / KTM']);
+});
+
+test('gymmi compiled knowledge artifact includes latest workbook refresh', function () {
+    $payload = json_decode((string) File::get(resource_path('data/gymmi/knowledge-base.json')), true);
 
     expect($payload['metadata']['available'])->toBeTrue()
         ->and($payload['metadata']['counts']['faq'])->toBe(137)
