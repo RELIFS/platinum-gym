@@ -76,15 +76,7 @@
                 'placeholder' => 'Ulangi kata sandi',
             ])
 
-            <div>
-                <label for="terms" class="flex cursor-pointer items-start gap-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                    <input id="terms" type="checkbox" name="terms" value="1" @checked(old('terms')) class="mt-0.5 rounded border-zinc-300 bg-white text-gold-500 shadow-sm focus:ring-gold-500 dark:border-zinc-700 dark:bg-zinc-950" required @error('terms') aria-invalid="true" aria-describedby="terms-error" @enderror>
-                    <span>
-                        Saya menyetujui <a href="{{ route('legal.terms') }}" class="auth-link">Syarat &amp; Ketentuan</a> dan <a href="{{ route('legal.privacy') }}" class="auth-link">Kebijakan Privasi</a> Platinum Gym Padang.
-                    </span>
-                </label>
-                <x-input-error id="terms-error" :messages="$errors->get('terms')" class="auth-error" />
-            </div>
+            <x-auth.terms-checkbox />
 
             <button type="submit" class="auth-button-primary">
                 Daftar Sekarang

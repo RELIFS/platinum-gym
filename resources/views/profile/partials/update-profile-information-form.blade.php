@@ -38,9 +38,9 @@
                         </button>
                     </p>
 
-                    @if (session('status') === 'verification-link-sent')
+                    @if (session('status') === 'verification-code-sent')
                         <p class="mt-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                            Link verifikasi baru sudah dikirim ke email Anda.
+                            Kode verifikasi baru sudah dikirim ke email Anda.
                         </p>
                     @endif
                 </div>

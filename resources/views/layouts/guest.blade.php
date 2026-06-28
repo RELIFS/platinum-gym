@@ -15,26 +15,27 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="bg-zinc-50 font-sans text-zinc-950 antialiased selection:bg-gold-500 selection:text-zinc-950 dark:bg-zinc-950 dark:text-zinc-100">
+    <body class="font-sans antialiased bg-zinc-50 text-zinc-950 selection:bg-gold-500 selection:text-zinc-950 dark:bg-zinc-950 dark:text-zinc-100">
         <div class="flex min-h-dvh bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-100">
             <aside class="relative hidden min-h-dvh w-[48%] overflow-hidden bg-zinc-950 lg:flex xl:w-1/2">
-                <div class="absolute inset-0 bg-cover bg-center opacity-75" aria-hidden="true" style="background-image: url('{{ asset('images/public/gallery/platinum-gym-padang-bench-press-detail.webp') }}');"></div>
+                <div class="absolute inset-0 bg-center bg-cover opacity-75" aria-hidden="true" style="background-image: url('{{ asset('images/public/gallery/platinum-gym-padang-bench-press-detail.webp') }}');"></div>
                 <div class="absolute inset-0 bg-[linear-gradient(135deg,rgba(3,3,3,0.94)_0%,rgba(9,9,11,0.78)_48%,rgba(9,9,11,0.46)_100%)]" aria-hidden="true"></div>
                 <div class="absolute inset-0 opacity-[0.10]" aria-hidden="true" style="background-image: linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px); background-size: 56px 56px;"></div>
                 <div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-gold-500/18 via-zinc-950/30 to-transparent"></div>
-                <div class="absolute -left-24 top-24 h-72 w-72 rounded-full bg-gold-500/20 blur-3xl" aria-hidden="true"></div>
+                <div class="absolute rounded-full -left-24 top-24 h-72 w-72 bg-gold-500/20 blur-3xl" aria-hidden="true"></div>
 
-                <div class="relative z-10 flex h-full w-full flex-col justify-between p-12 xl:p-16">
-                    <a href="/" class="inline-flex w-fit items-center text-white" aria-label="Platinum Gym Padang">
-                        <img src="{{ asset('images/brand/platinum-gym-wordmark-480.webp') }}" alt="Platinum Gym Padang" class="brand-logo h-12 w-auto" draggable="false" width="480" height="112">
+                <div class="relative z-10 flex flex-col justify-between w-full h-full p-12 xl:p-16">
+                    <a href="/" class="inline-flex items-center text-white w-fit" aria-label="Platinum Gym Padang">
+                        <img src="{{ asset('images/brand/platinum-gym-wordmark-480.webp') }}" alt="Platinum Gym Padang" class="w-auto h-12 brand-logo" draggable="false" width="480" height="112">
                     </a>
 
                     <div class="max-w-xl">
-                        <div class="mb-8 inline-flex items-center rounded-lg border border-gold-500/35 bg-zinc-950/45 px-4 py-2 text-sm font-semibold text-gold-400 shadow-2xl shadow-zinc-950/30 backdrop-blur-md">
+                        <div class="inline-flex items-center px-4 py-2 mb-8 text-sm font-semibold border rounded-lg shadow-2xl border-gold-500/35 bg-zinc-950/45 text-gold-400 shadow-zinc-950/30 backdrop-blur-md">
                             Premium Fitness Center Padang
                         </div>
                         <div class="mb-6 text-5xl font-extrabold leading-tight text-white xl:text-6xl" aria-hidden="true">
-                            PUSH YOUR<br><span class="text-gold-500">LIMITS.</span>
+                            <span class="block">YOUR COMFORT</span>
+                            <span class="block text-gold-500">GYM</span>
                         </div>
                         <p class="max-w-md text-lg leading-8 text-zinc-300 xl:text-xl">
                             Masuk, kelola membership, dan lanjutkan progres latihan Anda bersama Platinum Gym Padang.
@@ -42,15 +43,15 @@
                     </div>
 
                     <div class="grid max-w-lg grid-cols-3 gap-3">
-                        <div class="rounded-xl border border-white/10 bg-zinc-950/35 p-4 backdrop-blur-md">
+                        <div class="p-4 border rounded-xl border-white/10 bg-zinc-950/35 backdrop-blur-md">
                             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Member</p>
                             <p class="mt-2 text-sm font-bold text-white">Portal Akun</p>
                         </div>
-                        <div class="rounded-xl border border-white/10 bg-zinc-950/35 p-4 backdrop-blur-md">
+                        <div class="p-4 border rounded-xl border-white/10 bg-zinc-950/35 backdrop-blur-md">
                             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Booking</p>
                             <p class="mt-2 text-sm font-bold text-white">Kelas Gym</p>
                         </div>
-                        <div class="rounded-xl border border-white/10 bg-zinc-950/35 p-4 backdrop-blur-md">
+                        <div class="p-4 border rounded-xl border-white/10 bg-zinc-950/35 backdrop-blur-md">
                             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Check-in</p>
                             <p class="mt-2 text-sm font-bold text-white">QR Member</p>
                         </div>
@@ -72,8 +73,8 @@
                 </div>
 
                 <div class="relative z-10 w-full max-w-[30rem]">
-                    <a href="/" class="mb-6 inline-flex items-center lg:hidden" aria-label="Platinum Gym Padang">
-                        <img src="{{ asset('images/brand/platinum-gym-wordmark-480.webp') }}" alt="Platinum Gym Padang" class="brand-logo h-11 w-auto" draggable="false" width="480" height="112">
+                    <a href="/" class="inline-flex items-center mb-6 lg:hidden" aria-label="Platinum Gym Padang">
+                        <img src="{{ asset('images/brand/platinum-gym-wordmark-480.webp') }}" alt="Platinum Gym Padang" class="w-auto brand-logo h-11" draggable="false" width="480" height="112">
                     </a>
 
                     <div class="auth-panel">
