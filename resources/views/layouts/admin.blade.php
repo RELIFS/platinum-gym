@@ -47,17 +47,20 @@
                                 <p class="mb-2 px-3 text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-400 dark:text-zinc-500">{{ $group['label'] }}</p>
                                 <div class="space-y-1">
                                     @foreach ($group['items'] as $item)
-                                        @php($isActive = request()->routeIs($item['active']))
-                                        <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="group admin-nav-link {{ $isActive ? 'admin-nav-link-active' : '' }}">
-                                            <span class="admin-nav-icon {{ $isActive ? 'admin-nav-icon-active' : '' }}">
-                                                @include('admin.partials.icon', ['name' => $item['icon'], 'class' => 'h-4 w-4'])
-                                            </span>
-                                            <span class="min-w-0 flex-1 truncate">{{ $item['label'] }}</span>
-                                        </a>
+                                        @include('admin.partials.sidebar-navigation-item', ['item' => $item])
                                     @endforeach
                                 </div>
                             </div>
                         @endforeach
+
+                        <div class="border-t border-zinc-200 pt-5 dark:border-white/10">
+                            @include('admin.partials.sidebar-navigation-item', [
+                                'href' => route('public.home'),
+                                'label' => 'Website Utama',
+                                'icon' => 'globe',
+                                'websiteLink' => 'desktop',
+                            ])
+                        </div>
                     </nav>
                 </div>
 
@@ -98,15 +101,21 @@
                                 <p class="mb-2 px-3 text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-400 dark:text-zinc-500">{{ $group['label'] }}</p>
                                 <div class="grid gap-1">
                                     @foreach ($group['items'] as $item)
-                                        @php($isActive = request()->routeIs($item['active']))
-                                        <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="admin-nav-link {{ $isActive ? 'admin-nav-link-active text-gold-700' : '' }}" x-on:click="closeAdminMenu()">
-                                            @include('admin.partials.icon', ['name' => $item['icon'], 'class' => 'h-5 w-5 shrink-0'])
-                                            <span class="min-w-0 flex-1 truncate">{{ $item['label'] }}</span>
-                                        </a>
+                                        @include('admin.partials.sidebar-navigation-item', ['item' => $item, 'mobile' => true])
                                     @endforeach
                                 </div>
                             </div>
                         @endforeach
+
+                        <div class="border-t border-zinc-200 pt-5 dark:border-white/10">
+                            @include('admin.partials.sidebar-navigation-item', [
+                                'href' => route('public.home'),
+                                'label' => 'Website Utama',
+                                'icon' => 'globe',
+                                'mobile' => true,
+                                'websiteLink' => 'mobile',
+                            ])
+                        </div>
                     </nav>
                 </div>
 
