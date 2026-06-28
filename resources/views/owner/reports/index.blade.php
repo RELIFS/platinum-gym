@@ -46,11 +46,11 @@
                 </div>
                 <div>
                     <label for="date_from" class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Dari tanggal</label>
-                    <input id="date_from" name="date_from" type="date" value="{{ $filters->from->toDateString() }}" class="owner-form-input mt-2">
+                    <x-local-date-input id="date_from" name="date_from" :value="$filters->from->toDateString()" class="owner-form-input mt-2" />
                 </div>
                 <div>
                     <label for="date_to" class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Sampai tanggal</label>
-                    <input id="date_to" name="date_to" type="date" value="{{ $filters->to->toDateString() }}" class="owner-form-input mt-2">
+                    <x-local-date-input id="date_to" name="date_to" :value="$filters->to->toDateString()" class="owner-form-input mt-2" />
                 </div>
                 <div>
                     <label for="method" class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Metode</label>

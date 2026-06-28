@@ -131,8 +131,8 @@ class OwnerReportQuery
             'members' => [
                 ['label' => 'Member baru', 'value' => (string) Member::query()->whereBetween('joined_at', [$filters->from->toDateString(), $filters->to->toDateString()])->count(), 'description' => 'Member yang bergabung pada periode ini.'],
                 ['label' => 'Member aktif', 'value' => (string) Member::query()->where('status', 'active')->count(), 'description' => 'Total member aktif saat laporan dibuka.'],
-                ['label' => 'Membership aktif', 'value' => (string) Membership::query()->where('status', 'active')->whereDate('end_date', '>=', now()->toDateString())->count(), 'description' => 'Membership yang masih aktif.'],
-                ['label' => 'Akan berakhir', 'value' => (string) Membership::query()->where('status', 'active')->whereBetween('end_date', [now()->toDateString(), now()->addDays(14)->toDateString()])->count(), 'description' => 'Membership aktif yang berakhir dalam 14 hari.'],
+                ['label' => 'Membership aktif', 'value' => (string) Membership::query()->activeForAccess()->count(), 'description' => 'Membership yang masih aktif atau menunggu check-in pertama.'],
+                ['label' => 'Akan berakhir', 'value' => (string) Membership::query()->where('status', 'active')->whereNotNull('end_date')->whereBetween('end_date', [now()->toDateString(), now()->addDays(14)->toDateString()])->count(), 'description' => 'Membership aktif yang berakhir dalam 14 hari.'],
             ],
             'classes' => [
                 ['label' => 'Booking periode ini', 'value' => (string) ClassEnrollment::query()->whereBetween('session_date', [$filters->from->toDateString(), $filters->to->toDateString()])->whereNotIn('status', ['cancelled', 'canceled'])->count(), 'description' => 'Booking kelas dalam periode laporan.'],
@@ -260,7 +260,7 @@ class OwnerReportQuery
             $membership->member?->user?->name ?? $membership->member?->member_code ?? '-',
             $membership->code,
             $membership->package?->name ?? 'Membership',
-            ($membership->start_date?->translatedFormat('d M Y') ?? '-').' - '.($membership->end_date?->translatedFormat('d M Y') ?? '-'),
+            $membership->validityLabel(),
             $this->statusLabel($membership->status),
         ];
     }
@@ -313,8 +313,19 @@ class OwnerReportQuery
     {
         $query = Membership::query()
             ->with(['member.user', 'package'])
-            ->whereDate('start_date', '<=', $filters->to->toDateString())
-            ->whereDate('end_date', '>=', $filters->from->toDateString())
+            ->where(function (Builder $query) use ($filters): void {
+                $query
+                    ->where(function (Builder $query) use ($filters): void {
+                        $query
+                            ->whereDate('start_date', '<=', $filters->to->toDateString())
+                            ->whereDate('end_date', '>=', $filters->from->toDateString());
+                    })
+                    ->orWhere(function (Builder $query) use ($filters): void {
+                        $query
+                            ->awaitingFirstCheckIn()
+                            ->whereDate('created_at', '<=', $filters->to->toDateString());
+                    });
+            })
             ->latest('created_at');
 
         if (filled($filters->status)) {

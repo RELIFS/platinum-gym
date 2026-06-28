@@ -94,8 +94,8 @@
                 <div class="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-800 dark:text-amber-200">
                     Email belum diverifikasi.
                     <button form="send-verification" class="ml-1 underline hover:no-underline focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40">Kirim ulang email verifikasi.</button>
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-bold text-emerald-700 dark:text-emerald-300">Link verifikasi baru sudah dikirim.</p>
+                    @if (session('status') === 'verification-code-sent')
+                        <p class="mt-2 font-bold text-emerald-700 dark:text-emerald-300">Kode verifikasi baru sudah dikirim.</p>
                     @endif
                 </div>
             @endif

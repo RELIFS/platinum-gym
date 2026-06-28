@@ -52,7 +52,7 @@ class OwnerDashboardQuery
             ['label' => 'Pendapatan periode ini', 'value' => $this->reports->money((clone $paidPayments)->sum('amount')), 'description' => 'Total transaksi lunas bulan berjalan.'],
             ['label' => 'Transaksi terkonfirmasi', 'value' => (string) (clone $paidPayments)->count(), 'description' => 'Pembayaran berstatus lunas.'],
             ['label' => 'Member aktif', 'value' => (string) Member::query()->where('status', 'active')->count(), 'description' => 'Member dengan status aktif.'],
-            ['label' => 'Membership aktif', 'value' => (string) Membership::query()->where('status', 'active')->whereDate('end_date', '>=', now()->toDateString())->count(), 'description' => 'Membership yang masih berjalan.'],
+            ['label' => 'Membership aktif', 'value' => (string) Membership::query()->activeForAccess()->count(), 'description' => 'Membership yang masih berjalan atau menunggu check-in pertama.'],
             ['label' => 'Booking periode ini', 'value' => (string) ClassEnrollment::query()->whereBetween('session_date', [$filters->from->toDateString(), $filters->to->toDateString()])->whereNotIn('status', ['cancelled', 'canceled'])->count(), 'description' => 'Booking kelas bulan berjalan.'],
         ];
     }
@@ -143,6 +143,7 @@ class OwnerDashboardQuery
         return Membership::query()
             ->with(['member.user', 'package'])
             ->where('status', 'active')
+            ->whereNotNull('end_date')
             ->whereBetween('end_date', [now()->toDateString(), now()->addDays(14)->toDateString()])
             ->orderBy('end_date')
             ->limit(6)

@@ -2,6 +2,7 @@
 
 namespace App\Features\Reports\Data;
 
+use App\Features\Shared\Support\IndonesianDateFormat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -27,6 +28,14 @@ final class ReportFilters
 
     public static function fromRequest(Request $request, string $defaultType = 'finance'): self
     {
+        foreach (['date_from', 'date_to'] as $field) {
+            if (blank($request->input($field)) && filled($request->input($field.'_display'))) {
+                $request->merge([
+                    $field => IndonesianDateFormat::dateFromDisplay($request->input($field.'_display')),
+                ]);
+            }
+        }
+
         $validated = $request->validate([
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
