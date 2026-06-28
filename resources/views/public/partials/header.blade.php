@@ -64,14 +64,16 @@
                         {{ $item['label'] }}
                     </a>
                 @endforeach
-                <div class="grid gap-2 pt-2 sm:grid-cols-2">
+                <div class="grid gap-2 pt-2">
                     @auth
-                        <a href="{{ route('dashboard') }}" class="public-button-primary">Dashboard</a>
+                        <a href="{{ route('dashboard') }}" class="public-button-primary w-full px-5" data-public-dashboard-link="mobile-menu">Dashboard</a>
                     @else
-                        <a href="{{ route('login') }}" class="public-button-secondary">Masuk</a>
-                        <a href="{{ route('register') }}" class="public-button-primary" aria-label="Daftar sebagai member Platinum Gym">Daftar Member</a>
+                        <div class="grid gap-2 sm:grid-cols-2">
+                            <a href="{{ route('login') }}" class="public-button-secondary">Masuk</a>
+                            <a href="{{ route('register') }}" class="public-button-primary" aria-label="Daftar sebagai member Platinum Gym">Daftar Member</a>
+                        </div>
                     @endauth
-                    <a href="{{ route('public.location') }}" class="public-button-secondary sm:col-span-2">Lokasi &amp; Kontak</a>
+                    <a href="{{ route('public.location') }}" class="public-button-secondary w-full px-5">Lokasi &amp; Kontak</a>
                 </div>
             </nav>
         </div>

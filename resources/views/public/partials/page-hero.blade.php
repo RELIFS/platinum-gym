@@ -6,7 +6,7 @@
     <div class="absolute bottom-10 right-24 hidden h-px w-32 bg-gold-500/55 lg:block" aria-hidden="true"></div>
 
     <div class="public-container relative py-14 sm:py-16 lg:py-20">
-        <div class="public-page-hero-content max-w-4xl">
+        <div class="public-page-hero-content public-motion-reveal max-w-4xl" data-motion="reveal">
                 @if ($eyebrow)
                     <p class="public-eyebrow">{{ $eyebrow }}</p>
                 @endif

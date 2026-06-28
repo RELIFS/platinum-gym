@@ -1,5 +1,8 @@
 import './bootstrap';
 import { initAuthFormFeedback } from './auth-form';
+import { registerAdminBookingForms } from './admin/booking-form';
+import { registerMemberBookingForms } from './member/booking-form';
+import { initPublicMotion } from './public-motion';
 import { initPlatinumGymChatbots, platinumGymChatbot } from './public-chatbot';
 
 import Alpine from 'alpinejs';
@@ -10,8 +13,11 @@ Alpine.plugin(focus);
 window.Alpine = Alpine;
 window.platinumGymChatbot = platinumGymChatbot;
 
+registerAdminBookingForms();
+registerMemberBookingForms();
 Alpine.start();
 initAuthFormFeedback();
+initPublicMotion();
 initPlatinumGymChatbots();
 
 // Lazy-load the admin QR camera scanner only on the check-in page. Keeps the html5-qrcode
