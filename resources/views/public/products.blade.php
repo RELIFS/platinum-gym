@@ -7,7 +7,7 @@
 
     <section class="public-section public-section-muted">
         <div class="public-container">
-            <div class="public-product-notice mb-8 grid gap-5 pr-20 sm:pr-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:pr-6">
+            <div class="public-product-notice public-motion-reveal mb-8 grid gap-5 pr-20 sm:pr-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:pr-6" data-motion="reveal">
                 <div>
                     <p class="text-xs font-black uppercase tracking-[0.18em] text-gold-700 dark:text-gold-300">Informasi Pembelian</p>
                     <p class="mt-2 max-w-3xl break-words text-sm font-semibold leading-7 text-zinc-700 dark:text-zinc-200">Pembelian produk dilakukan langsung di lokasi Platinum Gym Padang. Stok diperbarui oleh admin sesuai ketersediaan di lokasi.</p>
@@ -26,10 +26,10 @@
                         </div>
                     </dl>
                 </div>
-                <a href="{{ route('public.location') }}" class="public-button-primary w-full max-w-[calc(100%-4rem)] sm:max-w-full lg:w-auto">Lihat Lokasi</a>
+                <a href="{{ route('public.location') }}" class="public-button-primary public-motion-cta w-full max-w-[calc(100%-4rem)] sm:max-w-full lg:w-auto" data-motion="cta">Lihat Lokasi</a>
             </div>
 
-            <form method="GET" action="{{ route('public.products') }}" class="public-product-filter grid gap-4 pr-20 sm:pr-5 md:p-7 lg:grid-cols-[0.85fr_1fr_auto] lg:items-end" aria-describedby="products-filter-status">
+            <form method="GET" action="{{ route('public.products') }}" class="public-product-filter public-motion-reveal grid gap-4 pr-20 sm:pr-5 md:p-7 lg:grid-cols-[0.85fr_1fr_auto] lg:items-end" aria-describedby="products-filter-status" data-motion="reveal" data-motion-delay="80">
                 <div>
                     <label for="kategori" class="mb-2 block text-sm font-bold text-zinc-700 dark:text-zinc-300">Kategori</label>
                     <select id="kategori" name="kategori" class="public-input">

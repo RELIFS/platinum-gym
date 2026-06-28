@@ -18,13 +18,13 @@
     <section class="public-section public-section-muted">
         <div class="public-container grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
             <div class="space-y-5">
-                <article class="public-card">
+                <article class="public-card public-motion-card public-motion-reveal" data-motion="reveal card">
                     <p class="public-eyebrow">Alamat</p>
                     <h2 class="mt-3 break-words text-2xl font-black text-zinc-950 dark:text-white">Platinum Gym Padang</h2>
                     <p class="mt-4 break-words text-sm leading-7 text-zinc-600 dark:text-zinc-400">{{ $settings['address'] }}</p>
                 </article>
 
-                <article class="public-card">
+                <article class="public-card public-motion-card public-motion-reveal" data-motion="reveal card" data-motion-delay="80">
                     <p class="public-eyebrow">Jam Operasional</p>
                     <dl class="mt-4 space-y-3 text-sm">
                         <div class="flex justify-between gap-4">
@@ -38,7 +38,7 @@
                     </dl>
                 </article>
 
-                <article class="public-card">
+                <article class="public-card public-motion-card public-motion-reveal" data-motion="reveal card" data-motion-delay="160">
                     <p class="public-eyebrow">Kontak</p>
                     <div class="mt-4 space-y-3 break-words text-sm leading-6 text-zinc-600 dark:text-zinc-400">
                         <p>WhatsApp: <a href="tel:+{{ $phoneNumber }}" class="public-text-link text-zinc-900 dark:text-zinc-100">{{ $settings['phone_display'] }}</a></p>
@@ -52,7 +52,7 @@
                 </article>
             </div>
 
-            <div class="public-card flex min-h-[32rem] flex-col justify-between overflow-hidden p-0">
+            <div class="public-card public-motion-reveal flex min-h-[32rem] flex-col justify-between overflow-hidden p-0" data-motion="reveal" data-motion-delay="120">
                 @if (filled($mapsEmbedUrl))
                     <div class="relative min-h-[26rem] flex-1 overflow-hidden bg-zinc-100 sm:min-h-[30rem] dark:bg-zinc-950">
                         <iframe

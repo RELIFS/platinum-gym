@@ -19,6 +19,8 @@ class PublicServicesQuery
 
     private const MEMBERSHIP_ORDER = [
         'gym umum' => 10,
+        'gym umum 3 bulan' => 11,
+        'gym umum 6 bulan' => 12,
         'senam umum' => 20,
         'gym + senam umum' => 30,
         'gym mahasiswa' => 40,
@@ -41,7 +43,7 @@ class PublicServicesQuery
         return [
             'settings' => $this->settings->get(),
             'packagesByKind' => $this->packagesByKind(),
-            'promos' => $this->publishedPromos()->get(),
+            'promos' => $this->publishedPromos()->with('package')->get(),
         ];
     }
 

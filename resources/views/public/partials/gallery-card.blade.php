@@ -1,4 +1,4 @@
-<article class="group public-card public-card-hover overflow-hidden p-0">
+<article class="group public-card public-card-hover public-motion-card public-motion-reveal overflow-hidden p-0" data-motion="reveal card" data-motion-delay="{{ ($index % 4) * 80 }}">
     <div class="relative flex aspect-[4/3] items-end overflow-hidden bg-zinc-100 dark:bg-zinc-950">
         @if ($item->image_path)
             <img src="{{ asset($item->image_path) }}" alt="{{ $item->image_alt ?? $item->title ?? 'Aktivitas Platinum Gym Padang' }}" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" width="540" height="960" loading="lazy">

@@ -19,7 +19,7 @@
     <section id="paket-layanan" class="public-section public-section-muted scroll-mt-24">
         <div class="public-container space-y-14">
             @forelse ($packagesByKind as $kind => $packages)
-                <div>
+                <div class="public-motion-reveal" data-motion="reveal">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <p class="public-eyebrow">{{ \Illuminate\Support\Str::headline($kind) }}</p>
@@ -41,15 +41,15 @@
 
     <section class="public-section public-section-plain">
         <div class="public-container grid gap-6 lg:grid-cols-3">
-            <article class="public-card">
+            <article class="public-card public-motion-card public-motion-reveal" data-motion="reveal card">
                 <h2 class="text-xl font-black text-zinc-950 dark:text-white">Membership</h2>
                 <p class="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Paket bulanan untuk akses gym, senam, atau kombinasi sesuai kategori dan ketentuan.</p>
             </article>
-            <article class="public-card">
+            <article class="public-card public-motion-card public-motion-reveal" data-motion="reveal card" data-motion-delay="80">
                 <h2 class="text-xl font-black text-zinc-950 dark:text-white">Paket Sesi</h2>
                 <p class="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Personal trainer dan Muaythai memakai jumlah sesi. Beberapa paket membutuhkan membership aktif.</p>
             </article>
-            <article class="public-card">
+            <article class="public-card public-motion-card public-motion-reveal" data-motion="reveal card" data-motion-delay="160">
                 <h2 class="text-xl font-black text-zinc-950 dark:text-white">Booking</h2>
                 <p class="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Booking digital sedang disiapkan. Informasi paket, harga, dan ketentuan ditampilkan di website sebelum pembelian aktif melalui dashboard member.</p>
             </article>

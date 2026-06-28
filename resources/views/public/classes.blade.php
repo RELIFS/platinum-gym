@@ -7,7 +7,7 @@
 
     <section class="public-section public-section-muted">
         <div class="public-container">
-            <form method="GET" action="{{ route('public.classes') }}" class="public-card grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end md:p-7" aria-describedby="classes-filter-status">
+            <form method="GET" action="{{ route('public.classes') }}" class="public-card public-motion-reveal grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end md:p-7" aria-describedby="classes-filter-status" data-motion="reveal">
                 <div>
                     <label for="hari" class="mb-2 block text-sm font-bold text-zinc-700 dark:text-zinc-300">Hari</label>
                     <select id="hari" name="hari" class="public-input">
@@ -38,7 +38,7 @@
 
             <div class="mt-10 space-y-12">
                 @foreach ($classSections as $section)
-                    <section aria-labelledby="kelas-{{ $section['key'] }}" class="scroll-mt-24">
+                    <section aria-labelledby="kelas-{{ $section['key'] }}" class="public-motion-reveal scroll-mt-24" data-motion="reveal">
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                             <div>
                                 <p class="public-eyebrow">{{ $section['label'] }}</p>
@@ -75,15 +75,15 @@
 
     <section class="public-section public-section-plain">
         <div class="public-container grid gap-6 lg:grid-cols-3">
-            <article class="public-card">
+            <article class="public-card public-motion-card public-motion-reveal" data-motion="reveal card">
                 <h2 class="text-xl font-black text-zinc-950 dark:text-white">Included Class</h2>
                 <p class="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Aerobic dan Zumba dapat termasuk dalam paket senam sesuai membership aktif.</p>
             </article>
-            <article class="public-card">
+            <article class="public-card public-motion-card public-motion-reveal" data-motion="reveal card" data-motion-delay="80">
                 <h2 class="text-xl font-black text-zinc-950 dark:text-white">Paid Class</h2>
                 <p class="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Poundfit dan beberapa sesi khusus dapat memiliki harga terpisah sesuai jadwal dan kuota.</p>
             </article>
-            <article class="public-card">
+            <article class="public-card public-motion-card public-motion-reveal" data-motion="reveal card" data-motion-delay="160">
                 <h2 class="text-xl font-black text-zinc-950 dark:text-white">Booking</h2>
                 <p class="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Jadwal, coach, kuota, dan harga ditampilkan di website. Member dapat masuk untuk mengajukan booking digital sesuai kuota kelas.</p>
                 <a href="{{ route('login') }}" class="public-button-primary mt-6 w-full">Masuk untuk Booking</a>

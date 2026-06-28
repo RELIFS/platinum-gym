@@ -7,7 +7,7 @@
 
     <section class="public-section public-section-muted">
         <div class="public-container grid gap-8 xl:grid-cols-[22rem_minmax(0,1fr)] xl:items-start 2xl:grid-cols-[24rem_minmax(0,1fr)]">
-            <aside class="public-card xl:p-5">
+            <aside class="public-card public-motion-card public-motion-reveal xl:p-5" data-motion="reveal card">
                 <p class="public-eyebrow">Catatan</p>
                 <h2 class="mt-3 text-2xl font-black text-zinc-950 dark:text-white">BMI bukan diagnosis medis.</h2>
                 <p class="mt-4 text-sm leading-7 text-zinc-600 dark:text-zinc-400">
@@ -15,13 +15,15 @@
                 </p>
 
                 <div class="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                    <a href="{{ route('public.services') }}" class="public-button-primary">Lihat Program Latihan</a>
+                <a href="{{ route('public.services') }}" class="public-button-primary public-motion-cta" data-motion="cta">Lihat Program Latihan</a>
                     <a href="{{ route('public.location') }}" class="public-button-secondary">Konsultasi di Gym</a>
                 </div>
             </aside>
 
             <div
-                class="public-card overflow-hidden"
+                class="public-card public-motion-reveal overflow-hidden"
+                data-motion="reveal"
+                data-motion-delay="100"
                 x-data="{
                     weight: '',
                     height: '',
