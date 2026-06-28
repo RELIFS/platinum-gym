@@ -127,6 +127,8 @@ function initChatbotRoot(root) {
     const input = root.querySelector('[data-chatbot-input]');
     const send = root.querySelector('[data-chatbot-send]');
     const escalation = root.querySelector('[data-chatbot-escalation]');
+    const triggerImages = root.querySelectorAll('[data-gymmi-trigger-image]');
+    const panelAvatars = root.querySelectorAll('[data-gymmi-panel-avatar]');
     let open = false;
     let typing = false;
     let lastFocusedElement = null;
@@ -149,6 +151,14 @@ function initChatbotRoot(root) {
         escalation.hidden = config.showEscalation === false;
         escalation.href = config.whatsappUrl ?? '#';
     }
+
+    triggerImages.forEach((image) => {
+        image.addEventListener('error', () => {
+            image.hidden = true;
+            image.nextElementSibling?.removeAttribute('hidden');
+        });
+    });
+    panelAvatars.forEach(bindPanelAvatarFallback);
 
     const setTypingState = (nextTyping) => {
         typing = nextTyping;
@@ -500,6 +510,35 @@ function createAvatarImage(src, className, onError) {
     });
 
     return image;
+}
+
+function bindPanelAvatarFallback(avatar) {
+    const images = Array.from(avatar.querySelectorAll('[data-gymmi-panel-avatar-image]'));
+    const fallback = avatar.querySelector('.gymmi-panel-avatar-fallback');
+
+    if (!fallback || images.length === 0) {
+        return;
+    }
+
+    const syncFallback = () => {
+        const isDark = document.documentElement.classList.contains('dark');
+        const activeImages = images.filter((image) => (
+            isDark ? image.classList.contains('dark:block') : !image.classList.contains('dark:block')
+        ));
+
+        fallback.hidden = activeImages.some((image) => !image.hidden);
+    };
+
+    images.forEach((image) => {
+        image.addEventListener('error', () => {
+            image.hidden = true;
+            syncFallback();
+        });
+    });
+
+    syncFallback();
+
+    new MutationObserver(syncFallback).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 }
 
 function messageBubbleClass(isUser, quickReply, variant = 'public') {

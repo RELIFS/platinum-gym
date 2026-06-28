@@ -3,8 +3,8 @@
 namespace App\Features\Gymmi\Clients;
 
 use App\Features\Gymmi\Contracts\GymmiAssistantClient;
+use App\Features\Gymmi\Support\GeminiApiKeyPool;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -12,13 +12,17 @@ use Throwable;
 
 class GeminiGymmiClient implements GymmiAssistantClient
 {
+    public function __construct(
+        private readonly GeminiApiKeyPool $keyPool,
+    ) {}
+
     public function ask(string $message, string $context, array $history = []): ?string
     {
         if (! (bool) config('services.gemini.enabled', true)) {
             return null;
         }
 
-        $keys = $this->keys();
+        $keys = $this->keyPool->availableKeys();
 
         if ($keys === []) {
             return null;
@@ -26,13 +30,12 @@ class GeminiGymmiClient implements GymmiAssistantClient
 
         $model = $this->model();
         $body = $this->payload($message, $context, $history);
-        $circuitKey = $this->circuitKey($model);
 
-        if (Cache::has($circuitKey)) {
+        if ($this->keyPool->modelCircuitOpen($model)) {
             return null;
         }
 
-        foreach ($this->prioritizedKeys($keys) as $attempt => $key) {
+        foreach (array_slice($this->keyPool->prioritized($keys), 0, $this->keyPool->maxAttempts()) as $attempt => $key) {
             try {
                 $response = Http::baseUrl((string) config('services.gemini.base_url'))
                     ->timeout((int) config('services.gemini.timeout', 12))
@@ -48,70 +51,46 @@ class GeminiGymmiClient implements GymmiAssistantClient
                     return $this->extractText($response->json());
                 }
 
+                $status = $response->status();
+
                 Log::warning('Gemini Gymmi request failed.', [
-                    'status' => $response->status(),
+                    'status' => $status,
                     'model' => $model,
                     'attempt' => $attempt + 1,
                 ]);
 
-                if ($response->status() === 429) {
-                    Cache::put($circuitKey, true, now()->addSeconds($this->circuitBreakerSeconds()));
+                if ($status === 429) {
+                    $this->keyPool->coolDownKey($key);
+                    $this->keyPool->openModelCircuit($model);
 
                     break;
                 }
 
-                if ($response->status() === 404) {
+                if ($status === 404) {
+                    $this->keyPool->openModelCircuit($model);
+
                     break;
                 }
 
-                if (! in_array($response->status(), [429, 500, 502, 503, 504], true)) {
+                if (in_array($status, [401, 403], true)) {
+                    $this->keyPool->markInvalid($key);
+
+                    continue;
+                }
+
+                if (! in_array($status, [500, 502, 503, 504], true)) {
                     break;
                 }
             } catch (Throwable $exception) {
-                report($exception);
+                Log::warning('Gemini Gymmi request exception.', [
+                    'model' => $model,
+                    'attempt' => $attempt + 1,
+                    'exception' => $exception::class,
+                ]);
             }
         }
 
         return null;
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function keys(): array
-    {
-        $configuredKeys = config('services.gemini.api_keys', []);
-
-        $rawKeys = array_filter(array_merge(
-            is_array($configuredKeys) ? $configuredKeys : Arr::wrap($configuredKeys),
-            Arr::wrap(config('services.gemini.api_key')),
-        ));
-
-        return collect($rawKeys)
-            ->flatMap(fn (mixed $value) => is_array($value) ? $value : (preg_split('/[\r\n,]+/', (string) $value) ?: []))
-            ->map(fn (string $value) => trim($value, " \t\n\r\0\x0B\"'"))
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @param  array<int, string>  $keys
-     * @return array<int, string>
-     */
-    private function prioritizedKeys(array $keys): array
-    {
-        if (count($keys) <= 1) {
-            return $keys;
-        }
-
-        $firstIndex = random_int(0, count($keys) - 1);
-
-        return array_values(array_merge(
-            array_slice($keys, $firstIndex),
-            array_slice($keys, 0, $firstIndex),
-        ));
     }
 
     private function model(): string
@@ -120,16 +99,6 @@ class GeminiGymmiClient implements GymmiAssistantClient
             ->after('models/')
             ->trim()
             ->toString();
-    }
-
-    private function circuitKey(string $model): string
-    {
-        return 'gymmi:gemini:circuit:'.sha1($model);
-    }
-
-    private function circuitBreakerSeconds(): int
-    {
-        return max(30, (int) config('services.gemini.circuit_breaker_seconds', 300));
     }
 
     /**

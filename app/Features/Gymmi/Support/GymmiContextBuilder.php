@@ -13,6 +13,11 @@ use Illuminate\Support\Number;
 
 class GymmiContextBuilder
 {
+    public function buildMemberOnly(User $user): string
+    {
+        return $this->memberContext($user);
+    }
+
     public function build(string $context, ?User $user): string
     {
         $sections = [
@@ -56,7 +61,7 @@ class GymmiContextBuilder
             ->orderBy('package_kind')
             ->orderBy('price')
             ->limit(14)
-            ->get(['name', 'package_kind', 'type', 'price', 'promo_price', 'duration_days', 'session_count', 'requires_active_membership']);
+            ->get(['name', 'package_kind', 'type', 'price', 'promo_price', 'duration_days', 'base_duration_days', 'bonus_duration_days', 'bonus_label', 'session_count', 'requires_active_membership']);
 
         if ($packages->isEmpty()) {
             return 'Paket layanan: data paket aktif belum tersedia.';
@@ -64,7 +69,7 @@ class GymmiContextBuilder
 
         return 'Paket layanan aktif: '.$packages->map(function (Package $package): string {
             $price = $package->promo_price ?: $package->price;
-            $duration = $package->duration_days ? "{$package->duration_days} hari" : null;
+            $duration = $package->durationMarketingLabel();
             $sessions = $package->session_count ? "{$package->session_count} sesi" : null;
             $requiresMembership = $package->requires_active_membership ? 'perlu membership aktif' : null;
 
@@ -122,9 +127,10 @@ class GymmiContextBuilder
         $activeMembership = Membership::query()
             ->with('package:id,name')
             ->whereBelongsTo($member)
-            ->where('status', 'active')
-            ->whereDate('end_date', '>=', now()->toDateString())
-            ->latest('end_date')
+            ->activeForAccess()
+            ->orderByRaw('case when end_date is null then 1 else 0 end')
+            ->orderBy('end_date')
+            ->orderBy('created_at')
             ->first();
 
         $activeSessions = MemberPackageSession::query()
@@ -146,7 +152,7 @@ class GymmiContextBuilder
         return collect([
             'Data member login: nama '.$user->name.', kode '.$member->member_code.'.',
             $activeMembership
-                ? 'Membership aktif: '.$activeMembership->package?->name.' sampai '.$activeMembership->end_date?->format('d/m/Y').'.'
+                ? 'Membership aktif: '.$activeMembership->package?->name.' - '.$activeMembership->validityLabel().'.'
                 : 'Membership aktif: belum ada atau sudah berakhir.',
             $activeSessions->isNotEmpty()
                 ? 'Paket sesi aktif: '.$activeSessions->map(fn (MemberPackageSession $session) => $session->package?->name.' sisa '.$session->remaining_sessions.' sesi')->implode('; ').'.'
