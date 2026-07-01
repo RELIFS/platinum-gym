@@ -12,7 +12,7 @@
     ];
 @endphp
 
-<header class="sticky top-0 z-50 border-b border-zinc-200/80 bg-zinc-50/88 shadow-[0_10px_32px_rgba(24,24,27,0.06)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/88 dark:shadow-[0_10px_32px_rgba(0,0,0,0.28)]" x-data="{ open: false }">
+<header class="sticky top-0 z-50 border-b border-zinc-200/80 bg-zinc-50/88 shadow-[0_10px_32px_rgba(24,24,27,0.06)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/88 dark:shadow-[0_10px_32px_rgba(0,0,0,0.28)]" x-data="{ open: false }" x-on:keydown.escape.window="open = false">
     <div class="public-container">
         <div class="flex min-h-20 items-center justify-between gap-4">
             <a href="{{ route('public.home') }}" class="inline-flex min-h-11 touch-manipulation items-center rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-offset-zinc-950" aria-label="{{ $siteName }}">

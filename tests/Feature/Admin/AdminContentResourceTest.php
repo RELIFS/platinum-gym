@@ -40,6 +40,54 @@ test('admin can create product resource with safe public storage path', function
     Storage::disk('public')->assertExists(str_replace('storage/', '', $product->image_path));
 });
 
+test('admin content image uploads reject unsupported public image formats', function (string $resource, array $payload, string $folder, Closure $file) {
+    Storage::fake('public');
+    $admin = AdminFixture::admin();
+
+    $this->actingAs($admin)
+        ->from(route('admin.resources.create', $resource))
+        ->post(route('admin.resources.store', $resource), $payload + [
+            'image_file' => $file(),
+        ])
+        ->assertRedirect(route('admin.resources.create', $resource))
+        ->assertSessionHasErrors('image_file');
+
+    expect(Storage::disk('public')->allFiles($folder))->toBe([]);
+})->with([
+    'product svg' => ['products', [
+        'name' => 'SVG Product QA',
+        'slug' => '',
+        'price' => 125000,
+        'stock' => 12,
+        'description' => 'Produk latihan resmi.',
+        'image_alt' => 'Sarung tangan gym',
+        'is_active' => '1',
+    ], 'admin/products', fn () => UploadedFile::fake()->create('product-content.svg', 12, 'image/svg+xml')],
+    'product gif' => ['products', [
+        'name' => 'GIF Product QA',
+        'slug' => '',
+        'price' => 125000,
+        'stock' => 12,
+        'description' => 'Produk latihan resmi.',
+        'image_alt' => 'Sarung tangan gym',
+        'is_active' => '1',
+    ], 'admin/products', fn () => UploadedFile::fake()->createWithContent('product-content.gif', base64_decode('R0lGODlhAQABAPAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='))],
+    'gallery svg' => ['gallery', [
+        'title' => 'SVG Gallery QA',
+        'caption' => 'Foto fasilitas QA.',
+        'image_alt' => 'Foto fasilitas',
+        'sort_order' => 1,
+        'is_published' => '1',
+    ], 'admin/gallery', fn () => UploadedFile::fake()->create('gallery-content.svg', 12, 'image/svg+xml')],
+    'gallery gif' => ['gallery', [
+        'title' => 'GIF Gallery QA',
+        'caption' => 'Foto fasilitas QA.',
+        'image_alt' => 'Foto fasilitas',
+        'sort_order' => 1,
+        'is_published' => '1',
+    ], 'admin/gallery', fn () => UploadedFile::fake()->createWithContent('gallery-content.gif', base64_decode('R0lGODlhAQABAPAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='))],
+]);
+
 test('admin resource registry returns not found for unknown resource', function () {
     $admin = AdminFixture::admin();
 
