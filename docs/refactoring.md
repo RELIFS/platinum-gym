@@ -1,6 +1,6 @@
 # Refactoring Documentation
 
-Status: Updated 2026-06-22. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
+Status: Updated 2026-06-30. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
 
 Dokumen ini mencatat perubahan struktur kode yang dilakukan untuk meningkatkan keterbacaan, maintainability, dan kesiapan evolusi sistem.
 
@@ -575,7 +575,7 @@ resources/views/member/partials/empty-state.blade.php
 
 - List member menjadi lebih siap untuk data production.
 - Copy member lebih fokus dan tidak menampilkan label internal.
-- Sidebar/drawer member lebih minimal dengan footer `Keluar` saja.
+- Sidebar/drawer member lebih minimal; desktop identity/logout pindah ke topbar account menu, sementara mobile drawer tetap menyimpan identity dan `Keluar`.
 - Test `MemberPortalTest` menjaga pagination/filter, own-data boundary, dan copy production member.
 
 ## 18. Owner Portal, Reports, Dan Invoice Web
@@ -692,3 +692,121 @@ tests/Feature/Invoices
 - `apexcharts` tidak lagi menjadi dependency frontend aktif.
 - Mount ID dan payload chart tetap kompatibel dengan Blade existing.
 - Root `tests/Feature` lebih fokus pada folder domain dan cross-domain yang jelas.
+
+## 21. Production Readiness Hardening 2026-06-30
+
+### Perubahan
+
+Production-readiness pass 2026-06-30 melakukan hardening konservatif tanpa menambah route, migration, role, checkout produk, atau behavior pembayaran baru.
+
+Perubahan utama:
+
+```text
+app/Features/Admin/Support/AdminResourceRegistry.php
+app/Models/Payment.php
+app/Models/SocialAccount.php
+app/Models/QrToken.php
+app/Models/AccountInvitation.php
+resources/views/public/partials/header.blade.php
+resources/views/invoices/receipt.blade.php
+resources/views/invoices/partials/document.blade.php
+resources/views/admin/pages/operations.blade.php
+resources/css/app.css
+tests/Feature/Admin/AdminContentResourceTest.php
+tests/Feature/Security/SensitiveModelSerializationTest.php
+```
+
+### Detail
+
+- Upload gambar produk/galeri admin sekarang membatasi image ke JPG, JPEG, PNG, dan WebP melalui MIME dan extension whitelist; SVG/GIF ditolak.
+- Model `Payment`, `SocialAccount`, `QrToken`, dan `AccountInvitation` menyembunyikan token/payload sensitif saat serialisasi model.
+- Public product card tidak lagi memotong nama produk; deskripsi tetap dibatasi agar card stabil.
+- Public mobile menu sekarang dapat ditutup dengan Escape.
+- Invoice/struk member dan admin memakai portal layout masing-masing sehingga responsive QA tetap menemukan `#member-main` dan `#admin-main`.
+- Panel invoice diberi `min-w-0` pada grid/panel yang memuat data member/gym agar tidak melebar di viewport sempit.
+- Export link laporan admin memperbaiki scope Alpine `dateFrom/dateTo` sehingga halaman `/admin/laporan` tidak menghasilkan console error.
+
+### Browser QA
+
+Responsive QA headless lokal menjalankan matrix width 320, 360, 375, 390, 393, 412, 414, 430, 480, 540, 600, 640, 768, 820, 834, 1024, 1180, 1280, 1366, 1440, 1536, 1728, 1920, 2560, dan 3440 px untuk public/member/admin/owner sesuai checklist browser. Drawer smoke pada 390 px juga memverifikasi public/member/admin/owner mobile menu bisa open, close dengan Escape, dan `aria-expanded` kembali `false`.
+
+### Final Gate Evidence
+
+- `php artisan test --no-ansi` lulus dengan 648 tests dan 4883 assertions.
+- `php artisan route:list --except-vendor --no-ansi` tetap menunjukkan 109 routes.
+- `composer validate --strict --no-check-publish`, `composer audit`, `npm.cmd audit --audit-level=moderate`, `npm.cmd audit --omit=dev --audit-level=moderate`, `vendor\bin\pint --test`, dan `npm.cmd run build` lulus.
+- `php artisan config:cache`, `php artisan route:cache`, `php artisan view:cache`, lalu `php artisan optimize:clear` lulus.
+- Admin affected responsive subset `/admin/laporan`, `/admin/pengaturan`, `/admin/booking`, `/admin/notifikasi`, dan `/admin/paket` lulus 125 checks tanpa failure setelah fix.
+
+## 22. Gymmi Conversational Polish 2026-06-30
+
+### Perubahan
+
+Gymmi public dan member mendapat jalur conversational lokal sebelum matcher, live data, dan Gemini:
+
+```text
+app/Features/Gymmi/Support/GymmiConversationalResponder.php
+app/Features/Gymmi/Actions/AskGymmiAction.php
+app/Features/Gymmi/Support/GymmiFallbackResponder.php
+app/Features/Gymmi/Support/GymmiIntentDetector.php
+app/Features/Gymmi/Support/GymmiKnowledgeMatcher.php
+app/Features/Gymmi/Support/GymmiLiveDataProvider.php
+resources/js/public-chatbot.js
+app/Features/PublicWebsite/ViewModels/PublicChatbotViewModel.php
+app/Features/MemberPortal/ViewModels/MemberChatbotViewModel.php
+```
+
+### Detail
+
+- Sapaan, terima kasih, perkenalan kemampuan, pamit, dan small-talk aman dijawab ringkas seperti CS Platinum Gym tanpa memanggil Gemini.
+- Fallback public/member dibuat lebih natural dan sesuai konteks. Public diarahkan ke membership, kelas, lokasi, produk katalog, dan WhatsApp. Member diarahkan ke membership, booking, transaksi, QR, dan profil tanpa membuka data member lain.
+- Intent lokasi/kontak diprioritaskan sebelum membership sehingga pertanyaan seperti `dimana lokasi gym?` mengambil alamat/maps/kontak dan tidak tertarik ke paket `Gym Umum`.
+- Frontend fallback public/member disinkronkan untuk greeting/thanks/wellbeing/capability/goodbye, lokasi/kontak diprioritaskan, dan action button lokal tidak ditempel pada response `guard` atau `fallback` yang tidak relevan.
+
+### Evidence
+
+- `php artisan test --filter=Gymmi --no-ansi` lulus 36 tests / 338 assertions.
+- `php artisan test --filter=PublicGymmiTest --no-ansi` lulus 2 tests / 48 assertions.
+- `php artisan test --filter=MemberPortalUiTest --no-ansi` lulus 11 tests / 496 assertions.
+- Full `php artisan test --no-ansi` lulus 656 tests / 4959 assertions.
+- Composer validate/audit, NPM audit full dan production-only, Pint, Vite build, route list 109 routes, config cache, route cache, view cache, dan optimize clear lulus.
+- Browser matrix in-app pada local server memeriksa public `/`, `/layanan`, `/kelas`, `/produk`, `/lokasi` dan member `/member/dashboard`, `/member/membership`, `/member/transaksi`, `/member/qr` pada 25 width 320-3440 px tanpa horizontal overflow atau console error. Interaction smoke Gymmi terkena timeout runtime browser pada `domcontentloaded`, tetapi request `/gymmi/chat` berjalan dan action-level timing menunjukkan `halo` 51.33 ms, `makasih` 15.52 ms, `apa kabar` 9.6 ms, guard out-of-scope 8.14 ms, dan lokasi knowledge 164.1 ms tanpa provider call untuk jalur conversational/guard.
+
+## 23. Booking Datepicker dan QR Sesi Final Polish 2026-07-01
+
+### Perubahan
+
+Polish terakhir untuk booking dan QR memindahkan aturan akses QR sesi ke helper kecil serta menyederhanakan datepicker agar memakai popup default Flatpickr.
+
+```text
+app/Support/MemberQrAccess.php
+app/Features/CheckIns/Actions/PreviewMemberQrCheckInAction.php
+app/Features/CheckIns/Actions/ConfirmMemberQrCheckInAction.php
+app/Features/MemberPortal/Queries/MemberDashboardQuery.php
+app/Features/MemberPortal/Actions/DownloadMemberQrAction.php
+resources/js/local-date-input.js
+resources/js/admin/booking-form.js
+resources/views/components/local-date-input.blade.php
+resources/views/admin/page.blade.php
+resources/views/member/pages/qr.blade.php
+```
+
+### Detail
+
+- `MemberQrAccess` memusatkan daftar paket sesi standalone yang boleh mengaktifkan QR: Muaythai dan Poundfit.
+- Payment fulfillment untuk paket sesi Muaythai/Poundfit menerbitkan atau memakai ulang QR member; Personal Trainer tetap membutuhkan membership Gym/Include aktif.
+- Admin QR preview sekarang dapat menampilkan QR `Aktif untuk sesi` tanpa membership aktif, tetapi hanya tombol `Gunakan Sesi` yang tersedia. `Check-in Member` dan `Check-in + Gunakan Sesi` tetap membutuhkan membership aktif.
+- Member QR/dashboard menampilkan status `Aktif untuk sesi` dan label `Paket sesi aktif` saat QR aktif dari sesi standalone.
+- Flatpickr booking memakai popup default package. Override visual `.platinum-date-calendar` dan panah/month selector custom dihapus.
+- Admin booking datepicker disabled sampai jadwal dipilih; setelah jadwal dipilih, hanya tanggal sesuai `day_of_week` yang aktif. Backend request tetap menolak tanggal beda hari jadwal.
+
+### Evidence
+
+- `php artisan test --filter=MemberQrTest --no-ansi` lulus 6 tests / 22 assertions.
+- `php artisan test --filter=AdminCheckInTest --no-ansi` lulus 10 tests / 67 assertions.
+- `php artisan test --filter=AdminBookingTest --no-ansi` lulus 8 tests / 97 assertions.
+- `php artisan test --filter=MemberBookingTest --no-ansi` lulus 9 tests / 81 assertions.
+- `php artisan test --filter=MemberPortalLegacyTest --no-ansi` lulus 55 tests / 512 assertions.
+- `php artisan test --filter=AdminPortalLegacyTest --no-ansi` lulus 60 tests / 424 assertions.
+- `MemberPortalUiTest`, `AdminPortalUiTest`, dan `OwnerPortalUiTest` lulus.
+- Final gate sebelum commit/push 2026-07-01 lulus: `composer validate --strict --no-check-publish`, `composer audit`, `npm.cmd audit --audit-level=moderate`, `npm.cmd audit --omit=dev --audit-level=moderate`, `vendor\bin\pint --test`, `npm.cmd run build`, `php artisan test --no-ansi` 662 tests / 5125 assertions, `php artisan route:list --except-vendor --no-ansi` 109 routes, `php artisan config:cache`, `php artisan route:cache`, `php artisan view:cache`, dan `php artisan optimize:clear`.

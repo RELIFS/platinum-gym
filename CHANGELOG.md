@@ -12,18 +12,19 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Menambahkan upload bukti mahasiswa pada profil member sebagai pengganti input NIM di UI member.
 - Menambahkan Gymmi hybrid RAG berbasis knowledge JSON terkompilasi, database live aman, key pool Gemini, dan command sync key yang tidak mencetak secret.
 - Menambahkan notifikasi aktivitas admin untuk booking, membership/paket sesi, pembayaran, dan check-in member.
+- Menambahkan Flatpickr untuk tanggal booking kelas Member/Admin agar tanggal di luar hari jadwal tidak bisa dipilih di UI.
 
 ### Changed
 
 - Menyamakan eligibility checkout semua paket agar membership, Muaythai, Poundfit, dan Personal Trainer wajib melewati profil dasar lengkap sebelum payment/session dibuat.
-- Menyempurnakan booking kelas: label Instruktur/Pro/Coach, jadwal Muaythai per trainer, aturan booking H-1, aturan cancel H-3 jam, dan card Aerobic/Zumba/Poundfit yang konsisten.
-- Memoles sidebar admin/member, shortcut Website Utama, home public responsif, copy halaman Tentang untuk tim pelatih, serta widget Gymmi public/member.
+- Menyempurnakan booking kelas: label Instruktur/Pro/Coach, jadwal Muaythai per trainer, aturan booking H-1, aturan cancel H-3 jam, datepicker sesuai hari jadwal, dan card kelas yang disabled tanpa caption tambahan saat akses belum memenuhi syarat.
+- Memoles sidebar/admin/member/owner account menu, shortcut Website Utama, home public responsif, copy halaman Tentang untuk tim pelatih, serta widget Gymmi public/member.
 - Memperbarui knowledge Gymmi dari workbook internal menjadi FAQ 137 dan Alias 1578 tanpa membaca Excel saat runtime.
 
 ### Testing
 
 - Menambahkan dan memperbarui coverage Auth, Member, Admin, Public Website, Booking, Gymmi, dan command key sync.
-- Validasi akhir harus dijalankan sebelum commit/push: `php artisan test --no-ansi`, `vendor\bin\pint --test`, `npm.cmd run build`, dan `git diff --check`.
+- Validasi fresh 2026-07-01 sebelum commit/push: `composer validate --strict --no-check-publish`, `composer audit`, `npm.cmd audit --audit-level=moderate`, `npm.cmd audit --omit=dev --audit-level=moderate`, `vendor\bin\pint --test`, `npm.cmd run build`, `php artisan test --no-ansi` (`662 passed / 5125 assertions`), `php artisan route:list --except-vendor --no-ansi` (`109 routes`), `php artisan config:cache`, `php artisan route:cache`, `php artisan view:cache`, dan `php artisan optimize:clear` lulus.
 
 ## [Unreleased] - Owner Portal, Reports, Invoice, Dan Portal Polish
 
