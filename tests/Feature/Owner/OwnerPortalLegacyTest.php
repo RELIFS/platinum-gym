@@ -146,14 +146,21 @@ test('owner mobile drawer renders identity and logout footer', function () {
     $content = $response->getContent();
 
     $response
-        ->assertSee('aria-label="Identitas owner"', false)
+        ->assertDontSee('aria-label="Identitas owner"', false)
         ->assertSee('aria-label="Identitas owner mobile"', false)
-        ->assertSee('data-owner-sidebar-logout="desktop"', false)
+        ->assertDontSee('data-owner-sidebar-logout="desktop"', false)
         ->assertSee('data-owner-sidebar-logout="mobile"', false)
+        ->assertSee('data-portal-account-menu="owner"', false)
+        ->assertSee('data-portal-account-trigger="owner"', false)
+        ->assertSee('data-portal-account-dropdown="owner"', false)
+        ->assertSee('data-portal-account-profile="owner"', false)
+        ->assertSee('data-portal-account-logout="owner"', false)
+        ->assertSee('owner.portal@example.com')
+        ->assertSee(route('profile.edit'), false)
         ->assertSee('Owner Portal');
 
-    expect(substr_count($content, 'data-owner-sidebar-logout='))->toBe(2);
-    expect(substr_count($content, '>Keluar</button>'))->toBe(2);
+    expect(substr_count($content, 'data-owner-sidebar-logout='))->toBe(1);
+    expect(substr_count($content, 'data-portal-account-logout="owner"'))->toBe(1);
 });
 
 test('owner invoice pages keep financial navigation context active', function (string $routeName) {

@@ -13,6 +13,8 @@ class QrToken extends Model
 
     protected $fillable = ['tokenable_type', 'tokenable_id', 'token', 'purpose', 'expires_at', 'last_used_at', 'is_revoked', 'created_by'];
 
+    protected $hidden = ['token'];
+
     protected function casts(): array
     {
         return ['expires_at' => 'datetime', 'last_used_at' => 'datetime', 'is_revoked' => 'boolean'];

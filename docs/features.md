@@ -1,6 +1,6 @@
 # Feature Documentation
 
-Status: Updated 2026-06-22. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
+Status: Updated 2026-07-01. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
 
 Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Platinum Gym Padang.
 
@@ -33,7 +33,7 @@ Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Pla
 | Membership package | Checkout Midtrans dan approval admin aktif | Member, admin |
 | Booking kelas | Booking/cancel member dan confirm/cancel admin aktif | Member, admin |
 | Pembayaran | Midtrans Sandbox, webhook, invoice, approval/reject admin aktif | Member, admin |
-| Check-in gym | QR member stabil per member, download QR aktif, preview-confirm admin, dan pemakaian paket sesi eksplisit | Member, admin |
+| Check-in gym | QR member stabil per member, aktif untuk membership atau sesi Muaythai/Poundfit aktif, download QR, preview-confirm admin, dan pemakaian paket sesi eksplisit | Member, admin |
 | Laporan owner | Sudah tersedia dengan filter dan export CSV/Excel/PDF | Owner |
 | Gymmi Gemini AI | Operasional hybrid RAG dengan dataset, database live, Gemini, fallback aman berbasis data resmi, guardrail, dan conversation log | Pengunjung, member |
 
@@ -61,6 +61,19 @@ Fitur public website digunakan sebagai company profile digital untuk calon membe
 | `/galeri` | `public.gallery` | Galeri aktivitas dengan visual resmi yang tersedia |
 | `/lokasi` | `public.location` | Alamat, kontak, jam operasional, Google Maps iframe/fallback, dan Instagram |
 | `/bmi` | `public.bmi` | Kalkulator BMI client-side |
+
+### Screenshot Public Website
+
+| Halaman | Screenshot |
+|---|---|
+| Beranda | [`public-home.png`](screenshot/public/public-home.png) |
+| Tentang Kami | [`public-about.png`](screenshot/public/public-about.png) |
+| Layanan | [`public-services.png`](screenshot/public/public-services.png) |
+| Kelas | [`public-classes.png`](screenshot/public/public-classes.png) |
+| Produk | [`public-products.png`](screenshot/public/public-products.png) |
+| Galeri | [`public-gallery.png`](screenshot/public/public-gallery.png) |
+| Lokasi | [`public-location.png`](screenshot/public/public-location.png) |
+| BMI | [`public-bmi.png`](screenshot/public/public-bmi.png) |
 
 ### Data Utama
 
@@ -155,7 +168,7 @@ User membuka halaman register -> user mengisi data member -> sistem validasi dat
 
 ### Screenshot
 
-Screenshot halaman register akan ditambahkan setelah dokumentasi visual disiapkan.
+Screenshot halaman register tersedia di [`auth-register.png`](screenshot/auth/auth-register.png).
 
 ## Login
 
@@ -190,7 +203,7 @@ User membuka halaman login -> user memasukkan email dan password -> sistem valid
 
 ### Screenshot
 
-Screenshot halaman login akan ditambahkan setelah dokumentasi visual disiapkan.
+Screenshot halaman login tersedia di [`auth-login.png`](screenshot/auth/auth-login.png).
 
 
 ## Admin Portal
@@ -227,6 +240,24 @@ Admin login melalui `/login`. User dengan role `admin` diarahkan ke `/admin` dan
 | `/admin/profil` | Profil admin login dengan upload foto profil |
 | `/admin/profil/foto` | Update foto profil admin |
 
+### Screenshot Admin Portal
+
+| Halaman | Screenshot |
+|---|---|
+| Dashboard | [`admin-dashboard.png`](screenshot/admin/admin-dashboard.png) |
+| Anggota | [`admin-members.png`](screenshot/admin/admin-members.png) |
+| Paket | [`admin-packages.png`](screenshot/admin/admin-packages.png) |
+| Kelas dan jadwal | [`admin-classes.png`](screenshot/admin/admin-classes.png) |
+| Pembayaran | [`admin-payments.png`](screenshot/admin/admin-payments.png) |
+| Booking | [`admin-booking.png`](screenshot/admin/admin-booking.png) |
+| Check-in | [`admin-check-in.png`](screenshot/admin/admin-check-in.png) |
+| Produk | [`admin-products.png`](screenshot/admin/admin-products.png) |
+| Laporan | [`admin-reports.png`](screenshot/admin/admin-reports.png) |
+| Pengaturan | [`admin-settings.png`](screenshot/admin/admin-settings.png) |
+| Audit log | [`admin-audit-log.png`](screenshot/admin/admin-audit-log.png) |
+| Profil admin | [`admin-profile.png`](screenshot/admin/admin-profile.png) |
+| Form tambah paket | [`admin-resource-create-package.png`](screenshot/detail/admin-resource-create-package.png) |
+
 ### Catatan Scope
 
 - Admin memakai Blade/Tailwind/Alpine production, bukan Filament.
@@ -236,7 +267,7 @@ Admin login melalui `/login`. User dengan role `admin` diarahkan ke `/admin` dan
 - Pembayaran cash membuat payment, invoice, dan aktivasi layanan dalam transaksi aman.
 - Pembayaran dapat disetujui/ditolak admin; Midtrans webhook tetap menjadi sumber kebenaran untuk payment online.
 - Check-in admin memvalidasi QR dari kamera, menampilkan preview data member terlebih dahulu, lalu confirm check-in atau pemakaian paket sesi secara eksplisit. Scan QR saja tidak membuat check-in dan tidak mengurangi sesi.
-- QR member adalah identitas check-in stabil per member. Pembelian membership baru tidak mengganti QR yang sudah aktif; kelayakan check-in tetap dicek dari membership aktif saat scan.
+- QR member adalah identitas stabil per member. Pembelian membership baru tidak mengganti QR yang sudah aktif; QR juga bisa aktif untuk penggunaan sesi Muaythai/Poundfit aktif tanpa membership, sedangkan check-in membership tetap membutuhkan membership aktif.
 - Modul paket, produk, galeri, testimoni, promo, trainer, dan member memiliki aksi status aman berupa aktif/nonaktif atau tayang/draft, bukan hard delete.
 - Semua route admin memakai middleware `auth`, `verified`, dan `role:admin`; aksi tulis juga mengecek permission.
 - Nilai setting sensitif seperti API key, token, secret, OAuth, prompt, dan password disamarkan sebagai `Tersamarkan`.
@@ -265,6 +296,18 @@ Owner login melalui `/login`. User dengan role `owner` diarahkan ke `/owner` dan
 | `/owner/invoice/{invoice}/struk` | Struk POS compact transaksi |
 | `/owner/invoice/{invoice}/download` | Download PDF invoice atau struk |
 | `/owner/profil/foto` | Update foto profil owner |
+
+### Screenshot Owner Portal
+
+| Halaman | Screenshot |
+|---|---|
+| Dashboard | [`owner-dashboard.png`](screenshot/owner/owner-dashboard.png) |
+| Pusat laporan | [`owner-reports.png`](screenshot/owner/owner-reports.png) |
+| Laporan keuangan | [`owner-reports-finance.png`](screenshot/owner/owner-reports-finance.png) |
+| Laporan member | [`owner-reports-members.png`](screenshot/owner/owner-reports-members.png) |
+| Laporan booking kelas | [`owner-reports-classes.png`](screenshot/owner/owner-reports-classes.png) |
+| Profile dan keamanan akun | [`owner-profile.png`](screenshot/owner/owner-profile.png) |
+| Invoice read-only | [`owner-invoice-detail.png`](screenshot/detail/owner-invoice-detail.png) |
 
 ### Catatan Scope
 
@@ -316,6 +359,14 @@ Auth UI digunakan agar halaman login, register, forgot password, reset password,
 - Elemen interaktif tetap memakai label, focus ring, dan target klik yang aman untuk keyboard/touch.
 - Halaman login/register menampilkan ringkasan error `Periksa kembali data yang ditandai di bawah ini.`, field error dekat input, `aria-invalid`, `aria-describedby`, dan fokus otomatis ke field invalid pertama.
 
+### Screenshot Auth
+
+| Halaman | Screenshot |
+|---|---|
+| Login | [`auth-login.png`](screenshot/auth/auth-login.png) |
+| Register | [`auth-register.png`](screenshot/auth/auth-register.png) |
+| Lupa password | [`auth-forgot-password.png`](screenshot/auth/auth-forgot-password.png) |
+
 ## Logout
 
 ### Tujuan
@@ -366,7 +417,7 @@ Catatan operasional: email verifikasi dikirim otomatis oleh aplikasi, bukan manu
 
 ### Screenshot
 
-Screenshot halaman verifikasi email akan ditambahkan setelah dokumentasi visual disiapkan.
+Screenshot halaman verifikasi email belum dicapture pada batch ini karena membutuhkan state akun belum verified yang aman dan stabil.
 
 ## Kirim Ulang Kode Verifikasi Email
 
@@ -522,17 +573,33 @@ Member portal digunakan agar member yang sudah login dapat mengecek informasi ak
 | `/member/notifikasi` | Daftar notifikasi, baca satu, dan baca semua |
 | `/member/complete-profile` | Pelengkapan profil member Google |
 
+### Screenshot Member Portal
+
+| Halaman | Screenshot |
+|---|---|
+| Dashboard | [`member-dashboard.png`](screenshot/member/member-dashboard.png) |
+| Profil | [`member-profile.png`](screenshot/member/member-profile.png) |
+| Edit profil | [`member-profile-edit.png`](screenshot/member/member-profile-edit.png) |
+| Membership | [`member-membership.png`](screenshot/member/member-membership.png) |
+| Booking kelas | [`member-booking.png`](screenshot/member/member-booking.png) |
+| Riwayat booking | [`member-booking-history.png`](screenshot/member/member-booking-history.png) |
+| Transaksi | [`member-transactions.png`](screenshot/member/member-transactions.png) |
+| Detail transaksi | [`member-transaction-detail.png`](screenshot/detail/member-transaction-detail.png) |
+| QR member | [`member-qr.png`](screenshot/member/member-qr.png) |
+| Notifikasi | [`member-notifications.png`](screenshot/member/member-notifications.png) |
+
 ### Catatan UI dan Scope
 
 - Sidebar dan mobile drawer berisi navigasi portal, shortcut menu bawah, footer identity, dan grouped menu `Utama`, `Aktivitas`, dan `Akun`.
 - Identitas member, kode member, status membership, dan invoice tidak ditampilkan di sidebar agar tidak redundan.
-- `Website Utama` ditampilkan sebagai item menu paling bawah menuju website publik, sementara footer sidebar/drawer fokus pada identity member dan `Keluar`; shortcut akun login tidak diduplikasi di sidebar member.
+- `Website Utama` ditampilkan sebagai item menu paling bawah menuju website publik; desktop identity/logout berada di topbar account menu, sementara mobile drawer tetap menyimpan identity member dan `Keluar`. Shortcut akun login tidak diduplikasi di sidebar member.
+- Booking kelas memakai datepicker Flatpickr default dengan display lokal `dd/mm/yyyy` yang menonaktifkan tanggal di luar hari jadwal kelas; jika member belum punya membership/paket yang sesuai, card tetap tampil tetapi tanggal dan tombol `Booking Kelas` disabled tanpa caption tambahan.
 - Katalog membership, booking kelas, riwayat booking, transaksi, dan notifikasi memakai server-side pagination/filter dengan query string agar pencarian berlaku pada seluruh data milik member, bukan hanya item yang sedang terlihat.
 - Batas list member dibuat tetap: paket 6 item, jadwal 9 item, transaksi 8 item, riwayat booking 8 item, dan notifikasi 8 item per halaman.
 - Checkout membership dan paket sesi mewajibkan profil dasar lengkap plus foto profil sebelum payment/session dibuat; Muaythai, Poundfit, dan Personal Trainer menampilkan disabled state dengan CTA `Lengkapi data` jika profil belum lengkap.
 - Gymmi tersedia sebagai floating widget global Gemini-backed di semua halaman member dan tetap memakai data member login sendiri untuk action aman.
 - Gymmi member menampilkan action `QR Member` ke `/member/qr` dan tidak menampilkan token QR mentah.
-- QR member tetap sama selama token tidak dirotasi/dicabut secara internal; status aktifnya mengikuti membership aktif, bukan paket membership tertentu.
+- QR member tetap sama selama token tidak dirotasi/dicabut secara internal; status aktifnya mengikuti membership aktif atau paket sesi Muaythai/Poundfit aktif. Paket Personal Trainer tetap membutuhkan membership Gym/Include aktif dan tidak mengaktifkan QR sendiri.
 - Route/page `/member/ai-assistant` tidak aktif; Gymmi tetap berupa widget global, bukan halaman terpisah.
 - Checkout membership/paket sesi, booking kelas, QR check-in admin, payment webhook Midtrans Sandbox, approval admin, dan notifikasi member aktif. Produk tetap katalog informasi, bukan checkout produk.
 

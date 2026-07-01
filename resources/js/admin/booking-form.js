@@ -28,6 +28,15 @@ function adminBookingForm(initialDate, scheduleOptions = [], memberScheduleAcces
 
             return 'Pilih jadwal';
         },
+        get selectedSchedule() {
+            return this.scheduleOptions.find((schedule) => String(schedule.id) === String(this.selectedScheduleId)) || null;
+        },
+        get selectedScheduleDay() {
+            return Number(this.selectedSchedule?.day_of_week || 0);
+        },
+        get dateDisabled() {
+            return ! this.selectedScheduleDay;
+        },
         isScheduleEligible(scheduleId) {
             return this.eligibleSchedules.some((schedule) => String(schedule.id) === String(scheduleId));
         },
@@ -39,15 +48,26 @@ function adminBookingForm(initialDate, scheduleOptions = [], memberScheduleAcces
         resetInvalidSchedule() {
             if (this.selectedScheduleId && ! this.isScheduleEligible(this.selectedScheduleId)) {
                 this.selectedScheduleId = '';
+                this.sessionDate = '';
+                this.sessionDateDisplay = '';
             }
         },
         syncDate(select, shouldUpdate = true) {
             const option = select?.selectedOptions?.[0];
-            const targetIso = Number(option?.dataset?.dayOfWeek || 0);
-            if (! targetIso) return;
+            const targetIso = Number(option?.dataset?.dayOfWeek || this.selectedScheduleDay || 0);
+            if (! targetIso) {
+                this.sessionDate = '';
+                this.sessionDateDisplay = '';
+                return;
+            }
+
+            if (! shouldUpdate && this.sessionDate && this.isDateAllowedForIso(this.sessionDate, targetIso)) {
+                this.sessionDateDisplay = this.fromIso(this.sessionDate);
+                return;
+            }
 
             const nextDate = this.nextDateForIso(targetIso, this.sessionDate || this.today());
-            if (shouldUpdate || ! this.sessionDate) {
+            if (shouldUpdate || ! this.sessionDate || ! this.isDateAllowedForIso(this.sessionDate, targetIso)) {
                 this.sessionDate = nextDate;
                 this.sessionDateDisplay = this.fromIso(nextDate);
             }
@@ -85,6 +105,16 @@ function adminBookingForm(initialDate, scheduleOptions = [], memberScheduleAcces
             const dd = String(date.getDate()).padStart(2, '0');
 
             return `${yyyy}-${mm}-${dd}`;
+        },
+        isDateAllowedForIso(value, targetIso) {
+            const parsed = this.parseLocalDate(value);
+            const minimum = this.parseLocalDate(this.minimumDate) || this.parseLocalDate(this.today());
+            if (! parsed || parsed < minimum) return false;
+
+            const jsDay = parsed.getDay();
+            const currentIso = jsDay === 0 ? 7 : jsDay;
+
+            return currentIso === targetIso;
         },
         fromIso(value) {
             const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);

@@ -60,7 +60,7 @@
             </form>
         </section>
 
-        <section class="admin-card mt-6">
+        <section class="admin-card mt-6" x-data="{ dateFrom: @js($portal['filters']['date_from'] ?? now()->startOfMonth()->toDateString()), dateTo: @js($portal['filters']['date_to'] ?? now()->toDateString()) }">
             <p class="admin-eyebrow">Tindakan Pembayaran</p>
             <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Verifikasi transaksi</h2>
             <div class="mt-5 grid gap-3">
@@ -115,7 +115,7 @@
         @php
             $reportsExportBase = route('admin.reports.export');
         @endphp
-        <section class="admin-card mt-6">
+        <section class="admin-card mt-6" x-data="{ dateFrom: @js($portal['filters']['date_from'] ?? now()->startOfMonth()->toDateString()), dateTo: @js($portal['filters']['date_to'] ?? now()->toDateString()) }">
             <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div class="min-w-0">
                     <p class="admin-eyebrow">Filter Laporan</p>
@@ -289,6 +289,9 @@
                         x-model="sessionDate"
                         :value="old('session_date', $bookingMinDate)"
                         :min="$bookingMinDate"
+                        picker="flatpickr"
+                        alpine-disabled="dateDisabled"
+                        alpine-allowed-weekdays="selectedScheduleDay ? [selectedScheduleDay] : []"
                         class="admin-form-input"
                         required
                         :described-by="$dateHelpId"

@@ -1,6 +1,7 @@
 import './bootstrap';
 import { initAuthFormFeedback } from './auth-form';
 import { registerAdminBookingForms } from './admin/booking-form';
+import { registerLocalDateInput } from './local-date-input';
 import { registerMemberBookingForms } from './member/booking-form';
 import { initPublicMotion } from './public-motion';
 import { initPlatinumGymChatbots, platinumGymChatbot } from './public-chatbot';
@@ -14,6 +15,7 @@ window.Alpine = Alpine;
 window.platinumGymChatbot = platinumGymChatbot;
 
 registerAdminBookingForms();
+registerLocalDateInput();
 registerMemberBookingForms();
 Alpine.start();
 initAuthFormFeedback();

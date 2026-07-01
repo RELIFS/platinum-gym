@@ -1,6 +1,7 @@
 <?php
 
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Support\Carbon;
 use Tests\Feature\Owner\Support\OwnerPortalFixtures as OwnerFixtures;
 
 beforeEach(function () {
@@ -47,24 +48,30 @@ test('owner report accepts long date range by capping it internally', function (
 });
 
 test('finance report pagination preserves active query parameters', function () {
-    $owner = OwnerFixtures::owner();
-    [, $member] = OwnerFixtures::member('PG-OWN-PAGE');
-    $membership = OwnerFixtures::membership($member);
+    Carbon::setTestNow(Carbon::parse('2026-06-30 12:00:00'));
 
-    foreach (range(1, 13) as $index) {
-        OwnerFixtures::payment($member, $membership, [
-            'payment_code' => 'PAY-OWN-PAGE-'.str_pad((string) $index, 2, '0', STR_PAD_LEFT),
+    try {
+        $owner = OwnerFixtures::owner();
+        [, $member] = OwnerFixtures::member('PG-OWN-PAGE');
+        $membership = OwnerFixtures::membership($member);
+
+        foreach (range(1, 13) as $index) {
+            OwnerFixtures::payment($member, $membership, [
+                'payment_code' => 'PAY-OWN-PAGE-'.str_pad((string) $index, 2, '0', STR_PAD_LEFT),
+                'method' => 'cash',
+                'paid_at' => now()->subMinutes($index),
+            ]);
+        }
+
+        $this->actingAs($owner)->get(route('owner.reports.finance', [
+            'q' => 'PAY-OWN-PAGE',
             'method' => 'cash',
-            'paid_at' => now()->subMinutes($index),
-        ]);
+        ]))->assertOk()
+            ->assertSee('PAY-OWN-PAGE-01')
+            ->assertSee('page=2', false)
+            ->assertSee('q=PAY-OWN-PAGE', false)
+            ->assertSee('method=cash', false);
+    } finally {
+        Carbon::setTestNow();
     }
-
-    $this->actingAs($owner)->get(route('owner.reports.finance', [
-        'q' => 'PAY-OWN-PAGE',
-        'method' => 'cash',
-    ]))->assertOk()
-        ->assertSee('PAY-OWN-PAGE-01')
-        ->assertSee('page=2', false)
-        ->assertSee('q=PAY-OWN-PAGE', false)
-        ->assertSee('method=cash', false);
 });

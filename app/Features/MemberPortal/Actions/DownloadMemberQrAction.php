@@ -4,6 +4,7 @@ namespace App\Features\MemberPortal\Actions;
 
 use App\Models\Member;
 use App\Models\QrToken;
+use App\Support\MemberQrAccess;
 use App\Support\QrPngRenderer;
 use RuntimeException;
 
@@ -32,9 +33,10 @@ class DownloadMemberQrAction
         $hasActiveMembership = $member->memberships()
             ->activeForAccess()
             ->exists();
+        $hasActiveStandaloneSession = MemberQrAccess::hasActiveStandaloneSession($member);
 
-        if (! $hasActiveMembership) {
-            throw new RuntimeException('Membership aktif diperlukan sebelum mengunduh QR.');
+        if (! $hasActiveMembership && ! $hasActiveStandaloneSession) {
+            throw new RuntimeException('Membership atau paket sesi aktif diperlukan sebelum mengunduh QR.');
         }
 
         $png = $this->renderer->render($qrToken->token, 640);

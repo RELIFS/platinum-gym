@@ -89,6 +89,9 @@
                     : null;
                 $previewSessions = collect($checkInPreview['sessions'] ?? []);
                 $alreadyCheckedIn = filled($checkInPreview['today_check_in'] ?? null);
+                $hasPreviewMembership = filled($checkInPreview['membership'] ?? null);
+                $membershipActionDisabled = ! $hasPreviewMembership || $alreadyCheckedIn;
+                $combinedActionDisabled = $membershipActionDisabled || $previewSessions->isEmpty();
             @endphp
             <section class="admin-card mt-6" data-admin-check-in-preview>
                 <div class="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">
@@ -110,17 +113,17 @@
                         </div>
 
                         <dl class="mt-5 space-y-3 text-sm">
-                            <div class="flex flex-wrap items-start justify-between gap-3"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Membership</dt><dd class="max-w-full break-words text-right font-black text-zinc-950 dark:text-white">{{ $checkInPreview['membership']['name'] ?? '-' }}</dd></div>
+                            <div class="flex flex-wrap items-start justify-between gap-3"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Membership</dt><dd class="max-w-full break-words text-right font-black text-zinc-950 dark:text-white">{{ $checkInPreview['membership']['name'] ?? 'Tidak ada membership aktif' }}</dd></div>
                             <div class="flex flex-wrap items-start justify-between gap-3"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Berlaku sampai</dt><dd class="font-black text-zinc-950 dark:text-white">{{ $checkInPreview['membership']['end_date'] ?? '-' }}</dd></div>
                             <div class="flex flex-wrap items-start justify-between gap-3"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">QR</dt><dd><span class="admin-status-pill admin-status-success">{{ $checkInPreview['qr']['status'] ?? 'Aktif' }}</span></dd></div>
-                            <div class="flex flex-wrap items-start justify-between gap-3"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Hari ini</dt><dd class="font-black {{ $alreadyCheckedIn ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-700 dark:text-emerald-300' }}">{{ $alreadyCheckedIn ? 'Sudah check-in '.$checkInPreview['today_check_in']['time'] : 'Belum check-in' }}</dd></div>
+                            <div class="flex flex-wrap items-start justify-between gap-3"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Hari ini</dt><dd class="font-black {{ $alreadyCheckedIn ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-700 dark:text-emerald-300' }}">{{ $hasPreviewMembership ? ($alreadyCheckedIn ? 'Sudah check-in '.$checkInPreview['today_check_in']['time'] : 'Belum check-in') : 'Tidak tersedia untuk QR sesi' }}</dd></div>
                         </dl>
                     </div>
 
                     <div class="admin-panel bg-white dark:bg-zinc-950/45">
                         <p class="admin-eyebrow">Konfirmasi Tindakan</p>
                         <h3 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Pilih aksi admin</h3>
-                        <p class="mt-2 admin-copy">Pemindaian QR hanya menampilkan pratinjau. Check-in dan penggunaan sesi terjadi setelah tombol di bawah dikonfirmasi.</p>
+                        <p class="mt-2 admin-copy">{{ $hasPreviewMembership ? 'Pemindaian QR hanya menampilkan pratinjau. Check-in dan penggunaan sesi terjadi setelah tombol di bawah dikonfirmasi.' : 'QR ini aktif dari paket sesi. Gunakan tombol Gunakan Sesi; check-in membership tersedia setelah member memiliki membership aktif.' }}</p>
 
                         <form method="POST" action="{{ route('admin.check-in.confirm') }}" class="mt-5 grid gap-4" x-data="{ submitting: false, selectedAction: '', selectedSessionId: '', sessionError: '', requiresSession(action) { return ['use_package_session', 'check_in_and_use_session'].includes(action) } }" x-on:submit="if (requiresSession(selectedAction) && ! selectedSessionId) { $event.preventDefault(); sessionError = 'Pilih paket sesi terlebih dahulu sebelum menggunakan sesi.'; return; } if (submitting) { $event.preventDefault() } else { submitting = true }">
                             @csrf
@@ -144,9 +147,9 @@
                             <div x-cloak x-show="sessionError" class="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm font-bold text-red-700 dark:text-red-200" role="alert" aria-live="assertive" x-text="sessionError"></div>
 
                             <div class="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                                <button type="submit" name="action" value="check_in_membership" class="admin-button-primary w-full" x-on:click="selectedAction = 'check_in_membership'" x-bind:disabled="submitting || @js($alreadyCheckedIn)" @disabled($alreadyCheckedIn)>Check-in Member</button>
+                                <button type="submit" name="action" value="check_in_membership" class="admin-button-primary w-full" x-on:click="selectedAction = 'check_in_membership'" x-bind:disabled="submitting || @js($membershipActionDisabled)" @disabled($membershipActionDisabled)>Check-in Member</button>
                                 <button type="submit" name="action" value="use_package_session" class="admin-button-secondary w-full" x-on:click="selectedAction = 'use_package_session'" x-bind:disabled="submitting || @js($previewSessions->isEmpty())" @disabled($previewSessions->isEmpty())>Gunakan Sesi</button>
-                                <button type="submit" name="action" value="check_in_and_use_session" class="admin-button-secondary w-full" x-on:click="selectedAction = 'check_in_and_use_session'" x-bind:disabled="submitting || @js($alreadyCheckedIn || $previewSessions->isEmpty())" @disabled($alreadyCheckedIn || $previewSessions->isEmpty())>Check-in + Gunakan Sesi</button>
+                                <button type="submit" name="action" value="check_in_and_use_session" class="admin-button-secondary w-full" x-on:click="selectedAction = 'check_in_and_use_session'" x-bind:disabled="submitting || @js($combinedActionDisabled)" @disabled($combinedActionDisabled)>Check-in + Gunakan Sesi</button>
                             </div>
                         </form>
                     </div>

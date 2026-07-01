@@ -11,6 +11,7 @@ use App\Models\QrToken;
 use App\Notifications\Bookings\BookingCreatedNotification;
 use App\Notifications\MemberOperationalNotification;
 use App\Notifications\Payments\PaymentSucceededNotification;
+use App\Support\MemberQrAccess;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -90,6 +91,10 @@ class FulfillPaidPaymentAction
             'approved_by' => $verifiedBy,
             'approved_at' => now(),
         ])->save();
+
+        if (MemberQrAccess::sessionCanActivateQr($session)) {
+            $this->ensureQrToken($payment->member);
+        }
     }
 
     private function ensureQrToken(?Member $member): void

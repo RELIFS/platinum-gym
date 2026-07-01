@@ -15,6 +15,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Promo;
 use App\Models\QrToken;
+use App\Models\Setting;
 use App\Models\Trainer;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
@@ -237,6 +238,78 @@ test('gymmi answers direct faq without calling gemini', function () {
         ->assertOk()
         ->assertJsonPath('source', 'faq')
         ->assertJsonPath('reply.text', 'Harga Gym Umum adalah Rp249.000.');
+});
+
+test('public gymmi handles conversational messages locally without gemini', function (string $message, string $needle) {
+    configureGeminiForTest();
+
+    Http::preventStrayRequests();
+
+    $response = $this->postJson(route('gymmi.chat'), [
+        'message' => $message,
+        'context' => 'public',
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('source', 'fallback')
+        ->assertSee($needle);
+
+    expect($response->json('reply.text'))
+        ->not->toContain('Saya belum menemukan data resmi')
+        ->not->toContain('Gemini')
+        ->not->toContain('provider');
+
+    $conversation = AiConversation::query()->latest()->first();
+
+    expect($conversation)->not->toBeNull()
+        ->and($conversation->context)->toBe('public')
+        ->and($conversation->meta)->toMatchArray(['source' => 'fallback']);
+})->with([
+    ['halo', 'asisten Platinum Gym Padang'],
+    ['hai', 'membership, jadwal kelas'],
+    ['selamat pagi', 'produk katalog'],
+    ['makasih', 'Sama-sama'],
+    ['apa kabar', 'Saya siap bantu info Platinum Gym'],
+    ['kamu bisa apa', 'Gymmi bisa bantu menjawab info resmi Platinum Gym'],
+]);
+
+test('member gymmi greeting is contextual and logs to authenticated member', function () {
+    configureGeminiForTest();
+
+    Http::preventStrayRequests();
+
+    $user = User::factory()->create([
+        'name' => 'Greeting Gymmi Member',
+        'email' => 'greeting.gymmi@example.com',
+    ]);
+    $user->assignRole('member');
+
+    Member::create([
+        'user_id' => $user->id,
+        'member_code' => 'PG-GYMMI-GREET',
+        'gender' => 'female',
+        'birth_date' => '2001-01-01',
+        'joined_at' => now()->toDateString(),
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($user)->postJson(route('gymmi.chat'), [
+        'message' => 'halo',
+        'context' => 'member',
+    ])
+        ->assertOk()
+        ->assertJsonPath('source', 'fallback')
+        ->assertSee('asisten portal member Platinum Gym Padang')
+        ->assertSee('QR member')
+        ->assertDontSee('Saya belum menemukan data resmi')
+        ->assertDontSee('PG-GYMMI-GREET');
+
+    $conversation = AiConversation::query()->latest()->first();
+
+    expect($conversation)->not->toBeNull()
+        ->and($conversation->user_id)->toBe($user->id)
+        ->and($conversation->context)->toBe('member')
+        ->and($conversation->meta)->toMatchArray(['source' => 'fallback']);
 });
 
 test('gymmi uses active package live data before static faq when available', function () {
@@ -692,6 +765,38 @@ test('gymmi uses alias and config knowledge without unavailable email', function
         ->assertDontSee('Tidak tersedia');
 
     expect($response->json('reply.text'))->toContain('https://maps.app.goo.gl/biwzUHLZ6Lj3DLMZA');
+});
+
+test('gymmi prioritizes location intent over membership packages', function () {
+    configureGeminiForTest([
+        'services.gemini.api_key' => null,
+        'services.gemini.api_keys' => null,
+    ]);
+
+    Http::preventStrayRequests();
+
+    Setting::create([
+        'key' => 'address',
+        'value' => 'Jl. Lokasi Gymmi No. 9, Padang',
+        'type' => 'text',
+        'group' => 'public',
+    ]);
+    Setting::create([
+        'key' => 'maps_url',
+        'value' => 'https://maps.example.test/platinum-gym',
+        'type' => 'url',
+        'group' => 'public',
+    ]);
+
+    $this->postJson(route('gymmi.chat'), [
+        'message' => 'dimana lokasi gym?',
+        'context' => 'public',
+    ])
+        ->assertOk()
+        ->assertJsonPath('source', 'knowledge')
+        ->assertSee('Jl. Lokasi Gymmi No. 9')
+        ->assertDontSee('Paket aktif Gym')
+        ->assertDontSee('Gym Umum');
 });
 
 test('gymmi blocks prompt injection and secret requests before gemini', function () {

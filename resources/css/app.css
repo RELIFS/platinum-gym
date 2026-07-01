@@ -1,3 +1,5 @@
+@import "flatpickr/dist/flatpickr.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -148,7 +150,7 @@
     }
 
     .public-page-hero {
-        @apply relative isolate overflow-hidden bg-zinc-950 text-white;
+        @apply relative isolate overflow-hidden bg-[linear-gradient(180deg,#ffffff,#f4f4f5)] text-zinc-950 dark:bg-[linear-gradient(180deg,#09090b,#18181b)] dark:text-white;
     }
 
     .public-page-hero-content {
@@ -279,6 +281,54 @@
         @apply inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-500/60 hover:bg-white hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-95 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300 dark:hover:border-gold-400/50 dark:hover:bg-white/[0.07] dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
     }
 
+    .portal-account-menu {
+        @apply relative hidden shrink-0 lg:inline-flex;
+    }
+
+    .portal-account-trigger {
+        @apply inline-flex min-h-11 w-48 touch-manipulation items-center gap-2 px-0 py-1 text-left text-zinc-950 transition hover:text-gold-600 focus:outline-none dark:text-white dark:hover:text-gold-400 xl:w-56 2xl:w-64;
+    }
+
+    .portal-account-avatar {
+        @apply grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-gold-500 text-sm font-black text-zinc-950 ring-1 ring-gold-500/20 dark:ring-white/10;
+    }
+
+    .portal-account-trigger:focus-visible .portal-account-avatar {
+        box-shadow: 0 0 0 3px rgba(254, 172, 24, 0.32);
+    }
+
+    .portal-account-avatar-fallback {
+        @apply leading-none;
+    }
+
+    .portal-account-text {
+        @apply block min-w-0 flex-1;
+    }
+
+    .portal-account-name {
+        @apply block truncate text-xs font-black leading-tight text-zinc-950 dark:text-white;
+    }
+
+    .portal-account-email {
+        @apply mt-0.5 block truncate text-[0.68rem] font-semibold leading-tight text-zinc-500 dark:text-zinc-400;
+    }
+
+    .portal-account-dropdown {
+        @apply absolute right-0 top-full z-[70] mt-3 w-80 max-w-[calc(100vw-2rem)] origin-top-right overflow-hidden rounded-lg border border-zinc-200 bg-white text-zinc-950 shadow-[0_22px_70px_rgba(15,23,42,0.16)] ring-1 ring-zinc-950/5 dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.38)] dark:ring-white/10;
+    }
+
+    .portal-account-summary {
+        @apply flex min-w-0 items-center gap-3 border-b border-zinc-200 bg-zinc-50/80 px-4 py-4 dark:border-white/10 dark:bg-white/[0.04];
+    }
+
+    .portal-account-item {
+        @apply flex min-h-11 w-full touch-manipulation items-center gap-3 px-4 py-2.5 text-sm font-bold text-zinc-700 transition hover:bg-zinc-100 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-500/45 dark:text-zinc-200 dark:hover:bg-white/[0.07] dark:hover:text-gold-400;
+    }
+
+    .portal-account-logout {
+        @apply flex min-h-11 w-full touch-manipulation items-center gap-3 px-4 py-2.5 text-left text-sm font-black text-red-700 transition hover:bg-red-50 hover:text-red-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-500/45 dark:text-red-300 dark:hover:bg-red-500/10 dark:hover:text-red-200;
+    }
+
     .public-mobile-menu-button {
         @apply inline-flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-800 shadow-sm transition hover:-translate-y-0.5 hover:border-gold-500/60 hover:bg-gold-500/10 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 active:scale-[0.98] dark:border-transparent dark:bg-gold-500 dark:text-zinc-950 dark:focus-visible:ring-offset-zinc-950;
     }
@@ -323,12 +373,16 @@
         @apply py-16 sm:py-20 lg:py-24;
     }
 
+    .public-home-hero {
+        @apply relative overflow-hidden bg-[linear-gradient(180deg,#ffffff,#f4f4f5)] text-zinc-950 dark:bg-[linear-gradient(180deg,#09090b,#18181b)] dark:text-white;
+    }
+
     .public-home-hero-grid {
         @apply relative grid min-w-0 gap-7 py-8 sm:gap-10 sm:py-12 lg:min-h-[calc(90dvh-5rem)] lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:gap-12 lg:py-20;
     }
 
     .public-home-hero-title {
-        @apply mt-4 max-w-5xl break-words text-[2rem] font-black leading-[1.02] text-white min-[360px]:text-4xl sm:mt-5 sm:text-5xl sm:leading-[0.98] lg:text-5xl;
+        @apply mt-4 max-w-5xl break-words text-[2rem] font-black leading-[1.02] text-zinc-950 min-[360px]:text-4xl dark:text-white sm:mt-5 sm:text-5xl sm:leading-[0.98] lg:text-5xl;
     }
 
     .public-home-hero-actions {
@@ -340,7 +394,15 @@
     }
 
     .public-home-visual-card {
-        @apply relative z-20 overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/[0.055] p-2 shadow-[0_22px_60px_rgba(0,0,0,0.30)] backdrop-blur sm:rounded-[1.5rem] lg:absolute lg:right-0 lg:top-0 lg:w-[72%] lg:rounded-[2rem] lg:p-3 lg:shadow-[0_32px_90px_rgba(0,0,0,0.34)] xl:w-[68%];
+        @apply relative z-20 overflow-hidden rounded-[1.25rem] border border-zinc-200 bg-white/90 p-2 shadow-[0_22px_60px_rgba(24,24,27,0.10)] backdrop-blur dark:border-white/10 dark:bg-white/[0.055] dark:shadow-[0_22px_60px_rgba(0,0,0,0.30)] sm:rounded-[1.5rem] lg:absolute lg:right-0 lg:top-0 lg:w-[72%] lg:rounded-[2rem] lg:p-3 lg:shadow-[0_32px_90px_rgba(24,24,27,0.14)] lg:dark:shadow-[0_32px_90px_rgba(0,0,0,0.34)] xl:w-[68%];
+    }
+
+    .public-home-visual-media {
+        @apply relative aspect-[16/10] overflow-hidden rounded-[1.15rem] bg-zinc-100 lg:aspect-[4/5] lg:rounded-[1.5rem] dark:bg-zinc-900;
+    }
+
+    .public-home-visual-primary-overlay {
+        @apply absolute inset-0 bg-gradient-to-t from-white/40 via-white/5 to-transparent dark:from-zinc-950/75 dark:via-zinc-950/10 dark:to-transparent;
     }
 
     .public-home-visual-caption {
@@ -348,11 +410,31 @@
     }
 
     .public-home-visual-caption-copy {
-        @apply min-w-0 max-w-full rounded-xl bg-zinc-950/75 px-3 py-2.5 ring-1 ring-white/10 backdrop-blur sm:rounded-2xl sm:px-4 sm:py-3;
+        @apply min-w-0 max-w-full rounded-xl bg-white/90 px-3 py-2.5 text-zinc-950 shadow-[0_12px_32px_rgba(24,24,27,0.10)] ring-1 ring-zinc-200/80 backdrop-blur dark:bg-zinc-950/75 dark:text-white dark:shadow-none dark:ring-white/10 sm:rounded-2xl sm:px-4 sm:py-3;
     }
 
     .public-home-visual-program-badge {
         @apply inline-grid min-h-12 min-w-20 shrink-0 place-items-center rounded-xl bg-gold-500 px-3 py-2 text-center text-zinc-950 shadow-[0_12px_30px_rgba(254,172,24,0.22)] sm:min-h-14 sm:min-w-24 sm:rounded-2xl sm:px-4 sm:py-2.5 sm:shadow-[0_18px_46px_rgba(254,172,24,0.28)];
+    }
+
+    .public-home-visual-secondary-card {
+        @apply absolute z-10 hidden overflow-hidden rounded-[1.5rem] border border-zinc-200 bg-white/95 p-2 shadow-[0_24px_72px_rgba(24,24,27,0.14)] dark:border-white/10 dark:bg-zinc-900 dark:shadow-[0_28px_80px_rgba(0,0,0,0.36)] lg:block;
+    }
+
+    .public-home-visual-secondary-media {
+        @apply relative aspect-[4/5] overflow-hidden rounded-[1.15rem] bg-zinc-100 dark:bg-zinc-900;
+    }
+
+    .public-home-visual-secondary-overlay {
+        @apply absolute inset-0 bg-gradient-to-t from-white/25 via-transparent to-transparent dark:from-zinc-950/45 dark:via-transparent dark:to-transparent;
+    }
+
+    .public-home-visual-activity-overlay {
+        @apply absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-transparent dark:from-zinc-950/55 dark:via-transparent dark:to-transparent;
+    }
+
+    .public-home-visual-chip {
+        @apply absolute bottom-4 left-4 max-w-[calc(100%-2rem)] rounded-full bg-white/90 px-3 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.16em] text-gold-600 shadow-[0_10px_24px_rgba(24,24,27,0.10)] ring-1 ring-zinc-200/90 backdrop-blur dark:bg-zinc-950/80 dark:text-gold-400 dark:shadow-none dark:ring-white/10;
     }
 
     .public-home-stat-grid {
@@ -361,7 +443,7 @@
     }
 
     .public-home-stat-card {
-        @apply min-w-0 rounded-xl border border-white/10 bg-white/[0.04] p-2.5 sm:p-3;
+        @apply min-w-0 rounded-xl border border-zinc-200 bg-white/85 p-2.5 shadow-sm dark:border-white/10 dark:bg-white/[0.04] sm:p-3;
     }
 
     .public-home-stat-value {
@@ -369,7 +451,7 @@
     }
 
     .public-home-stat-label {
-        @apply mt-2 break-words text-[11px] font-semibold leading-4 text-zinc-300;
+        @apply mt-2 break-words text-[11px] font-semibold leading-4 text-zinc-600 dark:text-zinc-300;
     }
 
     .public-home-section-heading {
@@ -480,15 +562,10 @@
         @apply -mx-1 -mt-1 bg-white shadow-inner dark:bg-zinc-950;
     }
 
-    .public-product-title,
     .public-product-description {
         display: -webkit-box;
         -webkit-box-orient: vertical;
         overflow: hidden;
-    }
-
-    .public-product-title {
-        -webkit-line-clamp: 2;
     }
 
     .public-product-description {

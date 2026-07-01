@@ -24,6 +24,21 @@ class MemberChatbotViewModel
             'initialMessage' => 'Halo! Saya Gymmi dari portal member Platinum Gym Padang. Saya bisa bantu status membership, jadwal kelas, transaksi, QR member, dan bantuan akun.',
             'quickReplies' => ['Status Membership', 'Jadwal Kelas', 'Transaksi', 'QR Member', 'Bantuan Akun'],
             'replies' => [
+                'greeting' => [
+                    'text' => 'Halo! Saya Gymmi, asisten portal member Platinum Gym Padang. Saya bisa bantu cek status membership, booking kelas, transaksi, QR member, profil, dan info layanan.',
+                ],
+                'thanks' => [
+                    'text' => 'Sama-sama. Kalau masih ada yang ingin dicek, sebutkan topiknya seperti membership, booking kelas, transaksi, QR member, atau profil.',
+                ],
+                'wellbeing' => [
+                    'text' => 'Saya siap bantu member Platinum Gym. Mau cek membership, jadwal booking, transaksi, QR member, atau profil?',
+                ],
+                'capability' => [
+                    'text' => 'Gymmi bisa bantu member mengecek ringkasan membership, paket sesi, transaksi menunggu, booking kelas, QR member, profil, serta info layanan Platinum Gym. Saya hanya memakai data akun Anda sendiri dan data resmi gym.',
+                ],
+                'goodbye' => [
+                    'text' => 'Baik, sampai jumpa. Semoga latihan Anda lancar di Platinum Gym Padang.',
+                ],
                 'membership' => [
                     'text' => 'Status membership, masa aktif, dan paket sesi aktif dapat dicek di halaman Membership.',
                     'actionLabel' => 'Buka Membership',

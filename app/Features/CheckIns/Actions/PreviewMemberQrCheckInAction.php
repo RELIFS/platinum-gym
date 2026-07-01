@@ -5,6 +5,7 @@ namespace App\Features\CheckIns\Actions;
 use App\Models\Member;
 use App\Models\Membership;
 use App\Models\QrToken;
+use App\Support\MemberQrAccess;
 use RuntimeException;
 
 class PreviewMemberQrCheckInAction
@@ -28,26 +29,23 @@ class PreviewMemberQrCheckInAction
         $member = $qrToken->tokenable->loadMissing('user');
         $membership = $this->activeMembership($member);
 
-        if (! $membership) {
-            throw new RuntimeException('Membership aktif tidak ditemukan.');
-        }
-
         $today = now()->toDateString();
         $todayCheckIn = $member->gymCheckIns()
             ->whereDate('check_in_date', $today)
             ->latest('check_in_at')
             ->first();
 
-        $sessions = $member->packageSessions()
-            ->with(['package', 'trainer'])
-            ->where('status', 'active')
-            ->where('remaining_sessions', '>', 0)
-            ->where(function ($query) use ($today): void {
-                $query->whereNull('expired_at')
-                    ->orWhereDate('expired_at', '>=', $today);
-            })
-            ->orderByDesc('remaining_sessions')
-            ->get();
+        $sessionsQuery = MemberQrAccess::activePackageSessionsQuery($member, $today);
+
+        if (! $membership) {
+            $sessionsQuery->whereHas('package', fn ($query) => $query->whereIn('type', MemberQrAccess::standaloneSessionTypes()));
+        }
+
+        $sessions = $sessionsQuery->orderByDesc('remaining_sessions')->get();
+
+        if (! $membership && $sessions->isEmpty()) {
+            throw new RuntimeException('Membership atau paket sesi aktif tidak ditemukan.');
+        }
 
         return [
             'member_id' => $member->id,
@@ -56,14 +54,14 @@ class PreviewMemberQrCheckInAction
             'email' => $member->user?->email,
             'phone' => $member->user?->phone,
             'avatar' => $member->user?->avatar,
-            'membership' => [
+            'membership' => $membership ? [
                 'id' => $membership->id,
                 'name' => $membership->package?->name ?? $membership->code,
                 'end_date' => $membership->end_date?->translatedFormat('d M Y') ?? 'Mulai saat check-in pertama',
                 'status' => $membership->status,
-            ],
+            ] : null,
             'qr' => [
-                'status' => 'Aktif',
+                'status' => $membership ? 'Aktif' : 'Aktif untuk sesi',
                 'expires_at' => null,
                 'last_used_at' => $qrToken->last_used_at?->translatedFormat('d M Y H:i'),
             ],

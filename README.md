@@ -14,7 +14,7 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 |---|---|
 | Auth, role, permission, Google OAuth | Operasional dengan UI auth Platinum Gym, kode verifikasi email, undangan akun member dari admin, Google onboarding, dan role redirect |
 | Public website company profile | Operasional dengan halaman informasi, katalog produk stok aktual, real image assets, dan Gymmi public |
-| Clean architecture foundation | Aktif berbasis `app/Features`, Action, Query, FormRequest, ViewModel, dan component Blade |
+| Clean architecture foundation | Aktif berbasis [`app/Features`](app/Features), Action, Query, FormRequest, ViewModel, dan component Blade |
 | Member portal | Operasional: profil editable dengan bukti mahasiswa, checkout membership/paket sesi, booking/cancel, transaksi, QR, notifikasi, sidebar minimal, server-side pagination/filter, dan Gymmi global |
 | Admin portal | Production custom Blade dengan route `/admin`, CRUD master data, payment cash/approve/reject, booking create/confirm/cancel, QR-camera preview-confirm check-in, notifikasi aktivitas member, settings whitelist, audit filter, report CSV, dan masked secrets |
 | Owner portal | Operasional read-only untuk dashboard bisnis, laporan web, export CSV, dan invoice transaksi berbasis data pembayaran terkonfirmasi |
@@ -117,7 +117,7 @@ php artisan serve
 
 Catatan Windows PowerShell: jika `npm` atau `npx` diblokir karena execution policy, gunakan `npm.cmd` dan `npx.cmd`.
 
-Dokumentasi instalasi lengkap tersedia di `docs/installation.md`.
+Dokumentasi instalasi lengkap tersedia di [`docs/installation.md`](docs/installation.md).
 
 ## Akses Admin Lokal
 
@@ -151,7 +151,7 @@ Project menggunakan Pest PHP. Pest berjalan di atas ekosistem PHPUnit, sehingga 
 
 Baseline validasi terakhir pada 23 Juni 2026: `php artisan test --no-ansi` lulus dengan `579 passed / 3813 assertions`, `vendor\bin\pint --test` lulus, `npm.cmd run build` lulus, dan `git diff --check` lulus dengan peringatan line-ending Git. Jika melakukan perubahan baru, jalankan ulang semua command tersebut sebelum push.
 
-Catatan: konfigurasi `phpunit.xml` memakai SQLite in-memory untuk testing. Pastikan PHP CLI memiliki extension `pdo_sqlite` aktif sebelum menjalankan full test suite lokal.
+Catatan: konfigurasi [`phpunit.xml`](phpunit.xml) memakai SQLite in-memory untuk testing. Pastikan PHP CLI memiliki extension `pdo_sqlite` aktif sebelum menjalankan full test suite lokal.
 
 ## Build Asset Frontend
 
@@ -176,32 +176,34 @@ docs/
 |-- features.md
 |-- dependency.md
 |-- refactoring.md
-`-- github-actions.md
+|-- github-actions.md
+`-- screenshot/
+    |-- README.md
+    |-- public/
+    |-- auth/
+    |-- member/
+    |-- admin/
+    |-- owner/
+    `-- detail/
 ```
 
 ## Screenshot Proyek
 
-Screenshot awal aplikasi sudah dibuat untuk halaman public yang sudah diverifikasi lokal. Bukti QA disimpan di luar repository production Laravel agar struktur root `docs/` tetap mengikuti modul PBL.
+Screenshot fitur per halaman disimpan di [`docs/screenshot/`](docs/screenshot/). Index galeri tersedia di [`docs/screenshot/README.md`](docs/screenshot/README.md) dan mencakup public website, auth, member portal, admin portal, owner portal, serta beberapa halaman detail representatif.
 
-Rencana screenshot tambahan:
-
-- Halaman beranda public.
-- Halaman layanan dan kelas.
-- Halaman login.
-- Halaman registrasi member.
-- Halaman verifikasi email.
-- Dashboard member/admin dan owner.
+Screenshot dibuat pada viewport desktop 1440px dengan data lokal aman. Area login-protected dimasking untuk email akun, dan screenshot tidak boleh menampilkan `.env`, password, API key, OAuth token, raw QR token, atau raw payment payload.
 
 ## Documentation
 
 | Dokumen | Deskripsi |
 |---|---|
-| `docs/installation.md` | Panduan instalasi lokal dan troubleshooting |
-| `docs/features.md` | Dokumentasi fitur aplikasi |
-| `docs/dependency.md` | Dokumentasi dependency backend dan frontend |
-| `docs/refactoring.md` | Catatan refactoring dan perbaikan struktur kode |
-| `docs/github-actions.md` | Dokumentasi workflow CI/CD |
-| `CHANGELOG.md` | Riwayat perubahan proyek |
+| [`docs/installation.md`](docs/installation.md) | Panduan instalasi lokal dan troubleshooting |
+| [`docs/features.md`](docs/features.md) | Dokumentasi fitur aplikasi |
+| [`docs/dependency.md`](docs/dependency.md) | Dokumentasi dependency backend dan frontend |
+| [`docs/refactoring.md`](docs/refactoring.md) | Catatan refactoring dan perbaikan struktur kode |
+| [`docs/github-actions.md`](docs/github-actions.md) | Dokumentasi workflow CI/CD |
+| [`docs/screenshot/README.md`](docs/screenshot/README.md) | Index screenshot fitur per halaman |
+| [`CHANGELOG.md`](CHANGELOG.md) | Riwayat perubahan proyek |
 
 ## Tim Pengembang
 

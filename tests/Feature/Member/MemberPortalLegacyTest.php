@@ -1720,7 +1720,7 @@ test('legacy expiring qr token is reused and cleared on membership renewal', fun
 
     $this->actingAs($user)->get(route('member.qr'))
         ->assertOk()
-        ->assertSee('QR ini tetap sama selama akun member aktif. Tunjukkan ke admin saat check-in.')
+        ->assertSee('QR ini tetap sama selama akun member aktif. Tunjukkan ke admin saat check-in atau penggunaan sesi.')
         ->assertSee('Berlaku Selama')
         ->assertSee('Membership aktif');
 });
@@ -1745,13 +1745,13 @@ test('member qr token without active membership is not usable for admin check in
     $this->actingAs($user)->get(route('member.qr'))
         ->assertOk()
         ->assertSee('Belum aktif')
-        ->assertSee('Aktifkan membership untuk menggunakan QR saat check-in.')
+        ->assertSee('Aktifkan membership atau paket sesi Muaythai/Poundfit untuk menggunakan QR.')
         ->assertDontSee('Download QR');
 
     $this->actingAs($admin)->post(route('admin.check-in.preview'), [
         'token' => $token,
     ])->assertRedirect()
-        ->assertSessionHas('status', 'Membership aktif tidak ditemukan.')
+        ->assertSessionHas('status', 'Membership atau paket sesi aktif tidak ditemukan.')
         ->assertSessionHas('status_kind', 'error');
 });
 
@@ -2264,8 +2264,8 @@ test('inactive qr page shows unavailable state instead of large scannable qr pla
         ->assertSee('data-qr-member-status', false)
         ->assertSee('lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]', false)
         ->assertSee('QR belum aktif')
-        ->assertSee('Pilih Membership')
-        ->assertSee('Admin hanya dapat scan QR setelah status member aktif')
+        ->assertSee('Pilih Paket')
+        ->assertSee('Admin hanya dapat scan QR setelah membership atau paket sesi aktif')
         ->assertSee('Riwayat Check-in')
         ->assertSee('Belum ada check-in')
         ->assertDontSee('Aktivitas masuk gym terbaru')

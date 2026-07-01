@@ -8,7 +8,10 @@ beforeEach(function () {
 });
 
 test('admin layout exposes accessible navigation controls and identity regions', function () {
-    $admin = AdminFixture::admin(['name' => 'Admin UI QA']);
+    $admin = AdminFixture::admin([
+        'name' => 'Admin UI QA',
+        'email' => 'admin.ui.qa@example.test',
+    ]);
 
     $response = $this->actingAs($admin)->get('/admin/produk');
     $content = $response->getContent();
@@ -23,7 +26,14 @@ test('admin layout exposes accessible navigation controls and identity regions',
         ->assertSee('Menu admin mobile')
         ->assertSee('Identitas admin')
         ->assertSee('Admin UI QA')
+        ->assertSee('admin.ui.qa@example.test')
         ->assertSee('Keluar')
+        ->assertSee('data-portal-account-menu="admin"', false)
+        ->assertSee('data-portal-account-trigger="admin"', false)
+        ->assertSee('data-portal-account-dropdown="admin"', false)
+        ->assertSee('data-portal-account-profile="admin"', false)
+        ->assertSee('data-portal-account-logout="admin"', false)
+        ->assertSee(route('admin.profile'), false)
         ->assertSee('admin-sidebar-nav-link', false)
         ->assertSee('admin-sidebar-nav-link-active', false)
         ->assertSee('admin-sidebar-icon-frame', false)
@@ -42,6 +52,9 @@ test('admin layout exposes accessible navigation controls and identity regions',
         ->assertDontSee('admin-nav-link-active', false);
 
     expect(substr_count($content, 'Website Utama'))->toBe(2)
+        ->and(substr_count($content, 'aria-label="Identitas admin"'))->toBe(1)
+        ->and(substr_count($content, 'data-portal-account-menu="admin"'))->toBe(1)
+        ->and(substr_count($content, 'data-portal-account-logout="admin"'))->toBe(1)
         ->and(substr_count($content, 'data-admin-sidebar-icon="globe"'))->toBe(2)
         ->and((bool) preg_match('/<a(?=[^>]*data-admin-website-link="mobile")(?=[^>]*x-on:click="closeAdminMenu\(\)")/s', $content))->toBeTrue()
         ->and((bool) preg_match('/<a(?=[^>]*data-admin-website-link="(?:desktop|mobile)")(?=[^>]*aria-current=)/s', $content))->toBeFalse();
