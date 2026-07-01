@@ -4,7 +4,13 @@
     $portalUser = $portal['user'] ?? auth()->user();
     $portalMember = $portal['member'] ?? null;
     $memberDisplayName = (string) ($portalUser->name ?? 'Member');
+    $memberEmail = (string) ($portalUser->email ?? '');
     $memberCode = (string) ($portalMember->member_code ?? '-');
+    $memberInitial = mb_strtoupper(mb_substr($memberDisplayName, 0, 1));
+    $memberAvatar = (string) ($portalUser?->avatar ?? '');
+    $memberAvatarUrl = filled($memberAvatar)
+        ? (str_starts_with($memberAvatar, 'storage/') ? asset($memberAvatar) : $memberAvatar)
+        : null;
     $unreadBadgeText = $unreadNotificationsCount > 99 ? '99+' : (string) $unreadNotificationsCount;
     $headerStatusLabel = $activeMembership ? 'Membership Aktif' : 'Paket Belum Aktif';
     $headerStatusShort = $activeMembership ? 'Aktif' : 'Belum Aktif';
@@ -88,23 +94,6 @@
                         </div>
                     </nav>
                 </div>
-
-                <div class="border-t border-zinc-200 p-4 dark:border-white/10">
-                    <div class="mb-3 flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.04]" aria-label="Identitas member">
-                        <x-member-avatar :user="$portalUser" class="h-10 w-10 text-sm" aria-hidden="true" />
-                        <div class="min-w-0">
-                            <p class="truncate text-sm font-black text-zinc-950 dark:text-white">{{ $memberDisplayName }}</p>
-                            <p class="mt-0.5 truncate font-mono text-[0.7rem] font-bold uppercase tracking-[0.1em] text-zinc-500 dark:text-zinc-400">{{ $memberCode }}</p>
-                        </div>
-                    </div>
-
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="member-button-secondary w-full">
-                            Keluar
-                        </button>
-                    </form>
-                </div>
             </div>
 
             <div x-cloak x-bind:class="memberMenuOpen ? 'block' : 'hidden'" class="fixed inset-0 z-50 bg-zinc-900/25 backdrop-blur-sm dark:bg-zinc-950/70 lg:hidden" x-on:click="closeMemberMenu()" aria-hidden="true"></div>
@@ -187,6 +176,15 @@
                                 @endif
                             </a>
                             <x-theme-toggle class="h-11 w-11" />
+                            <x-portal-account-menu
+                                portal="member"
+                                :name="$memberDisplayName"
+                                :email="$memberEmail"
+                                :avatar-url="$memberAvatarUrl"
+                                :avatar-fallback="$memberInitial"
+                                :profile-url="route('member.profile')"
+                                profile-label="Profil"
+                            />
                         </div>
                     </div>
                 </header>

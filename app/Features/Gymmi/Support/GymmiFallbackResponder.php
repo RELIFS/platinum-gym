@@ -9,14 +9,22 @@ class GymmiFallbackResponder
         private readonly GymmiResponseFormatter $formatter,
     ) {}
 
-    public function ambiguous(): string
+    public function ambiguous(string $context = 'public'): string
     {
+        if ($context === 'member') {
+            return 'Boleh diperjelas topiknya? Contoh: status membership, jadwal booking, transaksi, QR member, profil, atau bantuan akun.';
+        }
+
         return 'Boleh diperjelas topiknya? Contoh: harga Gym Umum, jadwal Muaythai, lokasi gym, metode pembayaran, atau fasilitas yang tersedia.';
     }
 
-    public function outOfScope(): string
+    public function outOfScope(string $context = 'public'): string
     {
-        return 'Saya belum menemukan data resmi untuk pertanyaan itu. Saya bisa bantu informasi membership, fasilitas, alat gym, coach, personal trainer, kelas, produk, kebijakan, lokasi, jam operasional, dan kontak Platinum Gym. Untuk data operasional, coba sebutkan paket, kelas, promo, atau produk yang ingin dicek.';
+        if ($context === 'member') {
+            return 'Saya belum menemukan topik itu di data portal member. Saya bisa bantu status membership, booking kelas, transaksi, QR member, profil, atau info layanan Platinum Gym. Untuk bantuan di luar akun, silakan hubungi admin.';
+        }
+
+        return 'Saya belum menemukan data resmi untuk pertanyaan itu. Saya bisa bantu info membership, jadwal kelas, personal trainer, fasilitas, produk katalog, promo, lokasi, jam operasional, dan kontak Platinum Gym. Coba sebutkan topik yang ingin dicek.';
     }
 
     /**

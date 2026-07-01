@@ -13,6 +13,7 @@ class GymmiKnowledgeMatcher
     {
         $normalized = $this->normalize($message);
         $tokens = $this->tokens($normalized);
+        $isLocationContactMessage = $this->isLocationContactMessage($normalized);
 
         if ($this->isAmbiguous($tokens, $normalized)) {
             return $this->result('ambiguous', null, [], null, 0);
@@ -20,15 +21,17 @@ class GymmiKnowledgeMatcher
 
         $aliases = $this->matchedAliases($normalized, $knowledge['aliases'] ?? []);
         $faq = $this->bestFaq($normalized, $tokens, $aliases, $knowledge['faq'] ?? []);
+        $shouldUseFaq = isset($faq['answer'])
+            && (! $isLocationContactMessage || $this->faqMatchesLocationContact($faq));
 
-        if (($faq['score'] ?? 0) >= 70 && ! $this->shouldUseKnowledgeContext($normalized)) {
+        if ($shouldUseFaq && ($faq['score'] ?? 0) >= 70 && ! $this->shouldUseKnowledgeContext($normalized)) {
             return $this->result('faq', (string) $faq['answer'], [], (string) $faq['category'], (int) $faq['score']);
         }
 
         $snippets = array_values(array_filter(array_merge(
             $this->configSnippets($normalized, $knowledge['config'] ?? []),
-            $this->catalogSnippets($normalized, $tokens, $aliases, $knowledge['catalog'] ?? []),
-            isset($faq['answer']) && ($faq['score'] ?? 0) >= 42 ? [(string) $faq['answer']] : [],
+            $isLocationContactMessage ? [] : $this->catalogSnippets($normalized, $tokens, $aliases, $knowledge['catalog'] ?? []),
+            $shouldUseFaq && ($faq['score'] ?? 0) >= 42 ? [(string) $faq['answer']] : [],
         )));
 
         if ($snippets !== []) {
@@ -76,6 +79,25 @@ class GymmiKnowledgeMatcher
         }
 
         return preg_match('/^info\s+(membership|member|paket|gym)\b/u', $message) === 1;
+    }
+
+    private function isLocationContactMessage(string $message): bool
+    {
+        return $this->messageHasAny($message, ['alamat', 'lokasi', 'dimana', 'di mana', 'arah', 'rute', 'maps', 'google maps', 'wa', 'whatsapp', 'kontak', 'instagram', 'ig', 'jam buka', 'operasional']);
+    }
+
+    /**
+     * @param  array<string, mixed>  $faq
+     */
+    private function faqMatchesLocationContact(array $faq): bool
+    {
+        $haystack = $this->normalize(collect([
+            $faq['question'] ?? null,
+            $faq['answer'] ?? null,
+            $faq['category'] ?? null,
+        ])->filter()->implode(' '));
+
+        return $this->isLocationContactMessage($haystack);
     }
 
     /**
@@ -204,7 +226,7 @@ class GymmiKnowledgeMatcher
     private function catalogSnippets(string $message, array $tokens, array $aliases, array $catalog): array
     {
         $categories = [
-            'membership' => ['membership', 'member', 'paket', 'gym', 'mahasiswa', 'harga'],
+            'membership' => ['membership', 'member', 'paket', 'gym umum', 'gym mahasiswa', 'fitnes', 'mahasiswa', 'harga'],
             'fasilitas' => ['fasilitas', 'wc', 'locker', 'parkir'],
             'alat_gym' => ['alat', 'chest', 'leg', 'treadmill', 'dumbbell', 'otot'],
             'coach' => ['coach', 'pelatih', 'trainer'],

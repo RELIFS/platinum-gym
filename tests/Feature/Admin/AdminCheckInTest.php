@@ -44,7 +44,122 @@ test('admin qr preview rejects revoked token and member without active membershi
         ->post(route('admin.check-in.preview'), ['token' => $inactiveToken->token])
         ->assertRedirect()
         ->assertSessionHas('status_kind', 'error')
-        ->assertSessionHas('status', 'Membership aktif tidak ditemukan.');
+        ->assertSessionHas('status', 'Membership atau paket sesi aktif tidak ditemukan.');
+});
+
+test('admin can use standalone package session from qr without creating membership check in', function () {
+    $admin = AdminFixture::admin();
+    [, $member] = AdminFixture::member('PG-ADM-QR-STANDALONE-SESSION');
+    $sessionPackage = AdminFixture::package([
+        'name' => 'Muaythai Standalone QR',
+        'slug' => 'muaythai-standalone-qr',
+        'package_kind' => 'session',
+        'type' => 'muaythai',
+        'session_count' => 3,
+    ]);
+    $packageSession = MemberPackageSession::create([
+        'member_id' => $member->id,
+        'package_id' => $sessionPackage->id,
+        'code' => 'MPS-STANDALONE-QR',
+        'total_sessions' => 3,
+        'used_sessions' => 0,
+        'remaining_sessions' => 3,
+        'price' => 300000,
+        'started_at' => now()->subDay()->toDateString(),
+        'expired_at' => now()->addMonth()->toDateString(),
+        'status' => 'active',
+    ]);
+    $qrToken = AdminFixture::qrToken($member);
+
+    $this->actingAs($admin)
+        ->post(route('admin.check-in.preview'), ['token' => $qrToken->token])
+        ->assertRedirect()
+        ->assertSessionHas('check_in_preview')
+        ->assertSessionHas('check_in_preview.qr.status', 'Aktif untuk sesi');
+
+    $preview = session('check_in_preview');
+    expect($preview['membership'])->toBeNull();
+
+    $this->actingAs($admin)
+        ->withSession(['admin_check_in_preview_tokens.'.$preview['preview_key'] => $qrToken->token])
+        ->post(route('admin.check-in.confirm'), [
+            'preview_key' => $preview['preview_key'],
+            'action' => 'use_package_session',
+            'member_package_session_id' => $packageSession->id,
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('status');
+
+    expect(GymCheckIn::query()->where('member_id', $member->id)->count())->toBe(0)
+        ->and(MemberPackageSessionUsage::query()->where('member_package_session_id', $packageSession->id)->count())->toBe(1)
+        ->and($packageSession->refresh()->used_sessions)->toBe(1)
+        ->and($packageSession->remaining_sessions)->toBe(2);
+});
+
+test('admin qr preview for standalone session disables membership actions in view', function () {
+    $admin = AdminFixture::admin();
+
+    $preview = [
+        'member_id' => 999,
+        'member_code' => 'PG-ADM-QR-SESSION-UI',
+        'name' => 'Member Session Only',
+        'phone' => '081200000000',
+        'membership' => null,
+        'qr' => ['status' => 'Aktif untuk sesi', 'expires_at' => null, 'last_used_at' => null],
+        'today_check_in' => null,
+        'sessions' => [
+            ['id' => 99, 'name' => 'Poundfit Session', 'remaining' => 2, 'total' => 4, 'trainer' => null, 'expired_at' => null],
+        ],
+        'preview_key' => 'preview-session-only-ui',
+    ];
+
+    $this->actingAs($admin)
+        ->withSession(['check_in_preview' => $preview])
+        ->get(route('admin.check-in'))
+        ->assertOk()
+        ->assertSee('Tidak ada membership aktif')
+        ->assertSee('QR ini aktif dari paket sesi')
+        ->assertSee('disabled>Check-in Member', false)
+        ->assertSee('Gunakan Sesi')
+        ->assertSee('disabled>Check-in + Gunakan Sesi', false);
+});
+
+test('admin cannot use personal trainer session from qr without active membership', function () {
+    $admin = AdminFixture::admin();
+    [, $member] = AdminFixture::member('PG-ADM-QR-PT-NO-MEMBERSHIP');
+    $sessionPackage = AdminFixture::package([
+        'name' => 'PT QR Membership Guard',
+        'slug' => 'pt-qr-membership-guard',
+        'package_kind' => 'session',
+        'type' => 'pt',
+        'session_count' => 3,
+    ]);
+    $packageSession = MemberPackageSession::create([
+        'member_id' => $member->id,
+        'package_id' => $sessionPackage->id,
+        'code' => 'MPS-PT-QR-GUARD',
+        'total_sessions' => 3,
+        'used_sessions' => 0,
+        'remaining_sessions' => 3,
+        'price' => 300000,
+        'started_at' => now()->subDay()->toDateString(),
+        'expired_at' => now()->addMonth()->toDateString(),
+        'status' => 'active',
+    ]);
+    $qrToken = AdminFixture::qrToken($member);
+
+    $this->actingAs($admin)
+        ->withSession(['admin_check_in_preview_tokens.preview-pt-no-membership' => $qrToken->token])
+        ->post(route('admin.check-in.confirm'), [
+            'preview_key' => 'preview-pt-no-membership',
+            'action' => 'use_package_session',
+            'member_package_session_id' => $packageSession->id,
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('status_kind', 'error')
+        ->assertSessionHas('status', 'Membership aktif diperlukan untuk menggunakan paket sesi ini.');
+
+    expect(MemberPackageSessionUsage::query()->where('member_package_session_id', $packageSession->id)->count())->toBe(0);
 });
 
 test('admin qr confirm requires valid preview session key', function () {

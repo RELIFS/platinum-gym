@@ -22,12 +22,21 @@ test('owner layout renders navigation drawer topbar flash and accessible control
         ->assertSee('aria-controls="owner-mobile-navigation"', false)
         ->assertSee('aria-label="Buka navigasi owner"', false)
         ->assertSee('aria-label="Tutup navigasi owner"', false)
-        ->assertSee('aria-label="Identitas owner"', false)
+        ->assertDontSee('aria-label="Identitas owner"', false)
         ->assertSee('aria-label="Identitas owner mobile"', false)
-        ->assertSee('data-owner-sidebar-logout="desktop"', false)
-        ->assertSee('data-owner-sidebar-logout="mobile"', false);
+        ->assertDontSee('data-owner-sidebar-logout="desktop"', false)
+        ->assertSee('data-owner-sidebar-logout="mobile"', false)
+        ->assertSee('data-portal-account-menu="owner"', false)
+        ->assertSee('data-portal-account-trigger="owner"', false)
+        ->assertSee('data-portal-account-dropdown="owner"', false)
+        ->assertSee('data-portal-account-profile="owner"', false)
+        ->assertSee('data-portal-account-logout="owner"', false)
+        ->assertSee($owner->email)
+        ->assertSee(route('profile.edit'), false);
 
-    expect(substr_count($content, 'data-owner-sidebar-logout='))->toBe(2);
+    expect(substr_count($content, 'data-owner-sidebar-logout='))->toBe(1);
+    expect(substr_count($content, 'data-portal-account-menu="owner"'))->toBe(1);
+    expect(substr_count($content, 'data-portal-account-logout="owner"'))->toBe(1);
 });
 
 test('owner active navigation is single per desktop and mobile instance', function (string $routeName, string $activeRoute) {

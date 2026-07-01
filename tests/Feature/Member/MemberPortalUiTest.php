@@ -25,6 +25,13 @@ test('complete member pages render consistent member layout smoke', function (st
         ->assertSee('data-member-sidebar-icon="qr-scan"', false)
         ->assertSee('data-member-sidebar-icon="calendar-check"', false)
         ->assertSee('data-member-sidebar-icon="globe"', false)
+        ->assertSee('data-portal-account-menu="member"', false)
+        ->assertSee('data-portal-account-trigger="member"', false)
+        ->assertSee('data-portal-account-dropdown="member"', false)
+        ->assertSee('data-portal-account-profile="member"', false)
+        ->assertSee('data-portal-account-logout="member"', false)
+        ->assertSee($user->email)
+        ->assertSee(route('member.profile'), false)
         ->assertSee('data-member-website-link="desktop"', false)
         ->assertSee('data-member-website-link="mobile"', false)
         ->assertSee('data-member-website-placement="menu"', false)
@@ -61,6 +68,9 @@ test('complete member pages render consistent member layout smoke', function (st
     $content = $response->getContent();
 
     expect(substr_count($content, 'Website Utama'))->toBe(2);
+    expect(substr_count($content, 'aria-label="Identitas member"'))->toBe(1);
+    expect(substr_count($content, 'data-portal-account-menu="member"'))->toBe(1);
+    expect(substr_count($content, 'data-portal-account-logout="member"'))->toBe(1);
     expect(substr_count($content, 'member-sidebar-nav-link'))->toBeGreaterThanOrEqual(18);
     expect(substr_count($content, 'data-member-sidebar-icon="globe"'))->toBe(2);
     expect(substr_count($content, 'data-member-website-placement="menu"'))->toBe(2);

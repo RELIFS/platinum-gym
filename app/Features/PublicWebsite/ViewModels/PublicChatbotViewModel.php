@@ -25,6 +25,11 @@ class PublicChatbotViewModel
             'initialMessage' => 'Halo! Saya Gymmi dari Platinum Gym Padang. Saya bisa bantu info membership, jadwal kelas, personal trainer, promo, lokasi, dan jam buka.',
             'quickReplies' => ['Info Membership', 'Jadwal Kelas', 'Harga Personal Trainer', 'Lokasi & Jam Buka'],
             'replies' => [
+                'greeting' => 'Halo! Saya Gymmi, asisten Platinum Gym Padang. Saya bisa bantu info membership, jadwal kelas, personal trainer, promo, produk katalog, lokasi, dan jam buka.',
+                'thanks' => 'Sama-sama. Kalau masih ada yang ingin dicek, sebutkan topiknya seperti membership, jadwal kelas, lokasi, promo, atau produk.',
+                'wellbeing' => 'Saya siap bantu info Platinum Gym. Mau cek harga membership, jadwal kelas, lokasi, promo, atau personal trainer?',
+                'capability' => 'Gymmi bisa bantu menjawab info resmi Platinum Gym seperti membership, jadwal kelas, personal trainer, fasilitas, produk katalog, promo, lokasi, jam operasional, dan kontak admin.',
+                'goodbye' => 'Baik, sampai jumpa. Semoga latihan Anda lancar di Platinum Gym Padang.',
                 'membership' => 'Paket membership tersedia untuk umum dan mahasiswa. Mulai dari Gym Umum, Gym Mahasiswa, serta paket khusus sesuai promo aktif. Untuk daftar, gunakan tombol Daftar Member.',
                 'schedule' => 'Jadwal kelas meliputi Aerobic, Zumba, Poundfit, dan Muaythai. Buka halaman Kelas untuk melihat hari, jam, pelatih, dan filter jadwal terbaru.',
                 'trainer' => 'Personal Trainer tersedia dalam paket 5x, 10x, dan 24x sesi untuk member aktif. Program latihan dapat disesuaikan dengan target dan kondisi tubuh.',

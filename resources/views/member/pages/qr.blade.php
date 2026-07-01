@@ -1,5 +1,6 @@
 @php
     $qrTokenIsActive = (bool) ($portal['qrTokenIsActive'] ?? false);
+    $qrActiveForSession = $qrTokenIsActive && ($qrStatusLabel ?? null) === 'Aktif untuk sesi';
     $qrSvg = $qrTokenIsActive && $qrToken ? app(\App\Support\QrSvgRenderer::class)->render($qrToken->token, 220) : '';
     $qrStatusClass = $qrTokenIsActive ? 'member-status-success' : 'member-status-warning';
     $pendingPayment = collect($payments)->first(fn ($payment) => in_array((string) $payment->status, ['waiting_payment', 'pending', 'unpaid', 'waiting_confirmation'], true));
@@ -9,11 +10,11 @@
     };
     $inactiveBody = match (true) {
         (bool) $pendingPayment => 'Selesaikan pembayaran yang masih menunggu agar QR member bisa digunakan kembali.',
-        (bool) $qrToken => 'Aktifkan membership untuk menggunakan QR saat check-in.',
-        default => 'QR member diterbitkan otomatis setelah membership berhasil dibayar dan aktif.',
+        (bool) $qrToken => 'Aktifkan membership atau paket sesi Muaythai/Poundfit untuk menggunakan QR.',
+        default => 'QR member diterbitkan otomatis setelah membership atau paket sesi Muaythai/Poundfit berhasil dibayar dan aktif.',
     };
     $inactiveCtaRoute = $pendingPayment ? route('member.transactions.show', $pendingPayment) : route('member.membership');
-    $inactiveCtaLabel = $pendingPayment ? 'Lanjutkan Pembayaran' : 'Pilih Membership';
+    $inactiveCtaLabel = $pendingPayment ? 'Lanjutkan Pembayaran' : 'Pilih Paket';
     $recentCheckInRows = collect($portal['recentCheckInRows'] ?? []);
 @endphp
 
@@ -32,7 +33,7 @@
         </div>
         <p class="mt-5 break-words text-xs font-black uppercase tracking-[0.2em] text-gold-600 dark:text-gold-400">{{ $member->member_code }}</p>
         <h3 class="mt-2 break-words text-2xl font-black text-zinc-950 dark:text-white">{{ $user->name }}</h3>
-        <p class="mt-3 text-sm font-semibold leading-6 text-zinc-600 dark:text-zinc-300">{{ $qrTokenIsActive ? 'QR ini tetap sama selama akun member aktif. Tunjukkan ke admin saat check-in.' : $inactiveBody }}</p>
+        <p class="mt-3 text-sm font-semibold leading-6 text-zinc-600 dark:text-zinc-300">{{ $qrTokenIsActive ? ($qrActiveForSession ? 'QR ini bisa digunakan admin untuk penggunaan sesi paket aktif Anda.' : 'QR ini tetap sama selama akun member aktif. Tunjukkan ke admin saat check-in atau penggunaan sesi.') : $inactiveBody }}</p>
         @if ($qrTokenIsActive)
             <a href="{{ route('member.qr.download') }}" class="member-button-primary mx-auto mt-5 w-full sm:max-w-xs">Download QR</a>
         @else
@@ -46,11 +47,11 @@
         <div class="member-soft-panel mt-5 flex-1">
             <dl class="grid gap-3 text-sm">
                 <div class="member-data-row"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Status</dt><dd><span class="member-status-pill {{ $qrStatusClass }}">{{ $qrStatusLabel }}</span></dd></div>
-                <div class="member-data-row"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Berlaku Selama</dt><dd class="max-w-full break-words font-black text-zinc-950 dark:text-white">{{ $qrTokenIsActive ? 'Membership aktif' : '-' }}</dd></div>
+                <div class="member-data-row"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Berlaku Selama</dt><dd class="max-w-full break-words font-black text-zinc-950 dark:text-white">{{ $qrTokenIsActive ? ($qrActiveForSession ? 'Paket sesi aktif' : 'Membership aktif') : '-' }}</dd></div>
                 <div class="member-data-row"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Terakhir Dipakai</dt><dd class="max-w-full break-words font-black text-zinc-950 dark:text-white">{{ $qrToken?->last_used_at?->translatedFormat('d M Y H:i') ?? '-' }}</dd></div>
             </dl>
         </div>
-        <p class="member-unavailable-note mt-5">{{ $qrTokenIsActive ? 'Tunjukkan QR ini ke petugas saat check-in. Token mentah tidak ditampilkan pada halaman member.' : 'Token mentah tidak ditampilkan. Admin hanya dapat scan QR setelah status member aktif.' }}</p>
+        <p class="member-unavailable-note mt-5">{{ $qrTokenIsActive ? 'Tunjukkan QR ini ke petugas saat check-in membership atau penggunaan sesi. Token mentah tidak ditampilkan pada halaman member.' : 'Token mentah tidak ditampilkan. Admin hanya dapat scan QR setelah membership atau paket sesi aktif.' }}</p>
     </section>
 </div>
 

@@ -9,6 +9,7 @@
     $qrToken = $portal['qrToken'] ?? null;
     $qrTokenIsActive = (bool) ($portal['qrTokenIsActive'] ?? false);
     $qrStatusLabel = $portal['qrStatusLabel'] ?? 'Belum diterbitkan';
+    $qrActiveForSession = $qrTokenIsActive && $qrStatusLabel === 'Aktif untuk sesi';
     $dashboardQrSvg = $qrTokenIsActive && $qrToken
         ? app(\App\Support\QrSvgRenderer::class)->render($qrToken->token, 160)
         : '';
@@ -44,8 +45,8 @@
             'tone' => $upcomingEnrollments->isNotEmpty() ? 'member-status-info' : 'member-status-neutral',
         ],
         [
-            'label' => $qrTokenIsActive ? 'QR siap dipakai' : 'QR belum aktif',
-            'value' => $qrTokenIsActive ? 'Buka saat check-in' : $qrStatusLabel,
+            'label' => $qrTokenIsActive ? ($qrActiveForSession ? 'QR sesi siap' : 'QR siap dipakai') : 'QR belum aktif',
+            'value' => $qrTokenIsActive ? ($qrActiveForSession ? 'Buka untuk Gunakan Sesi' : 'Buka saat check-in') : $qrStatusLabel,
             'route' => 'member.qr',
             'icon' => 'qr',
             'tone' => $qrTokenIsActive ? 'member-status-success' : 'member-status-warning',
@@ -122,7 +123,7 @@
                         </div>
                     </a>
                     <p class="mt-3 text-center text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">QR Member</p>
-                    <p class="mt-1 text-center text-sm font-black {{ $qrTokenIsActive ? 'text-emerald-700' : 'text-zinc-500' }}">{{ $qrTokenIsActive ? 'QR aktif' : $qrStatusLabel }}</p>
+                    <p class="mt-1 text-center text-sm font-black {{ $qrTokenIsActive ? 'text-emerald-700' : 'text-zinc-500' }}">{{ $qrTokenIsActive ? ($qrActiveForSession ? 'QR aktif untuk sesi' : 'QR aktif') : $qrStatusLabel }}</p>
                     <a href="{{ route('member.qr') }}" class="mt-3 inline-flex w-full items-center justify-center rounded-md border border-zinc-200 bg-zinc-100 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-zinc-700 transition hover:border-gold-500/45 hover:text-gold-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-white/[0.08] dark:text-white dark:hover:text-gold-400">{{ $qrTokenIsActive ? 'Buka QR' : 'Aktivasi QR' }}</a>
                 </div>
             </div>

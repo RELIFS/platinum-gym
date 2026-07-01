@@ -191,6 +191,59 @@ Untuk production build:
 npm.cmd run build
 ```
 
+## Deploy Shared CWP/cPanel Production
+
+Target sementara production: `https://platinumgympadang.web.id` pada shared CWP/cPanel. Jangan mengasumsikan server memiliki Supervisor atau queue worker permanen.
+
+Nilai `.env` production minimum:
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://platinumgympadang.web.id
+APP_TIMEZONE=Asia/Jakarta
+APP_LOCALE=id
+SESSION_SECURE_COOKIE=true
+MAIL_MAILER=resend
+MAIL_FROM_ADDRESS=noreply@mail.platinumgympadang.web.id
+QUEUE_CONNECTION=sync
+MIDTRANS_IS_PRODUCTION=false
+```
+
+Catatan Midtrans: jangan mengubah `MIDTRANS_IS_PRODUCTION=true` sampai akun production Midtrans, domain live, callback/webhook URL, dan credential live sudah siap serta diuji eksplisit.
+
+Struktur deploy yang disarankan:
+
+- Document root hosting diarahkan ke folder Laravel `public/`.
+- Jika hosting memaksa `public_html`, pindahkan isi `public/` ke `public_html` hanya dengan penyesuaian path bootstrap yang eksplisit dan aman; folder aplikasi Laravel tetap berada di luar document root.
+- Pastikan `storage/` dan `bootstrap/cache/` writable oleh user PHP hosting.
+- Exclude dari package/upload production: `.git`, `.env` backup, `node_modules`, `tests`, log, cache, browser profile, artifact audit UI, dan workspace konteks/private internal.
+
+Command install/build/deploy:
+
+```bash
+composer install --no-dev --prefer-dist --optimize-autoloader
+npm ci
+npm run build
+php artisan migrate --force
+php artisan storage:link
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+Setelah deploy, jalankan smoke test:
+
+- HTTPS aktif dan tidak menampilkan debug page.
+- Public pages `/`, `/tentang-kami`, `/layanan`, `/kelas`, `/produk`, `/galeri`, `/lokasi`, `/bmi`, `/syarat-ketentuan`, dan `/kebijakan-privasi` terbuka.
+- Login/register dan email verification bekerja memakai Resend.
+- Boundary role member/admin/owner tetap benar.
+- Mail path memakai queue `sync` pada shared hosting sementara.
+- Storage link bisa menampilkan file public yang memang boleh public.
+- Gymmi tetap fallback aman jika provider quota/key bermasalah.
+- Midtrans tetap Sandbox kecuali production switch sudah siap.
+- Tidak ada `.env`, secret, raw payment payload, raw QR token, atau token OAuth yang tampil di UI/log/screenshot.
+
 Untuk development mode:
 
 ```bash

@@ -86,8 +86,10 @@ class GymmiLiveDataProvider
     private function uncachedPublicSnippets(string $normalized, array $intent): array
     {
         $snippets = [];
+        $isLocationIntent = ($intent['intent'] ?? null) === 'location_contact'
+            || $this->hasAny($normalized, ['alamat', 'lokasi', 'dimana', 'di mana', 'arah', 'rute', 'maps', 'google maps', 'wa', 'whatsapp', 'kontak', 'instagram', 'ig', 'jam buka', 'operasional']);
 
-        if (($intent['intent'] ?? null) === 'membership_price' || ($intent['subject'] ?? null) === null && $this->hasAny($normalized, ['harga', 'biaya', 'paket', 'membership', 'member', 'gym', 'pt', 'personal trainer', 'sesi'])) {
+        if (! $isLocationIntent && (($intent['intent'] ?? null) === 'membership_price' || ($intent['subject'] ?? null) === null && $this->hasAny($normalized, ['harga', 'biaya', 'paket', 'membership', 'member', 'gym', 'pt', 'personal trainer', 'sesi']))) {
             $snippets = array_merge($snippets, $this->packageSnippets($normalized));
         }
 
@@ -103,7 +105,7 @@ class GymmiLiveDataProvider
             $snippets = array_merge($snippets, $this->productSnippets($normalized));
         }
 
-        if (($intent['intent'] ?? null) === 'location_contact' || $this->hasAny($normalized, ['alamat', 'lokasi', 'maps', 'google maps', 'wa', 'whatsapp', 'kontak', 'instagram', 'ig'])) {
+        if ($isLocationIntent) {
             $snippets = array_merge($snippets, $this->settingSnippets($normalized));
         }
 

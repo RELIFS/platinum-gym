@@ -17,6 +17,7 @@ use App\Models\Payment;
 use App\Models\QrToken;
 use App\Models\Trainer;
 use App\Models\User;
+use App\Support\MemberQrAccess;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Support\Collection;
@@ -114,6 +115,7 @@ class MemberDashboardQuery
             ->first();
 
         $hasActiveGymMembership = $this->hasActiveGymMembership($member, $today);
+        $hasActiveStandaloneSession = MemberQrAccess::hasActiveStandaloneSession($member, $today);
         $packages = $this->packages($member, $hiddenSessionPackageIds, $pageKey, $filters, (bool) $activeMembership, $hasActiveGymMembership);
         $classSchedules = $this->classSchedules($member, $pageKey, $filters, $today);
         $notifications = $this->notifications($user, $pageKey, $filters);
@@ -133,11 +135,12 @@ class MemberDashboardQuery
             'recentCheckIns' => $recentCheckIns,
             'recentCheckInRows' => $this->recentCheckInRows($recentCheckIns, $recentStandaloneSessionUsages),
             'qrToken' => $qrToken,
-            'qrTokenIsActive' => $this->qrTokenIsActive($qrToken, $activeMembership),
-            'qrStatusLabel' => $this->qrStatusLabel($qrToken, $activeMembership),
+            'qrTokenIsActive' => $this->qrTokenIsActive($qrToken, $activeMembership, $hasActiveStandaloneSession),
+            'qrStatusLabel' => $this->qrStatusLabel($qrToken, $activeMembership, $hasActiveStandaloneSession),
             'packages' => $packages,
             'packageGroups' => $this->packageGroups($packages),
             'hasActiveGymMembership' => $hasActiveGymMembership,
+            'hasActiveStandaloneSession' => $hasActiveStandaloneSession,
             'classSchedules' => $classSchedules,
             'classScheduleGroups' => $this->classScheduleGroups($classSchedules),
             'notifications' => $notifications,
@@ -525,7 +528,6 @@ class MemberDashboardQuery
         if (
             ($meta['is_session_based'] ?? false)
             && filled($requiredPackageType)
-            && $requiredPackageType !== 'poundfit'
             && ! $activeSessionTypes->contains($requiredPackageType)
         ) {
             $meta['can_book'] = false;
@@ -808,18 +810,22 @@ class MemberDashboardQuery
         };
     }
 
-    private function qrTokenIsActive(?QrToken $qrToken, mixed $activeMembership): bool
+    private function qrTokenIsActive(?QrToken $qrToken, mixed $activeMembership, bool $hasActiveStandaloneSession): bool
     {
         if (! $qrToken || $qrToken->is_revoked) {
             return false;
         }
 
-        return filled($activeMembership);
+        return filled($activeMembership) || $hasActiveStandaloneSession;
     }
 
-    private function qrStatusLabel(?QrToken $qrToken, mixed $activeMembership): string
+    private function qrStatusLabel(?QrToken $qrToken, mixed $activeMembership, bool $hasActiveStandaloneSession): string
     {
-        if ($this->qrTokenIsActive($qrToken, $activeMembership)) {
+        if ($this->qrTokenIsActive($qrToken, $activeMembership, $hasActiveStandaloneSession)) {
+            if (! filled($activeMembership) && $hasActiveStandaloneSession) {
+                return 'Aktif untuk sesi';
+            }
+
             return 'Aktif';
         }
 

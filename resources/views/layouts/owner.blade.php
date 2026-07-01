@@ -1,6 +1,12 @@
 @php
     $owner = $portal['owner'] ?? auth()->user();
     $ownerName = (string) ($owner?->name ?? 'Owner');
+    $ownerEmail = (string) ($owner?->email ?? '');
+    $ownerInitial = mb_strtoupper(mb_substr($ownerName, 0, 1));
+    $ownerAvatar = (string) ($owner?->avatar ?? '');
+    $ownerAvatarUrl = filled($ownerAvatar)
+        ? (str_starts_with($ownerAvatar, 'storage/') ? asset($ownerAvatar) : $ownerAvatar)
+        : asset('images/owner/owner-avatar-default.webp');
 @endphp
 
 <!DOCTYPE html>
@@ -44,8 +50,6 @@
                         @endforeach
                     </nav>
                 </div>
-
-                @include('owner.partials.sidebar-footer', ['owner' => $owner, 'ownerName' => $ownerName])
             </div>
 
             <div x-cloak x-bind:class="ownerMenuOpen ? 'block' : 'hidden'" class="fixed inset-0 z-50 bg-zinc-950/70 backdrop-blur-sm print:hidden lg:hidden" x-on:click="closeOwnerMenu()" aria-hidden="true"></div>
@@ -87,6 +91,15 @@
 
                         <div class="flex items-center gap-2 sm:gap-3">
                             <x-theme-toggle class="h-11 w-11" />
+                            <x-portal-account-menu
+                                portal="owner"
+                                :name="$ownerName"
+                                :email="$ownerEmail"
+                                :avatar-url="$ownerAvatarUrl"
+                                :avatar-fallback="$ownerInitial"
+                                :profile-url="route('profile.edit')"
+                                profile-label="Profil"
+                            />
                         </div>
                     </div>
                 </header>

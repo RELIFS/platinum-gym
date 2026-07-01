@@ -11,6 +11,10 @@
     'disabled' => false,
     'autocomplete' => 'off',
     'buttonLabel' => 'Pilih tanggal',
+    'picker' => 'native',
+    'allowedWeekdays' => [],
+    'alpineDisabled' => null,
+    'alpineAllowedWeekdays' => null,
 ])
 
 @php
@@ -53,111 +57,53 @@
     $inputClass = $classTokens->reject(fn (string $token): bool => $token === 'mt-2')->implode(' ');
     $iconPartial = str_contains((string) $class, 'admin-form-input') ? 'admin.partials.icon' : 'member.partials.icon';
     $iconAttributes = new \Illuminate\View\ComponentAttributeBag();
+    $allowedWeekdays = collect($allowedWeekdays)
+        ->map(fn ($day) => (int) $day)
+        ->filter(fn (int $day): bool => $day >= 1 && $day <= 7)
+        ->unique()
+        ->values()
+        ->all();
+    $alpineEffects = collect([
+        $alpineDisabled ? 'setDisabled('.$alpineDisabled.')' : null,
+        $alpineAllowedWeekdays ? 'setAllowedWeekdays('.$alpineAllowedWeekdays.')' : null,
+    ])->filter()->implode('; ');
 @endphp
 
 <span
     {{ $attributes->class('relative block min-w-0') }}
     x-modelable="isoValue"
-    x-data="{
+    x-data="localDateInput({
         displayValue: @js($displayValue),
         isoValue: @js($isoValue),
         mode: @js($mode),
         minDate: @js($min),
         maxDate: @js($max),
-        isFormatting: false,
-        init() {
-            this.displayValue = this.fromIso(this.isoValue) || this.displayValue;
-            this.$watch('isoValue', (value) => {
-                if (this.isFormatting) return;
-                this.displayValue = this.fromIso(value);
-            });
-        },
-        formatInput() {
-            const digits = this.displayValue.replace(/\D/g, '').slice(0, this.mode === 'datetime' ? 12 : 8);
-            const date = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)].filter(Boolean).join('/');
-            const time = this.mode === 'datetime' && digits.length > 8 ? ` ${digits.slice(8, 10)}${digits.length > 10 ? ':' + digits.slice(10, 12) : ''}` : '';
-            this.isFormatting = true;
-            this.displayValue = date + time;
-            const nextIsoValue = this.toIso(this.displayValue) || '';
-            this.isoValue = nextIsoValue;
-            if (nextIsoValue) {
-                this.isFormatting = false;
-                this.emitModelValue();
-                return;
-            }
-            this.emitModelValue();
-            this.$nextTick(() => {
-                this.isFormatting = false;
-            });
-        },
-        syncFromPicker(event) {
-            this.isFormatting = true;
-            this.isoValue = event.target.value || '';
-            this.displayValue = this.fromIso(this.isoValue);
-            this.isFormatting = false;
-            this.emitModelValue();
-        },
-        emitModelValue() {
-            this.$root.dispatchEvent(new CustomEvent('input', { detail: this.isoValue, bubbles: true }));
-        },
-        openPicker() {
-            const picker = this.$refs.picker;
-            if (! picker) return;
-            picker.value = this.isoValue;
-            if (typeof picker.showPicker === 'function') {
-                try {
-                    picker.showPicker();
-                    return;
-                } catch (error) {
-                    // Browser automation and some WebViews can reject showPicker() even after a click.
-                }
-            }
-            picker.focus();
-            picker.click();
-        },
-        toIso(value) {
-            const source = String(value || '');
-            const match = this.mode === 'datetime'
-                ? source.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?$/)
-                : source.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-            if (! match) return null;
-            const day = Number(match[1]);
-            const month = Number(match[2]);
-            const year = Number(match[3]);
-            const hour = Number(match[4] || 0);
-            const minute = Number(match[5] || 0);
-            const parsed = new Date(Date.UTC(year, month - 1, day, hour, minute));
-            if (parsed.getUTCFullYear() !== year || parsed.getUTCMonth() + 1 !== month || parsed.getUTCDate() !== day || hour > 23 || minute > 59) return null;
-            const date = `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-            if (this.minDate && date < this.minDate) return null;
-            if (this.maxDate && date > this.maxDate) return null;
-            if (this.mode !== 'datetime') return date;
-            return `${date}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        },
-        fromIso(value) {
-            const source = String(value || '');
-            const match = this.mode === 'datetime'
-                ? source.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/)
-                : source.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-            if (! match) return '';
-            const date = `${match[3]}/${match[2]}/${match[1]}`;
-            return this.mode === 'datetime' ? `${date} ${match[4]}:${match[5]}` : date;
-        },
-    }"
+        picker: @js($picker),
+        allowedWeekdays: @js($allowedWeekdays),
+        disabled: @js((bool) $disabled),
+    })"
+    @if ($alpineEffects !== '') x-effect="{!! $alpineEffects !!}" @endif
+    data-local-date-input
+    data-local-date-picker="{{ $picker }}"
+    data-allowed-weekdays='@json($allowedWeekdays)'
 >
-    <input type="hidden" name="{{ $name }}" x-bind:value="isoValue">
+    <input type="hidden" name="{{ $name }}" x-bind:value="isoValue" x-bind:disabled="isDisabled">
     <span class="relative {{ $controlSpacingClass }} block">
         <input
             id="{{ $id }}"
             name="{{ $displayName }}"
             type="text"
+            x-ref="displayInput"
             x-model="displayValue"
             x-on:input="formatInput"
+            x-on:change="commitTypedInput"
+            x-on:blur="commitTypedInput"
             placeholder="{{ $placeholder }}"
             inputmode="{{ $inputMode }}"
             maxlength="{{ $maxLength }}"
             class="{{ trim($inputClass.' pr-14') }}"
             autocomplete="{{ $autocomplete }}"
+            x-bind:disabled="isDisabled"
             @required($required)
             @disabled($disabled)
             @if ($ariaDescribedBy !== '') aria-describedby="{{ $ariaDescribedBy }}" @endif
@@ -173,6 +119,7 @@
             aria-hidden="true"
             class="pointer-events-none absolute inset-y-0 right-0 h-full w-12 opacity-0"
             x-on:change="syncFromPicker"
+            x-bind:disabled="isDisabled"
             @disabled($disabled)
         >
         <button
@@ -180,6 +127,7 @@
             class="absolute inset-y-1 right-1 inline-flex w-10 touch-manipulation items-center justify-center rounded-md text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 disabled:cursor-not-allowed disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white"
             aria-label="{{ $buttonLabel }}"
             x-on:click="openPicker"
+            x-bind:disabled="isDisabled"
             @disabled($disabled)
         >
             @include($iconPartial, ['name' => 'calendar', 'class' => 'h-4 w-4', 'attributes' => $iconAttributes])

@@ -74,6 +74,7 @@ Scan `resources/js/**/*.js` diperlukan karena renderer Gymmi membuat sebagian cl
 | `alpinejs` | Interaktivitas ringan frontend | Digunakan untuk behavior UI sederhana seperti dropdown atau toggle | `^3.4.2` | Tidak cocok untuk state management kompleks | Sudah digunakan |
 | `axios` | HTTP client JavaScript | Disiapkan untuk request AJAX frontend | `^1.11.0` | Perlu pengaturan CSRF dan error handling | Dependency frontend |
 | `html5-qrcode` | Scanner QR kamera frontend | Digunakan secara lazy pada halaman admin check-in untuk membaca QR member dari kamera | `2.3.8` | Akses kamera membutuhkan secure context/HTTPS atau localhost dan permission browser | Sudah digunakan |
+| `flatpickr` | Datepicker frontend | Digunakan pada tanggal booking kelas Member dan Admin untuk menonaktifkan tanggal di luar hari jadwal | `^4.6.13` | Validasi server-side tetap wajib menjadi sumber kebenaran agar tanggal hasil manipulasi tetap ditolak | Sudah digunakan |
 | `concurrently` | Menjalankan beberapa command dev | Membantu menjalankan server, queue, dan Vite bersamaan | `^9.0.1` | Hanya kebutuhan development | Dependency development |
 | `postcss` | CSS processing | Digunakan dalam pipeline Tailwind/Vite | `^8.4.31` | Konfigurasi salah dapat membuat build CSS gagal | Dependency frontend |
 | `autoprefixer` | Vendor prefix CSS | Menambah kompatibilitas browser | `^10.4.2` | Umumnya rendah, mengikuti konfigurasi browser target | Dependency frontend |
@@ -373,3 +374,30 @@ npm.cmd run build
 ## Evaluasi Dependency
 
 Dependency membantu pengembangan proyek karena fitur umum tidak perlu dibuat dari nol. Namun, setiap dependency tetap harus dipilih sesuai kebutuhan. Package yang belum dipakai penuh tidak boleh dianggap sebagai fitur selesai. Oleh karena itu, dokumentasi ini memisahkan dependency yang sudah digunakan, sudah dipasang, dan masih direncanakan.
+
+## Catatan Audit Dependency 2026-06-30
+
+Production-readiness pass 2026-06-30 memperbarui lockfile NPM untuk menutup vulnerability dev/build tanpa menambah package baru dan tanpa perubahan `package.json`.
+
+Update lockfile utama:
+
+- `vite` ke `7.3.6`.
+- `esbuild` ke `0.28.1`.
+- `concurrently` ke `9.2.3`.
+- `shell-quote` ke `1.8.4`.
+- `form-data` ke `4.0.6`.
+- `hasown` ke `2.0.4`.
+
+Verifikasi dependency yang wajib dijaga sebelum deploy:
+
+```bash
+composer validate --strict --no-check-publish
+composer audit
+npm.cmd audit --audit-level=moderate
+npm.cmd audit --omit=dev --audit-level=moderate
+npm.cmd run build
+```
+
+Status final setelah sinkronisasi lockfile: `npm.cmd audit --audit-level=moderate` dan `npm.cmd audit --omit=dev --audit-level=moderate` sama-sama melaporkan `found 0 vulnerabilities`. Audit NPM penuh dan production-only tetap wajib dijalankan ulang pada final gate bila lockfile berubah lagi.
+
+Catatan frontend polish 2026-06-30: `flatpickr` ditambahkan sebagai dependency frontend production-grade untuk field tanggal booking kelas saja. Integrasi tetap lewat komponen reusable `x-local-date-input`; field tanggal lain tetap memakai mode normal. Validasi tanggal tidak bergantung pada JavaScript karena request Admin/Member tetap menolak tanggal yang tidak sesuai jadwal di backend.

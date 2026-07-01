@@ -12,6 +12,8 @@ class AccountInvitation extends Model
 
     protected $fillable = ['user_id', 'created_by', 'token_hash', 'expires_at', 'accepted_at', 'sent_at'];
 
+    protected $hidden = ['token_hash'];
+
     protected function casts(): array
     {
         return [

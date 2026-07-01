@@ -62,13 +62,15 @@ test('member booking page keeps schedule action forms protected with csrf tokens
         ->assertSee('name="session_date"', false)
         ->assertSee('name="session_date_display"', false)
         ->assertSee('x-modelable="isoValue"', false)
+        ->assertSee('x-data="localDateInput', false)
+        ->assertSee('data-local-date-picker="flatpickr"', false)
+        ->assertSee('data-allowed-weekdays', false)
         ->assertSee('aria-label="Pilih tanggal"', false)
         ->assertSee('pointer-events-none absolute inset-y-0 right-0 h-full w-12 opacity-0', false)
-        ->assertSee('emitModelValue()', false)
-        ->assertSee('CustomEvent(\'input\'', false)
-        ->assertSee('picker.showPicker();', false)
-        ->assertSee('catch (error)', false)
-        ->assertSee('picker.focus();', false)
+        ->assertDontSee('emitModelValue()', false)
+        ->assertDontSee('CustomEvent(\'input\'', false)
+        ->assertDontSee('picker.showPicker();', false)
+        ->assertDontSee('picker.focus();', false)
         ->assertSee('Booking minimal 1 hari sebelum jadwal.');
 });
 
@@ -206,7 +208,7 @@ test('member booking page keeps zin prefix for zumba instructor card', function 
         ->assertDontSee('>Nila<', false);
 });
 
-test('member booking page keeps poundfit card bookable and validates package session on submit', function () {
+test('member booking page keeps poundfit card visible and locked until package session exists', function () {
     [$user, $member] = MemberFixtures::member('PG-MEMBER-BOOKING-POUNDFIT', memberOverrides: ['gender' => 'female']);
     $package = MemberFixtures::package([
         'name' => 'Poundfit Member Booking',
@@ -252,8 +254,8 @@ test('member booking page keeps poundfit card bookable and validates package ses
         ->assertDontSee('Kelas ini membutuhkan membership aktif yang sesuai.');
 
     expect(preg_match('/<input\b[^>]*id="member-booking-session-date-'.$schedule->id.'"[^>]*>/s', $content, $dateInput))->toBe(1);
-    expect($dateInput[0])->not->toContain('disabled');
-    expect(preg_match('/<button\b(?=[^>]*type="submit")(?=[^>]*member-button-primary)(?![^>]*(?:disabled|aria-disabled="true"))[^>]*>\s*Booking Kelas\s*<\/button>/s', $content))->toBe(1);
+    expect(preg_match('/\sdisabled(?:\s|>|=)/', $dateInput[0]))->toBe(1);
+    expect(preg_match('/<button\b(?=[^>]*type="submit")(?=[^>]*member-button-primary)(?=[^>]*disabled)(?=[^>]*aria-disabled="true")[^>]*>\s*Booking Kelas\s*<\/button>/s', $content))->toBe(1);
 
     $this->actingAs($user)
         ->from(route('member.booking'))
@@ -279,6 +281,13 @@ test('member booking page keeps poundfit card bookable and validates package ses
         'expired_at' => now()->addMonth()->toDateString(),
         'status' => 'active',
     ]);
+
+    $unlockedResponse = $this->actingAs($user)->get(route('member.booking'))->assertOk();
+    $unlockedContent = $unlockedResponse->getContent();
+
+    expect(preg_match('/<input\b[^>]*id="member-booking-session-date-'.$schedule->id.'"[^>]*>/s', $unlockedContent, $unlockedDateInput))->toBe(1);
+    expect(preg_match('/\sdisabled(?:\s|>|=)/', $unlockedDateInput[0]))->toBe(0);
+    expect(preg_match('/<button\b(?=[^>]*type="submit")(?=[^>]*member-button-primary)(?![^>]*(?:disabled|aria-disabled="true"))[^>]*>\s*Booking Kelas\s*<\/button>/s', $unlockedContent))->toBe(1);
 
     $this->actingAs($user)
         ->post(route('member.booking.store', $schedule), ['session_date' => $sessionDate->toDateString()])

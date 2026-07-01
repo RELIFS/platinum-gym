@@ -69,10 +69,6 @@
         @endif
     </dl>
 
-    @if (! $canBook && filled($scheduleMeta['disabled_reason'] ?? null))
-        <p class="mt-4 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs font-bold leading-5 text-amber-700 dark:text-amber-200">{{ $scheduleMeta['disabled_reason'] }}</p>
-    @endif
-
     <x-confirm-form
         :action="route('member.booking.store', $schedule)"
         method="POST"
@@ -90,6 +86,8 @@
                 x-model="sessionDate"
                 :value="$initialSessionDate"
                 :min="$bookingMinDate"
+                picker="flatpickr"
+                :allowed-weekdays="[(int) $schedule->day_of_week]"
                 class="member-form-input mt-2"
                 :disabled="$isDisabled"
                 described-by="schedule-help-{{ $schedule->id }}"

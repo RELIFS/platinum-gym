@@ -40,13 +40,19 @@ test('admin booking form renders date helper and field level validation errors',
         ->assertSee('md:col-span-2 2xl:col-span-1 2xl:mt-8', false)
         ->assertSee('relative block min-w-0', false)
         ->assertSee('x-modelable="isoValue"', false)
+        ->assertSee('x-data="localDateInput', false)
+        ->assertSee('data-local-date-picker="flatpickr"', false)
+        ->assertSee('dateDisabled', false)
+        ->assertSee('x-effect="setDisabled(dateDisabled); setAllowedWeekdays(selectedScheduleDay ? [selectedScheduleDay] : [])"', false)
+        ->assertDontSee('$refs.bookingDatePicker', false)
+        ->assertDontSee('x-ref="bookingDatePicker"', false)
+        ->assertSee('x-bind:disabled="isDisabled"', false)
         ->assertSee('aria-label="Pilih tanggal"', false)
         ->assertSee('pointer-events-none absolute inset-y-0 right-0 h-full w-12 opacity-0', false)
-        ->assertSee('emitModelValue()', false)
-        ->assertSee('CustomEvent(\'input\'', false)
-        ->assertSee('picker.showPicker();', false)
-        ->assertSee('catch (error)', false)
-        ->assertSee('picker.focus();', false)
+        ->assertDontSee('emitModelValue()', false)
+        ->assertDontSee('CustomEvent(\'input\'', false)
+        ->assertDontSee('picker.showPicker();', false)
+        ->assertDontSee('picker.focus();', false)
         ->assertSee('Riwayat Booking Kelas')
         ->assertSee('Tanggal mengikuti hari jadwal kelas dan minimal 1 hari sebelum jadwal.')
         ->assertSee('Jadwal mengikuti paket aktif member.')
@@ -68,6 +74,65 @@ test('admin booking form renders date helper and field level validation errors',
         ])
         ->assertRedirect('/admin/booking')
         ->assertSessionHasErrors(['member_id', 'schedule_id', 'session_date']);
+});
+
+test('admin booking rejects session date outside selected schedule weekday', function () {
+    Notification::fake();
+    $admin = AdminFixture::admin();
+    [, $member] = AdminFixture::member('PG-ADM-WEEKDAY-GUARD');
+    $sessionDate = CarbonImmutable::today()->addDay()->next(CarbonImmutable::THURSDAY);
+    $scheduleIso = CarbonImmutable::TUESDAY;
+    $senamPackage = AdminFixture::package([
+        'name' => 'Senam Weekday Guard QA',
+        'slug' => 'senam-weekday-guard-qa-'.Str::lower(Str::random(6)),
+        'package_kind' => 'membership',
+        'type' => 'senam',
+    ]);
+
+    Membership::create([
+        'member_id' => $member->id,
+        'package_id' => $senamPackage->id,
+        'code' => 'MBR-ADM-WEEKDAY',
+        'start_date' => null,
+        'end_date' => null,
+        'price' => $senamPackage->price,
+        'duration_days_snapshot' => 30,
+        'status' => 'active',
+        'activated_at' => now(),
+    ]);
+
+    $gymClass = GymClass::create([
+        'name' => 'Senam Weekday Guard QA',
+        'slug' => 'senam-weekday-guard-class-'.Str::lower(Str::random(6)),
+        'class_type' => 'zumba',
+        'access_type' => 'included',
+        'required_package_type' => 'senam',
+        'capacity' => 20,
+        'is_active' => true,
+    ]);
+    $schedule = ClassSchedule::create([
+        'gym_class_id' => $gymClass->id,
+        'day_of_week' => $scheduleIso,
+        'start_time' => '08:00:00',
+        'end_time' => '09:00:00',
+        'capacity' => 20,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($admin)
+        ->from('/admin/booking')
+        ->post(route('admin.booking.store'), [
+            'member_id' => $member->id,
+            'schedule_id' => $schedule->id,
+            'session_date' => $sessionDate->toDateString(),
+        ])
+        ->assertRedirect('/admin/booking')
+        ->assertSessionHasErrors(['session_date' => 'Tanggal yang dipilih tidak sesuai hari jadwal kelas.']);
+
+    expect(ClassEnrollment::query()
+        ->where('member_id', $member->id)
+        ->where('schedule_id', $schedule->id)
+        ->exists())->toBeFalse();
 });
 
 test('admin booking schedule dropdown and backend guard follow member purchased access', function () {

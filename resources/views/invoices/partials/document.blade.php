@@ -46,10 +46,10 @@
 
 <section class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
     <div class="{{ $cardClass }}">
-        <div class="grid gap-5 md:grid-cols-2">
-            <div>
+        <div class="grid min-w-0 gap-5 md:grid-cols-2">
+            <div class="min-w-0">
                 <p class="{{ $eyebrowClass }}">Ditagihkan kepada</p>
-                <div class="{{ $panelClass }} mt-3">
+                <div class="{{ $panelClass }} mt-3 min-w-0">
                     <p class="font-black text-zinc-950 dark:text-white">{{ $member['name'] }}</p>
                     <p class="mt-1 font-mono text-xs font-bold text-zinc-500 dark:text-zinc-400">{{ $member['code'] }}</p>
                     @if ($member['email'])
@@ -58,9 +58,9 @@
                 </div>
             </div>
 
-            <div>
+            <div class="min-w-0">
                 <p class="{{ $eyebrowClass }}">Informasi gym</p>
-                <div class="{{ $panelClass }} mt-3">
+                <div class="{{ $panelClass }} mt-3 min-w-0">
                     <p class="font-black text-zinc-950 dark:text-white">{{ $business['site_name'] }}</p>
                     <p class="mt-2 text-sm font-semibold leading-6 text-zinc-600 dark:text-zinc-300">{{ $business['address'] }}</p>
                     <p class="mt-2 text-sm font-semibold text-zinc-600 dark:text-zinc-300">{{ $business['phone_display'] }}</p>
