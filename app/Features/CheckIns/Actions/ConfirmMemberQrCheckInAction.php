@@ -8,6 +8,7 @@ use App\Models\MemberPackageSession;
 use App\Models\MemberPackageSessionUsage;
 use App\Models\Membership;
 use App\Models\QrToken;
+use App\Support\MemberQrAccess;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -39,7 +40,7 @@ class ConfirmMemberQrCheckInAction
             $member = Member::query()->with('user')->lockForUpdate()->findOrFail($qrToken->tokenable_id);
             $membership = $this->activeMembership($member);
 
-            if (! $membership) {
+            if (! $membership && in_array($action, [self::CHECK_IN_MEMBERSHIP, self::CHECK_IN_AND_USE_SESSION], true)) {
                 throw new RuntimeException('Membership aktif tidak ditemukan.');
             }
 
@@ -69,7 +70,7 @@ class ConfirmMemberQrCheckInAction
                     throw new RuntimeException('Pilih paket sesi yang akan digunakan.');
                 }
 
-                $usage = $this->usePackageSession($member, $packageSessionId, $adminUserId, $checkIn, $requestKey);
+                $usage = $this->usePackageSession($member, $packageSessionId, $adminUserId, $checkIn, $requestKey, (bool) $membership);
             }
 
             $qrToken->forceFill(['last_used_at' => now()])->save();
@@ -106,7 +107,7 @@ class ConfirmMemberQrCheckInAction
             ->first();
     }
 
-    private function usePackageSession(Member $member, int $packageSessionId, int $adminUserId, ?GymCheckIn $checkIn, ?string $requestKey): ?MemberPackageSessionUsage
+    private function usePackageSession(Member $member, int $packageSessionId, int $adminUserId, ?GymCheckIn $checkIn, ?string $requestKey, bool $hasActiveMembership): ?MemberPackageSessionUsage
     {
         if (filled($requestKey)) {
             $existingUsage = MemberPackageSessionUsage::query()->where('request_key', $requestKey)->first();
@@ -117,6 +118,26 @@ class ConfirmMemberQrCheckInAction
         }
 
         $today = now()->toDateString();
+        $session = MemberPackageSession::query()
+            ->with('package')
+            ->where('id', $packageSessionId)
+            ->where('member_id', $member->id)
+            ->where('status', 'active')
+            ->where(function ($query) use ($today): void {
+                $query->whereNull('expired_at')
+                    ->orWhereDate('expired_at', '>=', $today);
+            })
+            ->lockForUpdate()
+            ->first();
+
+        if (! $session) {
+            throw new RuntimeException('Paket sesi aktif tidak tersedia atau sesi sudah habis.');
+        }
+
+        if (! $hasActiveMembership && ! MemberQrAccess::isStandaloneSessionType($session->package?->type)) {
+            throw new RuntimeException('Membership aktif diperlukan untuk menggunakan paket sesi ini.');
+        }
+
         $existingUsageToday = MemberPackageSessionUsage::query()
             ->where('member_package_session_id', $packageSessionId)
             ->where('member_id', $member->id)
@@ -128,19 +149,7 @@ class ConfirmMemberQrCheckInAction
             return $checkIn ? null : $existingUsageToday;
         }
 
-        $session = MemberPackageSession::query()
-            ->where('id', $packageSessionId)
-            ->where('member_id', $member->id)
-            ->where('status', 'active')
-            ->where('remaining_sessions', '>', 0)
-            ->where(function ($query) use ($today): void {
-                $query->whereNull('expired_at')
-                    ->orWhereDate('expired_at', '>=', $today);
-            })
-            ->lockForUpdate()
-            ->first();
-
-        if (! $session) {
+        if ((int) $session->remaining_sessions <= 0) {
             throw new RuntimeException('Paket sesi aktif tidak tersedia atau sesi sudah habis.');
         }
 

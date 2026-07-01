@@ -7,6 +7,7 @@ use App\Features\Bookings\Support\BookingTimePolicy;
 use App\Features\Shared\Support\IndonesianDateFormat;
 use App\Models\ClassSchedule;
 use App\Models\Member;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -43,6 +44,20 @@ class StoreAdminBookingRequest extends FormRequest
 
                 if (! AdminOperationalRules::memberCanBookSchedule($member, $schedule)) {
                     $validator->errors()->add('schedule_id', 'Jadwal kelas tidak sesuai dengan paket aktif member.');
+                }
+
+                if ($validator->errors()->has('session_date')) {
+                    return;
+                }
+
+                try {
+                    $sessionDate = CarbonImmutable::parse((string) $this->input('session_date'));
+                } catch (\Throwable) {
+                    return;
+                }
+
+                if ($sessionDate->dayOfWeekIso !== (int) $schedule->day_of_week) {
+                    $validator->errors()->add('session_date', 'Tanggal yang dipilih tidak sesuai hari jadwal kelas.');
                 }
             },
         ];

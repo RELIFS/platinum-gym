@@ -18,6 +18,7 @@ use App\Models\Setting;
 use App\Models\Trainer;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Support\Carbon;
 use Tests\Feature\Admin\Support\AdminPortalFixtures as AdminFixtures;
 
 beforeEach(function () {
@@ -275,265 +276,271 @@ test('admin settings page masks sensitive values', function () {
 });
 
 test('admin check-in page renders paginated history with date range filters', function () {
-    $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
+    Carbon::setTestNow(Carbon::parse('2026-06-30 12:00:00'));
 
-    $package = ServicePackage::create([
-        'name' => 'Gym History Test',
-        'slug' => 'gym-history-test',
-        'package_kind' => 'membership',
-        'type' => 'gym',
-        'price' => 250000,
-        'duration_days' => 30,
-        'is_active' => true,
-    ]);
+    try {
+        $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
 
-    $sessionPackage = ServicePackage::create([
-        'name' => 'Muaythai History Session 4x',
-        'slug' => 'muaythai-history-session-4x',
-        'package_kind' => 'session',
-        'type' => 'muaythai',
-        'price' => 400000,
-        'session_count' => 4,
-        'is_active' => true,
-    ]);
+        $package = ServicePackage::create([
+            'name' => 'Gym History Test',
+            'slug' => 'gym-history-test',
+            'package_kind' => 'membership',
+            'type' => 'gym',
+            'price' => 250000,
+            'duration_days' => 30,
+            'is_active' => true,
+        ]);
 
-    $extraSessionPackage = ServicePackage::create([
-        'name' => 'Personal Trainer History Session 2x',
-        'slug' => 'personal-trainer-history-session-2x',
-        'package_kind' => 'session',
-        'type' => 'pt',
-        'price' => 300000,
-        'session_count' => 2,
-        'is_active' => true,
-    ]);
+        $sessionPackage = ServicePackage::create([
+            'name' => 'Muaythai History Session 4x',
+            'slug' => 'muaythai-history-session-4x',
+            'package_kind' => 'session',
+            'type' => 'muaythai',
+            'price' => 400000,
+            'session_count' => 4,
+            'is_active' => true,
+        ]);
 
-    $standaloneSessionPackage = ServicePackage::create([
-        'name' => 'Poundfit Standalone Session 1x',
-        'slug' => 'poundfit-standalone-session-1x',
-        'package_kind' => 'session',
-        'type' => 'poundfit',
-        'price' => 50000,
-        'session_count' => 1,
-        'is_active' => true,
-    ]);
+        $extraSessionPackage = ServicePackage::create([
+            'name' => 'Personal Trainer History Session 2x',
+            'slug' => 'personal-trainer-history-session-2x',
+            'package_kind' => 'session',
+            'type' => 'pt',
+            'price' => 300000,
+            'session_count' => 2,
+            'is_active' => true,
+        ]);
 
-    foreach (range(1, 18) as $index) {
-        [$user, $member] = AdminFixtures::member('PG-HISTORY-'.str_pad((string) $index, 2, '0', STR_PAD_LEFT));
-        $user->forceFill(['name' => 'History Member '.str_pad((string) $index, 2, '0', STR_PAD_LEFT)])->save();
+        $standaloneSessionPackage = ServicePackage::create([
+            'name' => 'Poundfit Standalone Session 1x',
+            'slug' => 'poundfit-standalone-session-1x',
+            'package_kind' => 'session',
+            'type' => 'poundfit',
+            'price' => 50000,
+            'session_count' => 1,
+            'is_active' => true,
+        ]);
 
-        $membership = Membership::create([
-            'member_id' => $member->id,
+        foreach (range(1, 18) as $index) {
+            [$user, $member] = AdminFixtures::member('PG-HISTORY-'.str_pad((string) $index, 2, '0', STR_PAD_LEFT));
+            $user->forceFill(['name' => 'History Member '.str_pad((string) $index, 2, '0', STR_PAD_LEFT)])->save();
+
+            $membership = Membership::create([
+                'member_id' => $member->id,
+                'package_id' => $package->id,
+                'code' => 'MBR-HISTORY-'.str_pad((string) $index, 4, '0', STR_PAD_LEFT),
+                'start_date' => now()->startOfMonth()->toDateString(),
+                'end_date' => now()->addMonth()->toDateString(),
+                'price' => 250000,
+                'status' => 'active',
+            ]);
+
+            $checkIn = GymCheckIn::create([
+                'member_id' => $member->id,
+                'membership_id' => $membership->id,
+                'check_in_date' => now()->subDays($index % 5)->toDateString(),
+                'check_in_at' => now()->subMinutes($index),
+                'method' => 'qr',
+                'scanned_by' => $admin->id,
+            ]);
+
+            if ($index === 1) {
+                $packageSession = MemberPackageSession::create([
+                    'member_id' => $member->id,
+                    'package_id' => $sessionPackage->id,
+                    'code' => 'MPS-HISTORY-0001',
+                    'total_sessions' => 4,
+                    'used_sessions' => 1,
+                    'remaining_sessions' => 3,
+                    'price' => 400000,
+                    'started_at' => now()->subDay()->toDateString(),
+                    'expired_at' => now()->addMonth()->toDateString(),
+                    'status' => 'active',
+                ]);
+
+                MemberPackageSessionUsage::create([
+                    'member_package_session_id' => $packageSession->id,
+                    'member_id' => $member->id,
+                    'gym_check_in_id' => $checkIn->id,
+                    'usage_date' => $checkIn->check_in_date,
+                    'used_at' => $checkIn->check_in_at,
+                    'method' => 'qr',
+                    'recorded_by' => $admin->id,
+                    'request_key' => 'history-session-usage-0001',
+                ]);
+
+                $extraPackageSession = MemberPackageSession::create([
+                    'member_id' => $member->id,
+                    'package_id' => $extraSessionPackage->id,
+                    'code' => 'MPS-HISTORY-0002',
+                    'total_sessions' => 2,
+                    'used_sessions' => 1,
+                    'remaining_sessions' => 1,
+                    'price' => 300000,
+                    'started_at' => now()->subDay()->toDateString(),
+                    'expired_at' => now()->addMonth()->toDateString(),
+                    'status' => 'active',
+                ]);
+
+                MemberPackageSessionUsage::create([
+                    'member_package_session_id' => $extraPackageSession->id,
+                    'member_id' => $member->id,
+                    'gym_check_in_id' => $checkIn->id,
+                    'usage_date' => $checkIn->check_in_date,
+                    'used_at' => $checkIn->check_in_at,
+                    'method' => 'qr',
+                    'recorded_by' => $admin->id,
+                    'request_key' => 'history-session-usage-0002',
+                ]);
+            }
+        }
+
+        [$oldUser, $oldMember] = AdminFixtures::member('PG-HISTORY-OLD');
+        $oldUser->forceFill(['name' => 'History Old Member'])->save();
+        $oldMembership = Membership::create([
+            'member_id' => $oldMember->id,
             'package_id' => $package->id,
-            'code' => 'MBR-HISTORY-'.str_pad((string) $index, 4, '0', STR_PAD_LEFT),
-            'start_date' => now()->startOfMonth()->toDateString(),
+            'code' => 'MBR-HISTORY-OLD',
+            'start_date' => now()->subMonths(3)->toDateString(),
             'end_date' => now()->addMonth()->toDateString(),
             'price' => 250000,
             'status' => 'active',
         ]);
 
-        $checkIn = GymCheckIn::create([
-            'member_id' => $member->id,
-            'membership_id' => $membership->id,
-            'check_in_date' => now()->subDays($index % 5)->toDateString(),
-            'check_in_at' => now()->subMinutes($index),
+        GymCheckIn::create([
+            'member_id' => $oldMember->id,
+            'membership_id' => $oldMembership->id,
+            'check_in_date' => now()->subMonths(2)->toDateString(),
+            'check_in_at' => now()->subMonths(2),
             'method' => 'qr',
             'scanned_by' => $admin->id,
         ]);
 
-        if ($index === 1) {
-            $packageSession = MemberPackageSession::create([
-                'member_id' => $member->id,
-                'package_id' => $sessionPackage->id,
-                'code' => 'MPS-HISTORY-0001',
-                'total_sessions' => 4,
-                'used_sessions' => 1,
-                'remaining_sessions' => 3,
-                'price' => 400000,
-                'started_at' => now()->subDay()->toDateString(),
-                'expired_at' => now()->addMonth()->toDateString(),
-                'status' => 'active',
-            ]);
+        [$standaloneUser, $standaloneMember] = AdminFixtures::member('PG-HISTORY-STANDALONE');
+        $standaloneUser->forceFill(['name' => 'History Standalone Session Member'])->save();
+        $standalonePackageSession = MemberPackageSession::create([
+            'member_id' => $standaloneMember->id,
+            'package_id' => $standaloneSessionPackage->id,
+            'code' => 'MPS-HISTORY-STANDALONE',
+            'total_sessions' => 1,
+            'used_sessions' => 1,
+            'remaining_sessions' => 0,
+            'price' => 50000,
+            'started_at' => now()->subDay()->toDateString(),
+            'expired_at' => now()->addMonth()->toDateString(),
+            'status' => 'active',
+        ]);
 
-            MemberPackageSessionUsage::create([
-                'member_package_session_id' => $packageSession->id,
-                'member_id' => $member->id,
-                'gym_check_in_id' => $checkIn->id,
-                'usage_date' => $checkIn->check_in_date,
-                'used_at' => $checkIn->check_in_at,
-                'method' => 'qr',
-                'recorded_by' => $admin->id,
-                'request_key' => 'history-session-usage-0001',
-            ]);
+        MemberPackageSessionUsage::create([
+            'member_package_session_id' => $standalonePackageSession->id,
+            'member_id' => $standaloneMember->id,
+            'gym_check_in_id' => null,
+            'usage_date' => now()->toDateString(),
+            'used_at' => now()->addMinute(),
+            'method' => 'qr',
+            'recorded_by' => $admin->id,
+            'request_key' => 'history-standalone-session-usage',
+        ]);
 
-            $extraPackageSession = MemberPackageSession::create([
-                'member_id' => $member->id,
-                'package_id' => $extraSessionPackage->id,
-                'code' => 'MPS-HISTORY-0002',
-                'total_sessions' => 2,
-                'used_sessions' => 1,
-                'remaining_sessions' => 1,
-                'price' => 300000,
-                'started_at' => now()->subDay()->toDateString(),
-                'expired_at' => now()->addMonth()->toDateString(),
-                'status' => 'active',
-            ]);
+        [$oldStandaloneUser, $oldStandaloneMember] = AdminFixtures::member('PG-HISTORY-OLD-SESSION');
+        $oldStandaloneUser->forceFill(['name' => 'History Old Standalone Session Member'])->save();
+        $oldStandalonePackageSession = MemberPackageSession::create([
+            'member_id' => $oldStandaloneMember->id,
+            'package_id' => $standaloneSessionPackage->id,
+            'code' => 'MPS-HISTORY-OLD-STANDALONE',
+            'total_sessions' => 1,
+            'used_sessions' => 1,
+            'remaining_sessions' => 0,
+            'price' => 50000,
+            'started_at' => now()->subMonths(3)->toDateString(),
+            'expired_at' => now()->addMonth()->toDateString(),
+            'status' => 'active',
+        ]);
 
-            MemberPackageSessionUsage::create([
-                'member_package_session_id' => $extraPackageSession->id,
-                'member_id' => $member->id,
-                'gym_check_in_id' => $checkIn->id,
-                'usage_date' => $checkIn->check_in_date,
-                'used_at' => $checkIn->check_in_at,
-                'method' => 'qr',
-                'recorded_by' => $admin->id,
-                'request_key' => 'history-session-usage-0002',
-            ]);
-        }
+        MemberPackageSessionUsage::create([
+            'member_package_session_id' => $oldStandalonePackageSession->id,
+            'member_id' => $oldStandaloneMember->id,
+            'gym_check_in_id' => null,
+            'usage_date' => now()->subMonths(2)->toDateString(),
+            'used_at' => now()->subMonths(2),
+            'method' => 'qr',
+            'recorded_by' => $admin->id,
+            'request_key' => 'history-old-standalone-session-usage',
+        ]);
+
+        $this->actingAs($admin)->get(route('admin.check-in'))
+            ->assertOk()
+            ->assertSee('Riwayat Check-in &amp; Sesi', false)
+            ->assertSee('Data check-in dan penggunaan sesi member dari QR kamera dan aksi admin terkonfirmasi.')
+            ->assertSee('name="date_from"', false)
+            ->assertSee('name="date_to"', false)
+            ->assertSee(now()->startOfMonth()->toDateString())
+            ->assertSee(now()->toDateString())
+            ->assertSee('Menampilkan')
+            ->assertSee('Berikutnya')
+            ->assertSee('Paket')
+            ->assertSee('Sisa Sesi')
+            ->assertSee('Aktivitas')
+            ->assertSee('Gym History Test')
+            ->assertSee('Gym History Test + Muaythai History Session 4x + Personal Trainer History Session 2x')
+            ->assertSee('Muaythai History Session 4x')
+            ->assertSee('Muaythai History Session 4x: 3 sesi')
+            ->assertSee('Personal Trainer History Session 2x: 1 sesi')
+            ->assertSee('Poundfit Standalone Session 1x')
+            ->assertSee('0 sesi')
+            ->assertSee('History Member 01')
+            ->assertSee('History Standalone Session Member')
+            ->assertSee('Check-in + Sesi')
+            ->assertSee('Check-in')
+            ->assertSee('Sesi')
+            ->assertDontSee('History Old Member')
+            ->assertDontSee('History Old Standalone Session Member')
+            ->assertDontSee('Check-in Terbaru')
+            ->assertDontSee('Pemakaian Sesi')
+            ->assertDontSee('Sesi dipakai tanpa check-in')
+            ->assertDontSee('<th scope="col" class="px-4 py-3">Sesi</th>', false)
+            ->assertDontSee('>Metode<', false)
+            ->assertDontSee('>Terbaru<', false);
+
+        $this->actingAs($admin)->get(route('admin.check-in', ['q' => 'Poundfit Standalone Session']))
+            ->assertOk()
+            ->assertSee('History Standalone Session Member')
+            ->assertSee('Poundfit Standalone Session 1x')
+            ->assertSee('0 sesi')
+            ->assertSee('Sesi')
+            ->assertDontSee('History Member 01');
+
+        $this->actingAs($admin)->get(route('admin.check-in', ['q' => 'Muaythai History Session']))
+            ->assertOk()
+            ->assertSee('History Member 01')
+            ->assertSee('Gym History Test + Muaythai History Session 4x + Personal Trainer History Session 2x')
+            ->assertSee('Muaythai History Session 4x')
+            ->assertSee('Muaythai History Session 4x: 3 sesi')
+            ->assertDontSee('History Member 02');
+
+        $this->actingAs($admin)->get(route('admin.check-in', [
+            'date_from' => now()->subMonths(3)->startOfMonth()->toDateString(),
+            'date_to' => now()->toDateString(),
+            'q' => 'History Old Member',
+        ]))
+            ->assertOk()
+            ->assertSee('History Old Member')
+            ->assertDontSee('History Member 01');
+
+        $this->actingAs($admin)->get(route('admin.check-in', [
+            'date_from' => now()->subMonths(3)->startOfMonth()->toDateString(),
+            'date_to' => now()->toDateString(),
+            'q' => 'History Old Standalone Session Member',
+        ]))
+            ->assertOk()
+            ->assertSee('History Old Standalone Session Member')
+            ->assertSee('Poundfit Standalone Session 1x')
+            ->assertSee('0 sesi')
+            ->assertSee('Sesi')
+            ->assertDontSee('History Member 01');
+    } finally {
+        Carbon::setTestNow();
     }
-
-    [$oldUser, $oldMember] = AdminFixtures::member('PG-HISTORY-OLD');
-    $oldUser->forceFill(['name' => 'History Old Member'])->save();
-    $oldMembership = Membership::create([
-        'member_id' => $oldMember->id,
-        'package_id' => $package->id,
-        'code' => 'MBR-HISTORY-OLD',
-        'start_date' => now()->subMonths(3)->toDateString(),
-        'end_date' => now()->addMonth()->toDateString(),
-        'price' => 250000,
-        'status' => 'active',
-    ]);
-
-    GymCheckIn::create([
-        'member_id' => $oldMember->id,
-        'membership_id' => $oldMembership->id,
-        'check_in_date' => now()->subMonths(2)->toDateString(),
-        'check_in_at' => now()->subMonths(2),
-        'method' => 'qr',
-        'scanned_by' => $admin->id,
-    ]);
-
-    [$standaloneUser, $standaloneMember] = AdminFixtures::member('PG-HISTORY-STANDALONE');
-    $standaloneUser->forceFill(['name' => 'History Standalone Session Member'])->save();
-    $standalonePackageSession = MemberPackageSession::create([
-        'member_id' => $standaloneMember->id,
-        'package_id' => $standaloneSessionPackage->id,
-        'code' => 'MPS-HISTORY-STANDALONE',
-        'total_sessions' => 1,
-        'used_sessions' => 1,
-        'remaining_sessions' => 0,
-        'price' => 50000,
-        'started_at' => now()->subDay()->toDateString(),
-        'expired_at' => now()->addMonth()->toDateString(),
-        'status' => 'active',
-    ]);
-
-    MemberPackageSessionUsage::create([
-        'member_package_session_id' => $standalonePackageSession->id,
-        'member_id' => $standaloneMember->id,
-        'gym_check_in_id' => null,
-        'usage_date' => now()->toDateString(),
-        'used_at' => now()->addMinute(),
-        'method' => 'qr',
-        'recorded_by' => $admin->id,
-        'request_key' => 'history-standalone-session-usage',
-    ]);
-
-    [$oldStandaloneUser, $oldStandaloneMember] = AdminFixtures::member('PG-HISTORY-OLD-SESSION');
-    $oldStandaloneUser->forceFill(['name' => 'History Old Standalone Session Member'])->save();
-    $oldStandalonePackageSession = MemberPackageSession::create([
-        'member_id' => $oldStandaloneMember->id,
-        'package_id' => $standaloneSessionPackage->id,
-        'code' => 'MPS-HISTORY-OLD-STANDALONE',
-        'total_sessions' => 1,
-        'used_sessions' => 1,
-        'remaining_sessions' => 0,
-        'price' => 50000,
-        'started_at' => now()->subMonths(3)->toDateString(),
-        'expired_at' => now()->addMonth()->toDateString(),
-        'status' => 'active',
-    ]);
-
-    MemberPackageSessionUsage::create([
-        'member_package_session_id' => $oldStandalonePackageSession->id,
-        'member_id' => $oldStandaloneMember->id,
-        'gym_check_in_id' => null,
-        'usage_date' => now()->subMonths(2)->toDateString(),
-        'used_at' => now()->subMonths(2),
-        'method' => 'qr',
-        'recorded_by' => $admin->id,
-        'request_key' => 'history-old-standalone-session-usage',
-    ]);
-
-    $this->actingAs($admin)->get(route('admin.check-in'))
-        ->assertOk()
-        ->assertSee('Riwayat Check-in &amp; Sesi', false)
-        ->assertSee('Data check-in dan penggunaan sesi member dari QR kamera dan aksi admin terkonfirmasi.')
-        ->assertSee('name="date_from"', false)
-        ->assertSee('name="date_to"', false)
-        ->assertSee(now()->startOfMonth()->toDateString())
-        ->assertSee(now()->toDateString())
-        ->assertSee('Menampilkan')
-        ->assertSee('Berikutnya')
-        ->assertSee('Paket')
-        ->assertSee('Sisa Sesi')
-        ->assertSee('Aktivitas')
-        ->assertSee('Gym History Test')
-        ->assertSee('Gym History Test + Muaythai History Session 4x + Personal Trainer History Session 2x')
-        ->assertSee('Muaythai History Session 4x')
-        ->assertSee('Muaythai History Session 4x: 3 sesi')
-        ->assertSee('Personal Trainer History Session 2x: 1 sesi')
-        ->assertSee('Poundfit Standalone Session 1x')
-        ->assertSee('0 sesi')
-        ->assertSee('History Member 01')
-        ->assertSee('History Standalone Session Member')
-        ->assertSee('Check-in + Sesi')
-        ->assertSee('Check-in')
-        ->assertSee('Sesi')
-        ->assertDontSee('History Old Member')
-        ->assertDontSee('History Old Standalone Session Member')
-        ->assertDontSee('Check-in Terbaru')
-        ->assertDontSee('Pemakaian Sesi')
-        ->assertDontSee('Sesi dipakai tanpa check-in')
-        ->assertDontSee('<th scope="col" class="px-4 py-3">Sesi</th>', false)
-        ->assertDontSee('>Metode<', false)
-        ->assertDontSee('>Terbaru<', false);
-
-    $this->actingAs($admin)->get(route('admin.check-in', ['q' => 'Poundfit Standalone Session']))
-        ->assertOk()
-        ->assertSee('History Standalone Session Member')
-        ->assertSee('Poundfit Standalone Session 1x')
-        ->assertSee('0 sesi')
-        ->assertSee('Sesi')
-        ->assertDontSee('History Member 01');
-
-    $this->actingAs($admin)->get(route('admin.check-in', ['q' => 'Muaythai History Session']))
-        ->assertOk()
-        ->assertSee('History Member 01')
-        ->assertSee('Gym History Test + Muaythai History Session 4x + Personal Trainer History Session 2x')
-        ->assertSee('Muaythai History Session 4x')
-        ->assertSee('Muaythai History Session 4x: 3 sesi')
-        ->assertDontSee('History Member 02');
-
-    $this->actingAs($admin)->get(route('admin.check-in', [
-        'date_from' => now()->subMonths(3)->startOfMonth()->toDateString(),
-        'date_to' => now()->toDateString(),
-        'q' => 'History Old Member',
-    ]))
-        ->assertOk()
-        ->assertSee('History Old Member')
-        ->assertDontSee('History Member 01');
-
-    $this->actingAs($admin)->get(route('admin.check-in', [
-        'date_from' => now()->subMonths(3)->startOfMonth()->toDateString(),
-        'date_to' => now()->toDateString(),
-        'q' => 'History Old Standalone Session Member',
-    ]))
-        ->assertOk()
-        ->assertSee('History Old Standalone Session Member')
-        ->assertSee('Poundfit Standalone Session 1x')
-        ->assertSee('0 sesi')
-        ->assertSee('Sesi')
-        ->assertDontSee('History Member 01');
 });
 
 test('admin can approve and reject payments', function () {
