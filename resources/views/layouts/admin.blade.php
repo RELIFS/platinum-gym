@@ -2,6 +2,7 @@
     $admin = $portal['admin'] ?? auth()->user();
     $pendingPaymentCount = data_get(collect($portal['stats'] ?? [])->firstWhere('label', 'Pembayaran Pending'), 'value', '0');
     $adminName = (string) ($admin?->name ?? 'Admin');
+    $adminEmail = (string) ($admin?->email ?? '');
     $adminInitial = mb_strtoupper(mb_substr($adminName, 0, 1));
     $adminRoleLabel = $admin?->getRoleNames()->implode(', ') ?: 'Admin';
     $adminAvatar = (string) ($admin?->avatar ?? '');
@@ -62,26 +63,6 @@
                             ])
                         </div>
                     </nav>
-                </div>
-
-                <div class="border-t border-zinc-200 p-4 dark:border-white/10">
-                    <div class="mb-3 flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50/90 p-3 dark:border-white/10 dark:bg-white/[0.045]" aria-label="Identitas admin">
-                        <span class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-gold-500 text-sm font-black text-zinc-950" aria-hidden="true">
-                            @if ($adminAvatarUrl)
-                                <img src="{{ $adminAvatarUrl }}" alt="" class="h-full w-full object-cover">
-                            @else
-                                {{ $adminInitial }}
-                            @endif
-                        </span>
-                        <div class="min-w-0">
-                            <p class="truncate text-sm font-black text-zinc-950 dark:text-white">{{ $adminName }}</p>
-                            <p class="mt-0.5 truncate text-[0.7rem] font-bold uppercase tracking-[0.1em] text-gold-600 dark:text-gold-400">{{ $adminRoleLabel }}</p>
-                        </div>
-                    </div>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="admin-button-primary w-full">Keluar</button>
-                    </form>
                 </div>
             </div>
 
@@ -157,6 +138,15 @@
                                 <span class="hidden sm:inline">menunggu</span>
                             </a>
                             <x-theme-toggle class="h-11 w-11" />
+                            <x-portal-account-menu
+                                portal="admin"
+                                :name="$adminName"
+                                :email="$adminEmail"
+                                :avatar-url="$adminAvatarUrl"
+                                :avatar-fallback="$adminInitial"
+                                :profile-url="route('admin.profile')"
+                                profile-label="Profil"
+                            />
                         </div>
                     </div>
                 </header>

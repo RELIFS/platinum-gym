@@ -213,12 +213,19 @@ test('admin product edit form shows current image preview and aria-invalid on er
         ->assertRedirect();
 });
 
-test('admin sidebar shows account identity block', function () {
+test('admin topbar shows desktop account menu', function () {
     $admin = AdminFixtures::improvementsAdmin();
 
     $this->actingAs($admin)->get('/admin')
         ->assertOk()
         ->assertSee('Admin Improvements')
+        ->assertSee('admin.improvements@example.com')
+        ->assertSee('data-portal-account-menu="admin"', false)
+        ->assertSee('data-portal-account-trigger="admin"', false)
+        ->assertSee('data-portal-account-dropdown="admin"', false)
+        ->assertSee('data-portal-account-profile="admin"', false)
+        ->assertSee('data-portal-account-logout="admin"', false)
+        ->assertSee(route('admin.profile'), false)
         ->assertDontSee('Ganti Password');
 });
 

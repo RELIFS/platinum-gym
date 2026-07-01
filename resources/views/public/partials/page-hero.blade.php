@@ -14,7 +14,7 @@
                     {{ $title }}
                 </h1>
                 @if ($description)
-                    <p class="public-text-pretty mt-5 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg sm:leading-8">
+                    <p class="public-text-pretty mt-5 max-w-2xl text-base leading-7 text-zinc-600 dark:text-zinc-300 sm:text-lg sm:leading-8">
                         {{ $description }}
                     </p>
                 @endif
