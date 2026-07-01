@@ -3,6 +3,7 @@
 namespace App\Features\Gymmi\Actions;
 
 use App\Features\Gymmi\Contracts\GymmiAssistantClient;
+use App\Features\Gymmi\Support\GymmiConversationalResponder;
 use App\Features\Gymmi\Support\GymmiFallbackResponder;
 use App\Features\Gymmi\Support\GymmiInputGuard;
 use App\Features\Gymmi\Support\GymmiIntentDetector;
@@ -26,6 +27,7 @@ class AskGymmiAction
         private readonly GymmiKnowledgeMatcher $matcher,
         private readonly GymmiLiveDataProvider $liveData,
         private readonly GymmiInputGuard $guard,
+        private readonly GymmiConversationalResponder $conversation,
         private readonly GymmiIntentDetector $intentDetector,
         private readonly GymmiPromptBuilder $promptBuilder,
         private readonly GymmiFallbackResponder $fallback,
@@ -49,12 +51,21 @@ class AskGymmiAction
             return ['text' => $text, 'source' => 'guard'];
         }
 
+        $conversationReply = $this->conversation->replyFor($safeMessage, $context);
+
+        if ($conversationReply !== null) {
+            $text = $this->formatter->reply($conversationReply);
+            $this->storeConversation($this->formatter->logMessage($safeMessage), $text, $context, 'fallback', $user);
+
+            return ['text' => $text, 'source' => 'fallback'];
+        }
+
         $intent = $this->intentDetector->detect($safeMessage);
         $match = $this->matcher->match($safeMessage, $this->knowledge->all());
         $match['intent'] = $intent;
 
         if ($match['type'] === 'ambiguous') {
-            $text = $this->formatter->reply($this->fallback->ambiguous());
+            $text = $this->formatter->reply($this->fallback->ambiguous($context));
             $this->storeConversation($this->formatter->logMessage($safeMessage), $text, $context, 'fallback', $user);
 
             return ['text' => $text, 'source' => 'fallback'];
@@ -77,7 +88,7 @@ class AskGymmiAction
             return ['text' => $text, 'source' => 'faq'];
         }
         if ($match['type'] === 'none' || ($match['snippets'] ?? []) === []) {
-            $text = $this->formatter->reply($this->fallback->outOfScope());
+            $text = $this->formatter->reply($this->fallback->outOfScope($context));
             $this->storeConversation($this->formatter->logMessage($safeMessage), $text, $context, 'fallback', $user);
 
             return ['text' => $text, 'source' => 'fallback'];

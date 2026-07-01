@@ -25,12 +25,12 @@ class GymmiIntentDetector
             $intent = 'class_coach';
         } elseif ($subject || $this->hasAny($normalized, ['jadwal', 'kelas', 'senam'])) {
             $intent = 'class_schedule';
+        } elseif ($this->hasAny($normalized, ['alamat', 'lokasi', 'dimana', 'di mana', 'arah', 'rute', 'maps', 'google maps', 'wa', 'whatsapp', 'kontak', 'instagram', 'ig', 'jam buka', 'operasional'])) {
+            $intent = 'location_contact';
         } elseif ($this->hasAny($normalized, ['harga', 'biaya', 'paket', 'membership', 'member', 'gym', 'pt', 'personal trainer', 'sesi'])) {
             $intent = 'membership_price';
         } elseif ($this->hasAny($normalized, ['produk', 'stok', 'minuman', 'makanan', 'suplemen', 'protein', 'jual', 'beli', 'wrap', 'sarung'])) {
             $intent = 'product_stock';
-        } elseif ($this->hasAny($normalized, ['alamat', 'lokasi', 'maps', 'google maps', 'wa', 'whatsapp', 'kontak', 'instagram', 'ig', 'jam buka', 'operasional'])) {
-            $intent = 'location_contact';
         }
 
         return compact('intent', 'subject', 'normalized');

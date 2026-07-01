@@ -319,10 +319,12 @@ async function resolveAssistantReply(text, config = {}, history = [], preferLoca
             return localReply;
         }
 
+        const keepLocalAction = shouldKeepLocalAction(payload?.source, localReply);
+
         return {
             text: aiText,
-            actionLabel: localReply.actionLabel,
-            actionUrl: localReply.actionUrl,
+            actionLabel: keepLocalAction ? localReply.actionLabel : null,
+            actionUrl: keepLocalAction ? localReply.actionUrl : null,
         };
     } catch (_error) {
         return localReply;
@@ -345,12 +347,36 @@ function resolveChatbotReply(text, config = {}) {
     const normalized = text.toLowerCase();
     const replies = config.replies ?? {};
 
+    if (isGreeting(normalized)) {
+        return replies.greeting ?? replies.fallback;
+    }
+
+    if (isThanks(normalized)) {
+        return replies.thanks ?? replies.fallback;
+    }
+
+    if (isWellbeing(normalized)) {
+        return replies.wellbeing ?? replies.fallback;
+    }
+
+    if (isCapabilityQuestion(normalized)) {
+        return replies.capability ?? replies.fallback;
+    }
+
+    if (isGoodbye(normalized)) {
+        return replies.goodbye ?? replies.fallback;
+    }
+
     if (text === 'QR Member' || normalized.includes('qr') || normalized.includes('check-in') || normalized.includes('check in')) {
         return replies.qr ?? replies.fallback;
     }
 
     if (text === 'Status Membership') {
         return replies.membership;
+    }
+
+    if (text === 'Lokasi & Jam Buka' || includesAny(normalized, ['lokasi', 'alamat', 'maps', 'dimana', 'di mana', 'jam', 'buka', 'kontak', 'whatsapp', 'instagram'])) {
+        return replies.location ?? replies.fallback;
     }
 
     if (text === 'Info Membership' || normalized.includes('member') || normalized.includes('paket') || normalized.includes('gym umum')) {
@@ -373,15 +399,47 @@ function resolveChatbotReply(text, config = {}) {
         return replies.trainer ?? replies.fallback;
     }
 
-    if (text === 'Lokasi & Jam Buka' || normalized.includes('lokasi') || normalized.includes('alamat') || normalized.includes('jam') || normalized.includes('buka')) {
-        return replies.location ?? replies.fallback;
-    }
-
     if (normalized.includes('promo') || normalized.includes('diskon')) {
         return replies.promo ?? replies.fallback;
     }
 
     return replies.fallback;
+}
+
+function shouldKeepLocalAction(source, localReply) {
+    if (!localReply.actionLabel || !localReply.actionUrl) {
+        return false;
+    }
+
+    return !['guard', 'fallback'].includes(source);
+}
+
+function isGreeting(normalized) {
+    return /^(halo|hai|hi|hello|pagi|siang|sore|malam|selamat pagi|selamat siang|selamat sore|selamat malam|assalamualaikum)( gymmi| kak| admin)?$/.test(normalized.trim());
+}
+
+function isThanks(normalized) {
+    return /\b(makasih|terima kasih|terimakasih|thanks|thank you|tengkyu)\b/.test(normalized) && !hasDomainIntent(normalized);
+}
+
+function isWellbeing(normalized) {
+    return includesAny(normalized, ['apa kabar', 'gimana kabarnya', 'bagaimana kabarnya', 'kabar gymmi', 'sehat']) && !hasDomainIntent(normalized);
+}
+
+function isGoodbye(normalized) {
+    return /^(bye|dadah|sampai jumpa|sampai nanti|see you|selamat tinggal)( gymmi)?$/.test(normalized.trim());
+}
+
+function isCapabilityQuestion(normalized) {
+    return includesAny(normalized, ['siapa kamu', 'kamu siapa', 'gymmi siapa', 'gymmi itu apa', 'apa itu gymmi', 'bisa bantu apa', 'kamu bisa apa', 'fitur gymmi', 'bantuan gymmi']);
+}
+
+function hasDomainIntent(normalized) {
+    return includesAny(normalized, ['harga', 'biaya', 'paket', 'membership', 'member', 'jadwal', 'kelas', 'lokasi', 'alamat', 'maps', 'produk', 'promo', 'trainer', 'coach', 'personal trainer', 'qr', 'transaksi', 'invoice', 'booking', 'profil', 'akun', 'jam buka', 'whatsapp', 'instagram', 'daftar', 'bayar']);
+}
+
+function includesAny(value, needles) {
+    return needles.some((needle) => value.includes(needle));
 }
 
 function renderQuickReplies(container, replies, variant = 'public', onClick) {
