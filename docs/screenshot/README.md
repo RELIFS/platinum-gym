@@ -1,8 +1,8 @@
 # Screenshot Fitur Platinum Gym
 
-Status: Updated 2026-07-01.
+Status: Updated 2026-07-02.
 
-Folder ini menyimpan dokumentasi visual fitur Platinum Gym Padang. Screenshot dibuat pada viewport desktop 1440px, mode light, dan memakai data lokal aman. Email pada area login-protected dimasking di DOM browser saat capture untuk menghindari penyebaran data akun pada dokumentasi. Screenshot public dan member memakai state motion yang sudah selesai, menunggu image tampil, dan menampilkan trigger Gymmi di bagian bawah dokumen agar konten utama tidak tertutup.
+Folder ini menyimpan dokumentasi visual fitur Platinum Gym Padang. Screenshot dibuat pada viewport desktop 1440px, mode light, dan memakai data lokal aman. Email pada area login-protected dimasking di DOM browser saat capture untuk menghindari penyebaran data akun pada dokumentasi. Screenshot publik dan member memakai state motion yang sudah selesai, menunggu image tampil, dan menampilkan trigger Gymmi di bagian bawah dokumen agar konten utama tidak tertutup.
 
 ## Ringkasan
 
@@ -19,10 +19,10 @@ Folder ini menyimpan dokumentasi visual fitur Platinum Gym Padang. Screenshot di
 
 | Screenshot | Route | Fitur |
 |---|---|---|
-| [`public-home.png`](public/public-home.png) | `/` | Beranda public |
+| [`public-home.png`](public/public-home.png) | `/` | Beranda publik |
 | [`public-about.png`](public/public-about.png) | `/tentang-kami` | Profil gym dan keunggulan |
 | [`public-services.png`](public/public-services.png) | `/layanan` | Layanan dan paket |
-| [`public-classes.png`](public/public-classes.png) | `/kelas` | Jadwal kelas public |
+| [`public-classes.png`](public/public-classes.png) | `/kelas` | Jadwal kelas publik |
 | [`public-products.png`](public/public-products.png) | `/produk` | Katalog produk |
 | [`public-gallery.png`](public/public-gallery.png) | `/galeri` | Galeri aktivitas |
 | [`public-location.png`](public/public-location.png) | `/lokasi` | Lokasi dan kontak |
@@ -65,7 +65,7 @@ Catatan: `/verify-email` dan `/member/complete-profile` tidak dicapture pada bat
 | [`admin-check-in.png`](admin/admin-check-in.png) | `/admin/check-in` | Check-in QR |
 | [`admin-products.png`](admin/admin-products.png) | `/admin/produk` | Produk admin |
 | [`admin-reports.png`](admin/admin-reports.png) | `/admin/laporan` | Laporan admin |
-| [`admin-settings.png`](admin/admin-settings.png) | `/admin/pengaturan` | Pengaturan public dan masked settings |
+| [`admin-settings.png`](admin/admin-settings.png) | `/admin/pengaturan` | Pengaturan publik whitelist |
 | [`admin-audit-log.png`](admin/admin-audit-log.png) | `/admin/audit-log` | Audit log |
 | [`admin-profile.png`](admin/admin-profile.png) | `/admin/profil` | Profil admin |
 

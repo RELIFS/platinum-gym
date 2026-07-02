@@ -1,6 +1,6 @@
 # Refactoring Documentation
 
-Status: Updated 2026-06-30. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
+Status: Updated 2026-07-01. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
 
 Dokumen ini mencatat perubahan struktur kode yang dilakukan untuk meningkatkan keterbacaan, maintainability, dan kesiapan evolusi sistem.
 
@@ -810,3 +810,77 @@ resources/views/member/pages/qr.blade.php
 - `php artisan test --filter=AdminPortalLegacyTest --no-ansi` lulus 60 tests / 424 assertions.
 - `MemberPortalUiTest`, `AdminPortalUiTest`, dan `OwnerPortalUiTest` lulus.
 - Final gate sebelum commit/push 2026-07-01 lulus: `composer validate --strict --no-check-publish`, `composer audit`, `npm.cmd audit --audit-level=moderate`, `npm.cmd audit --omit=dev --audit-level=moderate`, `vendor\bin\pint --test`, `npm.cmd run build`, `php artisan test --no-ansi` 662 tests / 5125 assertions, `php artisan route:list --except-vendor --no-ansi` 109 routes, `php artisan config:cache`, `php artisan route:cache`, `php artisan view:cache`, dan `php artisan optimize:clear`.
+
+## 24. Guard Attendance Untuk Gunakan Sesi 2026-07-01
+
+### Perubahan
+
+Pemakaian sesi kelas di admin check-in sekarang ditautkan ke booking kelas yang dipakai:
+
+```text
+database/migrations/2026_07_01_000001_add_class_enrollment_id_to_member_package_session_usages.php
+app/Features/CheckIns/Actions/PreviewMemberQrCheckInAction.php
+app/Features/CheckIns/Actions/ConfirmMemberQrCheckInAction.php
+app/Http/Requests/Admin/ConfirmQrCheckInRequest.php
+app/Http/Controllers/Admin/AdminCheckInController.php
+app/Models/MemberPackageSessionUsage.php
+app/Models/ClassEnrollment.php
+resources/views/admin/page.blade.php
+```
+
+### Detail
+
+- `member_package_session_usages.class_enrollment_id` menautkan satu penggunaan sesi ke satu booking kelas dan mencegah booking yang sama dipakai dua kali.
+- Preview QR admin hanya menawarkan opsi Muaythai/Poundfit yang punya booking `confirmed` hari ini, jadwal/kelas aktif, paket dan coach cocok, belum attended, dan belum punya usage.
+- Confirm action memvalidasi ulang semua aturan di dalam database transaction dengan row lock sebelum mengurangi sesi.
+- Saat `Gunakan Sesi` berhasil untuk kelas, sistem mengurangi sisa sesi, membuat `class_attendances`, mencatat usage dengan `class_enrollment_id`, dan mengubah `class_enrollments.status` menjadi `attended`.
+- Personal Trainer tetap memakai flow existing tanpa booking kelas, tetapi tetap membutuhkan membership Gym/Include aktif.
+
+### Evidence
+
+- `php artisan test --filter=AdminCheckInTest --no-ansi` lulus 8 tests / 79 assertions.
+- `php artisan test --filter=MemberQrTest --no-ansi` lulus 6 tests / 22 assertions.
+- `php artisan test --filter=AdminBookingTest --no-ansi` lulus 8 tests / 97 assertions.
+- `php artisan test --filter=MemberBookingTest --no-ansi` lulus 9 tests / 81 assertions.
+- `php artisan test --filter=AdminPortalUiTest --no-ansi` lulus 4 tests / 69 assertions.
+- `php artisan test --filter=AdminPortalLegacyTest --no-ansi` lulus 60 tests / 429 assertions.
+- `php artisan test --filter=MemberPortalLegacyTest --no-ansi` lulus 55 tests / 513 assertions setelah assertion katalog Poundfit dibuat spesifik terhadap section/card agar tidak bentrok dengan copy Gymmi global.
+- Full `php artisan test --no-ansi` lulus 676 tests / 5279 assertions.
+
+## 25. Approval Inbox, Gymmi Normalizer, Dan Portal Guard 2026-07-02
+
+### Perubahan
+
+Batch ini merapikan beberapa area operasional tanpa mengubah scope produk checkout atau alur payment provider:
+
+```text
+app/Features/Admin/Actions/ReviewMemberStudentProofAction.php
+app/Http/Controllers/Admin/AdminStudentProofReviewController.php
+app/Http/Requests/Admin/ReviewMemberStudentProofRequest.php
+app/Features/Gymmi/Support/GymmiTextNormalizer.php
+app/Features/Gymmi/Support/GymmiLiveDataProvider.php
+app/Features/MemberPortal/Queries/MemberDashboardQuery.php
+resources/views/admin/members/student-proof-review.blade.php
+resources/views/admin/pages/profile-overview.blade.php
+resources/views/admin/pages/settings-form.blade.php
+```
+
+### Detail
+
+- Admin notifikasi menjadi approval inbox untuk bukti mahasiswa yang menunggu review. File bukti mahasiswa tetap berada di storage privat dan hanya disajikan melalui route terproteksi.
+- Tabel anggota admin menampilkan kolom operasional yang lebih relevan: nama, kode member, WhatsApp, status member, kategori, verifikasi, dan tanggal bergabung. NIM tidak lagi menjadi field kerja admin.
+- Review bukti mahasiswa memakai action terpisah dengan transaction, row lock, validasi catatan, dan activity log untuk setuju/tolak.
+- Gymmi menambahkan normalisasi teks dan knowledge override agar variasi pertanyaan layanan, harga, jadwal, produk, bukti mahasiswa, dan kontak tetap diarahkan ke data resmi.
+- Booking member sekarang menonaktifkan semua kelas yang tidak didukung membership/paket sesi aktif. Membership `include` membuka semua kelas included, sedangkan membership bertipe spesifik hanya membuka kelas included yang cocok.
+- Profil admin dipadatkan agar fokus pada akun admin login, upload foto, dan shortcut keamanan akun. Pengaturan admin tetap berupa form whitelist operasional tanpa tabel teknis dan tanpa field Google Maps harian.
+
+### Evidence
+
+- `git diff --check` lulus.
+- `composer validate --strict --no-check-publish` dan `composer audit` lulus.
+- `npm.cmd audit --audit-level=moderate` dan `npm.cmd audit --omit=dev --audit-level=moderate` lulus.
+- `vendor\bin\pint --test` lulus.
+- `npm.cmd run build` lulus.
+- `php artisan test --no-ansi` lulus 680 tests / 5370 assertions.
+- `php artisan route:list --except-vendor --no-ansi` lulus dengan 113 routes.
+- `php artisan config:cache`, `php artisan route:cache`, `php artisan view:cache`, dan `php artisan optimize:clear` lulus.
