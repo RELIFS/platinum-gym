@@ -1,18 +1,606 @@
 {
     "metadata": {
         "purpose": "Supplemental Gymmi knowledge that has been validated after the workbook import.",
-        "updated_at": "2026-06-26"
+        "updated_at": "2026-07-01"
     },
     "faq": [
+        {
+            "id": "OVR-FAQ-GYMMI-CHECK-001",
+            "category": "Gymmi",
+            "question": "test",
+            "answer": "Gymmi aktif. Silakan tanyakan membership, jadwal kelas, harga, lokasi, atau kontak admin Platinum Gym.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-GYMMI-CHECK-002",
+            "category": "Gymmi",
+            "question": "tes",
+            "answer": "Gymmi aktif. Silakan tanyakan membership, jadwal kelas, harga, lokasi, atau kontak admin Platinum Gym.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-GYMMI-CHECK-003",
+            "category": "Gymmi",
+            "question": "cek bot",
+            "answer": "Gymmi aktif dan siap bantu. Tulis topik seperti harga Gym Umum, jadwal Muaythai, lokasi gym, atau metode pembayaran.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-GYMMI-CHECK-004",
+            "category": "Gymmi",
+            "question": "cek gymmi",
+            "answer": "Gymmi aktif dan siap bantu. Tulis topik seperti harga Gym Umum, jadwal Muaythai, lokasi gym, atau metode pembayaran.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-GYMMI-SCOPE-001",
+            "category": "Gymmi",
+            "question": "topik apa yang bisa dibantu",
+            "answer": "Gymmi bisa bantu info resmi Platinum Gym seperti membership, jadwal kelas, personal trainer, produk katalog, promo, lokasi, jam operasional, dan kontak admin.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-GYMMI-SCOPE-002",
+            "category": "Gymmi",
+            "question": "pertanyaan saya tidak nyambung",
+            "answer": "Tidak apa-apa. Coba tulis ulang topiknya dengan kata kunci seperti harga, jadwal, lokasi, booking, QR member, atau pembayaran.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-MEMBERSHIP-001",
+            "category": "Membership",
+            "question": "info membership",
+            "answer": "Membership Platinum Gym tersedia untuk umum dan mahasiswa. Untuk harga terbaru, sebutkan paket yang ingin dicek seperti Gym Umum, Gym Mahasiswa, Senam, atau Gym + Senam.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-MEMBERSHIP-002",
+            "category": "Membership",
+            "question": "cara daftar",
+            "answer": "Pendaftaran member bisa dilakukan lewat menu Daftar Member di website. Isi data diri dengan benar, lalu ikuti instruksi verifikasi dan pembayaran yang tersedia.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-MEMBERSHIP-003",
+            "category": "Membership",
+            "question": "cara daftar member",
+            "answer": "Untuk daftar member, buka menu Daftar Member, lengkapi data profil, lalu pilih paket membership yang sesuai. Jika ada kendala, admin bisa membantu lewat WhatsApp resmi.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-MEMBERSHIP-004",
+            "category": "Membership",
+            "question": "brp hrg gym umum",
+            "answer": "Harga Gym Umum saat ini Rp249.000 untuk 30 hari. Jika ingin opsi durasi lebih panjang, cek juga paket Gym Umum 3 Bulan atau 6 Bulan.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-MEMBERSHIP-005",
+            "category": "Membership",
+            "question": "berapa harga paket gym",
+            "answer": "Harga paket tergantung jenis membership yang dipilih. Sebutkan paketnya, misalnya Gym Umum, Gym Mahasiswa, Senam Umum, atau Gym + Senam, supaya Gymmi bisa jawab lebih tepat.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-MEMBERSHIP-006",
+            "category": "Membership",
+            "question": "apakah ada paket mahasiswa",
+            "answer": "Ada paket mahasiswa dengan syarat sesuai data resmi Platinum Gym. Siapkan bukti mahasiswa jika diminta saat pendaftaran atau verifikasi profil.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-MEMBERSHIP-007",
+            "category": "Membership",
+            "question": "membership saya aktif atau tidak",
+            "answer": "Member bisa cek status membership langsung di portal member pada halaman Membership atau Dashboard. Gymmi hanya menampilkan data akun yang sedang login.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-CLASS-001",
+            "category": "Class",
+            "question": "jadwal kelas",
+            "answer": "Jadwal kelas tersedia di halaman Kelas untuk public dan Booking Kelas untuk member. Pilih kelas seperti Muaythai, Poundfit, Aerobic, atau Zumba untuk melihat hari dan jam yang aktif.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-CLASS-002",
+            "category": "Class",
+            "question": "jadwal kls",
+            "answer": "Jadwal kelas bisa dicek di halaman Kelas. Untuk member, buka Booking Kelas agar bisa melihat jadwal aktif dan melakukan booking jika paketnya memenuhi syarat.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-CLASS-003",
+            "category": "Class",
+            "question": "booking muaythai gimana",
+            "answer": "Booking Muaythai dilakukan dari portal member pada halaman Booking Kelas. Jika paket sesi Muaythai aktif dan masih ada sisa sesi, tombol booking akan tersedia pada jadwal yang sesuai.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-CLASS-004",
+            "category": "Class",
+            "question": "booking poundfit gimana",
+            "answer": "Booking Poundfit dilakukan dari halaman Booking Kelas di portal member. Pastikan paket sesi Poundfit aktif dan pilih tanggal sesuai jadwal yang tersedia.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-CLASS-005",
+            "category": "Class",
+            "question": "kenapa tombol booking tidak bisa diklik",
+            "answer": "Tombol Booking Kelas akan nonaktif jika paket yang dibutuhkan belum aktif, sesi habis, atau tanggal tidak sesuai jadwal. Cek halaman Membership untuk memastikan status paket.",
+            "source_sheet": "Knowledge Override"
+        },
         {
             "id": "OVR-FAQ-MUAYTHAI-PRIVATE-001",
             "category": "Class Terpisah",
             "question": "Apakah Muaythai privat atau bersama peserta lain?",
             "answer": "Muaythai tercatat sebagai kelas berjadwal dengan kapasitas terbatas. Jika ingin sesi privat atau latihan hanya dengan coach, konfirmasi ketersediaan ke admin Platinum Gym.",
             "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-MUAYTHAI-002",
+            "category": "Class Terpisah",
+            "question": "muaythai bayar terpisah atau termasuk membership",
+            "answer": "Muaythai adalah paket sesi terpisah. Jika member punya paket sesi Muaythai aktif, sesi bisa dipakai untuk booking dan digunakan admin saat check-in kelas.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-POUNDFIT-001",
+            "category": "Class Terpisah",
+            "question": "poundfit bayar terpisah atau termasuk membership",
+            "answer": "Poundfit adalah paket sesi terpisah. Jika paket sesi Poundfit aktif dan masih ada sisa sesi, member bisa booking pada jadwal yang tersedia.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-PT-001",
+            "category": "Personal Trainer",
+            "question": "harga personal trainer",
+            "answer": "Personal Trainer tersedia dalam paket sesi sesuai katalog layanan. Untuk menggunakan PT, member perlu memiliki membership gym yang aktif atau paket yang memang mendukung akses tersebut.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-PT-002",
+            "category": "Personal Trainer",
+            "question": "personal trainer bisa tanpa membership",
+            "answer": "Personal Trainer bergantung pada membership gym aktif sesuai aturan paket. Jika belum punya membership, pilih membership gym dulu atau konfirmasi pilihan paket ke admin.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-LOCATION-001",
+            "category": "Lokasi",
+            "question": "dmn lokasi gym",
+            "answer": "Platinum Gym Padang berlokasi di Jl. H. Agus Salim No.3A, Sawahan, Padang. Untuk rute, buka halaman Lokasi atau Google Maps resmi yang tersedia di website.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-LOCATION-002",
+            "category": "Lokasi",
+            "question": "alamat gym dimana",
+            "answer": "Alamat Platinum Gym Padang adalah Jl. H. Agus Salim No.3A, Sawahan, Padang. Cek halaman Lokasi untuk maps, kontak, dan panduan arah.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-LOCATION-003",
+            "category": "Operasional",
+            "question": "jam buka gym",
+            "answer": "Jam operasional Platinum Gym mengikuti data resmi yang tampil di website. Jika ingin datang pada hari libur atau mendekati jam tutup, konfirmasi dulu ke admin.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-PAYMENT-001",
+            "category": "Pembayaran",
+            "question": "bayar qris bisa",
+            "answer": "Pembayaran dapat mengikuti metode resmi yang tersedia di website atau arahan admin. Jika QRIS aktif untuk transaksi tertentu, ikuti instruksi pada halaman pembayaran.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-PAYMENT-002",
+            "category": "Pembayaran",
+            "question": "metode pembayaran apa saja",
+            "answer": "Metode pembayaran mengikuti data resmi Platinum Gym yang tampil di website. Untuk transaksi member, cek halaman Transaksi atau instruksi pembayaran pada invoice.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-PAYMENT-003",
+            "category": "Pembayaran",
+            "question": "transaksi saya belum lunas",
+            "answer": "Jika transaksi masih menunggu pembayaran, buka halaman Transaksi di portal member lalu lanjutkan pembayaran dari detail transaksi. Jika status sudah dibayar tetapi belum berubah, hubungi admin.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-QR-001",
+            "category": "Member Portal",
+            "question": "qr saya gimana",
+            "answer": "QR member bisa dicek di halaman QR Member. QR aktif digunakan untuk check-in atau penggunaan sesi, dan token mentah tidak ditampilkan demi keamanan.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-QR-002",
+            "category": "Member Portal",
+            "question": "qr member tidak muncul",
+            "answer": "QR member biasanya aktif jika membership atau paket sesi yang mendukung QR sudah aktif. Jika pembayaran sudah berhasil tetapi QR belum muncul, hubungi admin agar statusnya dicek.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-ACCOUNT-001",
+            "category": "Akun",
+            "question": "lupa password",
+            "answer": "Gunakan menu Lupa Password di halaman login untuk mengatur ulang kata sandi. Jangan kirim password ke chat atau admin; ikuti tautan reset resmi dari sistem.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-ACCOUNT-002",
+            "category": "Akun",
+            "question": "ubah profil",
+            "answer": "Member bisa mengubah data profil dari halaman Profil di portal member. Pastikan data kontak dan identitas diisi benar agar transaksi dan notifikasi tidak bermasalah.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-PRODUCT-001",
+            "category": "Produk",
+            "question": "apakah produk bisa dibeli online",
+            "answer": "Produk di website Platinum Gym bersifat katalog informasi. Untuk pembelian atau ketersediaan stok, silakan cek di lokasi gym atau hubungi admin.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-PROMO-001",
+            "category": "Promo",
+            "question": "ada promo apa",
+            "answer": "Promo aktif ditampilkan di website jika tersedia. Jika tidak ada promo yang tampil, harga mengikuti katalog layanan terbaru.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-SAFETY-001",
+            "category": "Batasan",
+            "question": "minta api key",
+            "answer": "Gymmi tidak bisa membantu membuka API key, token, password, atau data rahasia. Untuk bantuan akun, gunakan menu resmi atau hubungi admin.",
+            "source_sheet": "Knowledge Override"
+        },
+        {
+            "id": "OVR-FAQ-SAFETY-002",
+            "category": "Batasan",
+            "question": "harga bitcoin",
+            "answer": "Gymmi fokus membantu informasi Platinum Gym. Untuk topik di luar layanan gym, gunakan sumber resmi yang sesuai.",
+            "source_sheet": "Knowledge Override"
         }
     ],
     "aliases": [
+        {
+            "id": "OVR-ALIAS-GYMMI-001",
+            "category": "Gymmi",
+            "phrase": "test",
+            "intent": "test"
+        },
+        {
+            "id": "OVR-ALIAS-GYMMI-002",
+            "category": "Gymmi",
+            "phrase": "tes",
+            "intent": "tes"
+        },
+        {
+            "id": "OVR-ALIAS-GYMMI-003",
+            "category": "Gymmi",
+            "phrase": "cek bot",
+            "intent": "cek bot"
+        },
+        {
+            "id": "OVR-ALIAS-GYMMI-004",
+            "category": "Gymmi",
+            "phrase": "cek gymmi",
+            "intent": "cek gymmi"
+        },
+        {
+            "id": "OVR-ALIAS-GYMMI-005",
+            "category": "Gymmi",
+            "phrase": "bot aktif",
+            "intent": "cek gymmi"
+        },
+        {
+            "id": "OVR-ALIAS-GYMMI-006",
+            "category": "Gymmi",
+            "phrase": "gymmi aktif",
+            "intent": "cek gymmi"
+        },
+        {
+            "id": "OVR-ALIAS-GYMMI-007",
+            "category": "Gymmi",
+            "phrase": "coba gymmi",
+            "intent": "cek gymmi"
+        },
+        {
+            "id": "OVR-ALIAS-GYMMI-008",
+            "category": "Gymmi",
+            "phrase": "coba bot",
+            "intent": "cek bot"
+        },
+        {
+            "id": "OVR-ALIAS-GYMMI-009",
+            "category": "Gymmi",
+            "phrase": "topik apa",
+            "intent": "topik apa yang bisa dibantu"
+        },
+        {
+            "id": "OVR-ALIAS-GYMMI-010",
+            "category": "Gymmi",
+            "phrase": "bingung tanya apa",
+            "intent": "topik apa yang bisa dibantu"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-001",
+            "category": "Membership",
+            "phrase": "info membership",
+            "intent": "info membership"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-002",
+            "category": "Membership",
+            "phrase": "info member",
+            "intent": "info membership"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-003",
+            "category": "Membership",
+            "phrase": "membership gym",
+            "intent": "info membership"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-004",
+            "category": "Membership",
+            "phrase": "paket gym",
+            "intent": "berapa harga paket gym"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-005",
+            "category": "Membership",
+            "phrase": "paket member",
+            "intent": "info membership"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-006",
+            "category": "Membership",
+            "phrase": "harga paket",
+            "intent": "berapa harga paket gym"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-007",
+            "category": "Membership",
+            "phrase": "brp hrg gym",
+            "intent": "berapa harga paket gym"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-008",
+            "category": "Membership",
+            "phrase": "brp hrg gym umum",
+            "intent": "brp hrg gym umum"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-009",
+            "category": "Membership",
+            "phrase": "harga gym biasa",
+            "intent": "berapa harga gym umum"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-010",
+            "category": "Membership",
+            "phrase": "gym umum berapa",
+            "intent": "brp hrg gym umum"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-011",
+            "category": "Membership",
+            "phrase": "gym umum sebulan",
+            "intent": "brp hrg gym umum"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-012",
+            "category": "Membership",
+            "phrase": "harga gym sebulan",
+            "intent": "brp hrg gym umum"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-013",
+            "category": "Membership",
+            "phrase": "membership aktif",
+            "intent": "membership saya aktif atau tidak"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-014",
+            "category": "Membership",
+            "phrase": "status membership",
+            "intent": "membership saya aktif atau tidak"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-015",
+            "category": "Membership",
+            "phrase": "cek membership",
+            "intent": "membership saya aktif atau tidak"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-016",
+            "category": "Membership",
+            "phrase": "paket mahasiswa",
+            "intent": "apakah ada paket mahasiswa"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-017",
+            "category": "Membership",
+            "phrase": "member gym berapa",
+            "intent": "berapa harga paket gym"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-018",
+            "category": "Membership",
+            "phrase": "harga member gym",
+            "intent": "berapa harga paket gym"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-019",
+            "category": "Membership",
+            "phrase": "biaya member",
+            "intent": "berapa harga paket gym"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-020",
+            "category": "Membership",
+            "phrase": "biaya gym umum",
+            "intent": "brp hrg gym umum"
+        },
+        {
+            "id": "OVR-ALIAS-MEMBERSHIP-021",
+            "category": "Membership",
+            "phrase": "gym mahasiswa ada",
+            "intent": "apakah ada paket mahasiswa"
+        },
+        {
+            "id": "OVR-ALIAS-REGISTER-001",
+            "category": "Pendaftaran",
+            "phrase": "cara daftar",
+            "intent": "cara daftar"
+        },
+        {
+            "id": "OVR-ALIAS-REGISTER-002",
+            "category": "Pendaftaran",
+            "phrase": "cara dftr",
+            "intent": "cara daftar"
+        },
+        {
+            "id": "OVR-ALIAS-REGISTER-003",
+            "category": "Pendaftaran",
+            "phrase": "mau daftar",
+            "intent": "cara daftar member"
+        },
+        {
+            "id": "OVR-ALIAS-REGISTER-004",
+            "category": "Pendaftaran",
+            "phrase": "daftar member",
+            "intent": "cara daftar member"
+        },
+        {
+            "id": "OVR-ALIAS-REGISTER-005",
+            "category": "Pendaftaran",
+            "phrase": "regis member",
+            "intent": "cara daftar member"
+        },
+        {
+            "id": "OVR-ALIAS-REGISTER-006",
+            "category": "Pendaftaran",
+            "phrase": "buat akun",
+            "intent": "cara daftar member"
+        },
+        {
+            "id": "OVR-ALIAS-REGISTER-007",
+            "category": "Pendaftaran",
+            "phrase": "cara bikin akun",
+            "intent": "cara daftar member"
+        },
+        {
+            "id": "OVR-ALIAS-REGISTER-008",
+            "category": "Pendaftaran",
+            "phrase": "daftar online",
+            "intent": "cara daftar"
+        },
+        {
+            "id": "OVR-ALIAS-REGISTER-009",
+            "category": "Pendaftaran",
+            "phrase": "pendaftaran online",
+            "intent": "cara daftar"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-001",
+            "category": "Class",
+            "phrase": "jadwal kelas",
+            "intent": "jadwal kelas"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-002",
+            "category": "Class",
+            "phrase": "jadwal kls",
+            "intent": "jadwal kls"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-003",
+            "category": "Class",
+            "phrase": "jdwl kelas",
+            "intent": "jadwal kelas"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-004",
+            "category": "Class",
+            "phrase": "jdl kelas",
+            "intent": "jadwal kelas"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-005",
+            "category": "Class",
+            "phrase": "kelas hari ini",
+            "intent": "jadwal kelas"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-006",
+            "category": "Class",
+            "phrase": "booking kelas",
+            "intent": "jadwal kelas"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-007",
+            "category": "Class",
+            "phrase": "buking kelas",
+            "intent": "jadwal kelas"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-008",
+            "category": "Class",
+            "phrase": "boking kelas",
+            "intent": "jadwal kelas"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-009",
+            "category": "Class",
+            "phrase": "kenapa booking disable",
+            "intent": "kenapa tombol booking tidak bisa diklik"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-010",
+            "category": "Class",
+            "phrase": "tombol booking mati",
+            "intent": "kenapa tombol booking tidak bisa diklik"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-011",
+            "category": "Class",
+            "phrase": "tanggal booking tidak bisa",
+            "intent": "kenapa tombol booking tidak bisa diklik"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-012",
+            "category": "Class",
+            "phrase": "booking tidak tersedia",
+            "intent": "kenapa tombol booking tidak bisa diklik"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-013",
+            "category": "Class",
+            "phrase": "kelas tersedia kapan",
+            "intent": "jadwal kelas"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-014",
+            "category": "Class",
+            "phrase": "jadwal senam",
+            "intent": "jadwal kelas"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-015",
+            "category": "Class",
+            "phrase": "jadwal zumba",
+            "intent": "jadwal kelas"
+        },
+        {
+            "id": "OVR-ALIAS-CLASS-016",
+            "category": "Class",
+            "phrase": "jadwal aerobic",
+            "intent": "jadwal kelas"
+        },
         {
             "id": "OVR-ALIAS-MUAYTHAI-PRIVATE-001",
             "category": "Class Terpisah",
@@ -60,6 +648,402 @@
             "category": "Class Terpisah",
             "phrase": "muaythai hanya saya dan coach",
             "intent": "muaythai privat"
+        },
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-009",
+            "category": "Class Terpisah",
+            "phrase": "booking muaythai",
+            "intent": "booking muaythai gimana"
+        },
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-010",
+            "category": "Class Terpisah",
+            "phrase": "buking muaythai",
+            "intent": "booking muaythai gimana"
+        },
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-011",
+            "category": "Class Terpisah",
+            "phrase": "muaythai gimana",
+            "intent": "booking muaythai gimana"
+        },
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-012",
+            "category": "Class Terpisah",
+            "phrase": "muaythai bayar",
+            "intent": "muaythai bayar terpisah atau termasuk membership"
+        },
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-013",
+            "category": "Class Terpisah",
+            "phrase": "paket muaythai",
+            "intent": "muaythai bayar terpisah atau termasuk membership"
+        },
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-014",
+            "category": "Class Terpisah",
+            "phrase": "jadwal muaythai",
+            "intent": "booking muaythai gimana"
+        },
+        {
+            "id": "OVR-ALIAS-MUAYTHAI-015",
+            "category": "Class Terpisah",
+            "phrase": "muaythai hari apa",
+            "intent": "booking muaythai gimana"
+        },
+        {
+            "id": "OVR-ALIAS-POUNDFIT-001",
+            "category": "Class Terpisah",
+            "phrase": "booking poundfit",
+            "intent": "booking poundfit gimana"
+        },
+        {
+            "id": "OVR-ALIAS-POUNDFIT-002",
+            "category": "Class Terpisah",
+            "phrase": "buking poundfit",
+            "intent": "booking poundfit gimana"
+        },
+        {
+            "id": "OVR-ALIAS-POUNDFIT-003",
+            "category": "Class Terpisah",
+            "phrase": "poundfit bayar",
+            "intent": "poundfit bayar terpisah atau termasuk membership"
+        },
+        {
+            "id": "OVR-ALIAS-POUNDFIT-004",
+            "category": "Class Terpisah",
+            "phrase": "paket poundfit",
+            "intent": "poundfit bayar terpisah atau termasuk membership"
+        },
+        {
+            "id": "OVR-ALIAS-POUNDFIT-005",
+            "category": "Class Terpisah",
+            "phrase": "jadwal poundfit",
+            "intent": "booking poundfit gimana"
+        },
+        {
+            "id": "OVR-ALIAS-POUNDFIT-006",
+            "category": "Class Terpisah",
+            "phrase": "poundfit hari apa",
+            "intent": "booking poundfit gimana"
+        },
+        {
+            "id": "OVR-ALIAS-PT-001",
+            "category": "Personal Trainer",
+            "phrase": "harga personal trainer",
+            "intent": "harga personal trainer"
+        },
+        {
+            "id": "OVR-ALIAS-PT-002",
+            "category": "Personal Trainer",
+            "phrase": "harga pt",
+            "intent": "harga personal trainer"
+        },
+        {
+            "id": "OVR-ALIAS-PT-003",
+            "category": "Personal Trainer",
+            "phrase": "personal trainer tanpa membership",
+            "intent": "personal trainer bisa tanpa membership"
+        },
+        {
+            "id": "OVR-ALIAS-PT-004",
+            "category": "Personal Trainer",
+            "phrase": "pt tanpa member",
+            "intent": "personal trainer bisa tanpa membership"
+        },
+        {
+            "id": "OVR-ALIAS-PT-005",
+            "category": "Personal Trainer",
+            "phrase": "trainer pribadi",
+            "intent": "harga personal trainer"
+        },
+        {
+            "id": "OVR-ALIAS-LOCATION-001",
+            "category": "Lokasi",
+            "phrase": "dmn lokasi gym",
+            "intent": "dmn lokasi gym"
+        },
+        {
+            "id": "OVR-ALIAS-LOCATION-002",
+            "category": "Lokasi",
+            "phrase": "dimana lokasi gym",
+            "intent": "dmn lokasi gym"
+        },
+        {
+            "id": "OVR-ALIAS-LOCATION-003",
+            "category": "Lokasi",
+            "phrase": "alamat gym",
+            "intent": "alamat gym dimana"
+        },
+        {
+            "id": "OVR-ALIAS-LOCATION-004",
+            "category": "Lokasi",
+            "phrase": "alamat platinum gym",
+            "intent": "alamat gym dimana"
+        },
+        {
+            "id": "OVR-ALIAS-LOCATION-005",
+            "category": "Lokasi",
+            "phrase": "maps gym",
+            "intent": "dmn lokasi gym"
+        },
+        {
+            "id": "OVR-ALIAS-LOCATION-006",
+            "category": "Lokasi",
+            "phrase": "rute gym",
+            "intent": "dmn lokasi gym"
+        },
+        {
+            "id": "OVR-ALIAS-LOCATION-007",
+            "category": "Operasional",
+            "phrase": "jam buka",
+            "intent": "jam buka gym"
+        },
+        {
+            "id": "OVR-ALIAS-LOCATION-008",
+            "category": "Operasional",
+            "phrase": "gym buka jam",
+            "intent": "jam buka gym"
+        },
+        {
+            "id": "OVR-ALIAS-LOCATION-009",
+            "category": "Operasional",
+            "phrase": "jam operasional",
+            "intent": "jam buka gym"
+        },
+        {
+            "id": "OVR-ALIAS-LOCATION-010",
+            "category": "Lokasi",
+            "phrase": "lokasi platinum",
+            "intent": "dmn lokasi gym"
+        },
+        {
+            "id": "OVR-ALIAS-LOCATION-011",
+            "category": "Lokasi",
+            "phrase": "google maps platinum",
+            "intent": "dmn lokasi gym"
+        },
+        {
+            "id": "OVR-ALIAS-LOCATION-012",
+            "category": "Operasional",
+            "phrase": "buka hari ini",
+            "intent": "jam buka gym"
+        },
+        {
+            "id": "OVR-ALIAS-PAYMENT-001",
+            "category": "Pembayaran",
+            "phrase": "bayar qris",
+            "intent": "bayar qris bisa"
+        },
+        {
+            "id": "OVR-ALIAS-PAYMENT-002",
+            "category": "Pembayaran",
+            "phrase": "byr qris",
+            "intent": "bayar qris bisa"
+        },
+        {
+            "id": "OVR-ALIAS-PAYMENT-003",
+            "category": "Pembayaran",
+            "phrase": "bisa qris",
+            "intent": "bayar qris bisa"
+        },
+        {
+            "id": "OVR-ALIAS-PAYMENT-004",
+            "category": "Pembayaran",
+            "phrase": "metode bayar",
+            "intent": "metode pembayaran apa saja"
+        },
+        {
+            "id": "OVR-ALIAS-PAYMENT-005",
+            "category": "Pembayaran",
+            "phrase": "metode pembayaran",
+            "intent": "metode pembayaran apa saja"
+        },
+        {
+            "id": "OVR-ALIAS-PAYMENT-006",
+            "category": "Pembayaran",
+            "phrase": "transaksi belum lunas",
+            "intent": "transaksi saya belum lunas"
+        },
+        {
+            "id": "OVR-ALIAS-PAYMENT-007",
+            "category": "Pembayaran",
+            "phrase": "belum bayar",
+            "intent": "transaksi saya belum lunas"
+        },
+        {
+            "id": "OVR-ALIAS-PAYMENT-008",
+            "category": "Pembayaran",
+            "phrase": "lanjut bayar",
+            "intent": "transaksi saya belum lunas"
+        },
+        {
+            "id": "OVR-ALIAS-PAYMENT-009",
+            "category": "Pembayaran",
+            "phrase": "bayar transfer",
+            "intent": "metode pembayaran apa saja"
+        },
+        {
+            "id": "OVR-ALIAS-PAYMENT-010",
+            "category": "Pembayaran",
+            "phrase": "bayar cash",
+            "intent": "metode pembayaran apa saja"
+        },
+        {
+            "id": "OVR-ALIAS-PAYMENT-011",
+            "category": "Pembayaran",
+            "phrase": "invoice belum dibayar",
+            "intent": "transaksi saya belum lunas"
+        },
+        {
+            "id": "OVR-ALIAS-QR-001",
+            "category": "Member Portal",
+            "phrase": "qr saya",
+            "intent": "qr saya gimana"
+        },
+        {
+            "id": "OVR-ALIAS-QR-002",
+            "category": "Member Portal",
+            "phrase": "qr member",
+            "intent": "qr saya gimana"
+        },
+        {
+            "id": "OVR-ALIAS-QR-003",
+            "category": "Member Portal",
+            "phrase": "qr saya gimana",
+            "intent": "qr saya gimana"
+        },
+        {
+            "id": "OVR-ALIAS-QR-004",
+            "category": "Member Portal",
+            "phrase": "qr tidak muncul",
+            "intent": "qr member tidak muncul"
+        },
+        {
+            "id": "OVR-ALIAS-QR-005",
+            "category": "Member Portal",
+            "phrase": "qr belum aktif",
+            "intent": "qr member tidak muncul"
+        },
+        {
+            "id": "OVR-ALIAS-QR-006",
+            "category": "Member Portal",
+            "phrase": "kode qr",
+            "intent": "qr saya gimana"
+        },
+        {
+            "id": "OVR-ALIAS-QR-007",
+            "category": "Member Portal",
+            "phrase": "qr check in",
+            "intent": "qr saya gimana"
+        },
+        {
+            "id": "OVR-ALIAS-QR-008",
+            "category": "Member Portal",
+            "phrase": "qr untuk sesi",
+            "intent": "qr saya gimana"
+        },
+        {
+            "id": "OVR-ALIAS-ACCOUNT-001",
+            "category": "Akun",
+            "phrase": "lupa password",
+            "intent": "lupa password"
+        },
+        {
+            "id": "OVR-ALIAS-ACCOUNT-002",
+            "category": "Akun",
+            "phrase": "lupa sandi",
+            "intent": "lupa password"
+        },
+        {
+            "id": "OVR-ALIAS-ACCOUNT-003",
+            "category": "Akun",
+            "phrase": "reset password",
+            "intent": "lupa password"
+        },
+        {
+            "id": "OVR-ALIAS-ACCOUNT-004",
+            "category": "Akun",
+            "phrase": "ubah profil",
+            "intent": "ubah profil"
+        },
+        {
+            "id": "OVR-ALIAS-ACCOUNT-005",
+            "category": "Akun",
+            "phrase": "edit profil",
+            "intent": "ubah profil"
+        },
+        {
+            "id": "OVR-ALIAS-PRODUCT-001",
+            "category": "Produk",
+            "phrase": "beli produk online",
+            "intent": "apakah produk bisa dibeli online"
+        },
+        {
+            "id": "OVR-ALIAS-PRODUCT-002",
+            "category": "Produk",
+            "phrase": "produk bisa checkout",
+            "intent": "apakah produk bisa dibeli online"
+        },
+        {
+            "id": "OVR-ALIAS-PRODUCT-003",
+            "category": "Produk",
+            "phrase": "stok produk",
+            "intent": "apakah produk bisa dibeli online"
+        },
+        {
+            "id": "OVR-ALIAS-PROMO-001",
+            "category": "Promo",
+            "phrase": "ada promo",
+            "intent": "ada promo apa"
+        },
+        {
+            "id": "OVR-ALIAS-PROMO-002",
+            "category": "Promo",
+            "phrase": "promo apa",
+            "intent": "ada promo apa"
+        },
+        {
+            "id": "OVR-ALIAS-PROMO-003",
+            "category": "Promo",
+            "phrase": "diskon gym",
+            "intent": "ada promo apa"
+        },
+        {
+            "id": "OVR-ALIAS-SAFETY-001",
+            "category": "Batasan",
+            "phrase": "api key",
+            "intent": "minta api key"
+        },
+        {
+            "id": "OVR-ALIAS-SAFETY-002",
+            "category": "Batasan",
+            "phrase": "minta token",
+            "intent": "minta api key"
+        },
+        {
+            "id": "OVR-ALIAS-SAFETY-003",
+            "category": "Batasan",
+            "phrase": "harga bitcoin",
+            "intent": "harga bitcoin"
+        },
+        {
+            "id": "OVR-ALIAS-SAFETY-004",
+            "category": "Batasan",
+            "phrase": "pertanyaan random",
+            "intent": "pertanyaan saya tidak nyambung"
+        },
+        {
+            "id": "OVR-ALIAS-SAFETY-005",
+            "category": "Batasan",
+            "phrase": "gak nyambung",
+            "intent": "pertanyaan saya tidak nyambung"
+        },
+        {
+            "id": "OVR-ALIAS-SAFETY-006",
+            "category": "Batasan",
+            "phrase": "tidak nyambung",
+            "intent": "pertanyaan saya tidak nyambung"
         }
     ]
 }

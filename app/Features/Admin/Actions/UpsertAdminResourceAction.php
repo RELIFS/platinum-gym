@@ -87,7 +87,6 @@ class UpsertAdminResourceAction
             'address',
             'emergency_contact',
             'is_student',
-            'student_id_number',
             'student_verification_status',
             'student_verification_note',
             'status',

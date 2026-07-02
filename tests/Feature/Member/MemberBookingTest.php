@@ -134,6 +134,53 @@ test('member cannot book class on the same day', function () {
     expect(ClassEnrollment::query()->where('member_id', $member->id)->where('schedule_id', $schedule->id)->exists())->toBeFalse();
 });
 
+test('member booking page keeps included class locked until matching membership exists', function () {
+    [$user, $member] = MemberFixtures::member('PG-MEMBER-BOOKING-INCLUDED-LOCK', memberOverrides: ['gender' => 'female']);
+    $schedule = MemberFixtures::schedule([
+        'name' => 'Senam Included Lock',
+        'access_type' => 'included',
+        'required_package_type' => 'senam',
+    ]);
+
+    $lockedResponse = $this->actingAs($user)->get(route('member.booking'))->assertOk();
+    $lockedContent = $lockedResponse->getContent();
+
+    $lockedResponse
+        ->assertSee('Senam Included Lock')
+        ->assertSee('Booking Kelas')
+        ->assertDontSee('Kelas ini membutuhkan membership aktif yang sesuai.');
+
+    expect(preg_match('/<input\b[^>]*id="member-booking-session-date-'.$schedule->id.'"[^>]*>/s', $lockedContent, $lockedDateInput))->toBe(1);
+    expect(preg_match('/\sdisabled(?:\s|>|=)/', $lockedDateInput[0]))->toBe(1);
+    expect(preg_match('/<button\b(?=[^>]*type="submit")(?=[^>]*member-button-primary)(?=[^>]*disabled)(?=[^>]*aria-disabled="true")[^>]*>\s*Booking Kelas\s*<\/button>/s', $lockedContent))->toBe(1);
+
+    $gymPackage = MemberFixtures::package([
+        'name' => 'Gym Does Not Unlock Senam',
+        'type' => 'gym',
+    ]);
+    MemberFixtures::activeMembership($member, $gymPackage);
+
+    $wrongMembershipResponse = $this->actingAs($user)->get(route('member.booking'))->assertOk();
+    $wrongMembershipContent = $wrongMembershipResponse->getContent();
+
+    expect(preg_match('/<input\b[^>]*id="member-booking-session-date-'.$schedule->id.'"[^>]*>/s', $wrongMembershipContent, $wrongMembershipDateInput))->toBe(1);
+    expect(preg_match('/\sdisabled(?:\s|>|=)/', $wrongMembershipDateInput[0]))->toBe(1);
+    expect(preg_match('/<button\b(?=[^>]*type="submit")(?=[^>]*member-button-primary)(?=[^>]*disabled)(?=[^>]*aria-disabled="true")[^>]*>\s*Booking Kelas\s*<\/button>/s', $wrongMembershipContent))->toBe(1);
+
+    $senamPackage = MemberFixtures::package([
+        'name' => 'Senam Unlocks Included',
+        'type' => 'senam',
+    ]);
+    MemberFixtures::activeMembership($member, $senamPackage);
+
+    $unlockedResponse = $this->actingAs($user)->get(route('member.booking'))->assertOk();
+    $unlockedContent = $unlockedResponse->getContent();
+
+    expect(preg_match('/<input\b[^>]*id="member-booking-session-date-'.$schedule->id.'"[^>]*>/s', $unlockedContent, $unlockedDateInput))->toBe(1);
+    expect(preg_match('/\sdisabled(?:\s|>|=)/', $unlockedDateInput[0]))->toBe(0);
+    expect(preg_match('/<button\b(?=[^>]*type="submit")(?=[^>]*member-button-primary)(?![^>]*(?:disabled|aria-disabled="true"))[^>]*>\s*Booking Kelas\s*<\/button>/s', $unlockedContent))->toBe(1);
+});
+
 test('member booking page renders aerobic schedules as normal instructor cards', function () {
     [$user, $member] = MemberFixtures::member('PG-MEMBER-BOOKING-AEROBIC', memberOverrides: ['gender' => 'female']);
     $package = MemberFixtures::package([

@@ -16,18 +16,25 @@ test('admin profile page renders account summary avatar upload and account actio
         'last_login_at' => now()->subHour(),
     ]);
 
-    $this->actingAs($admin)
+    $response = $this->actingAs($admin)
         ->get(route('admin.profile'))
         ->assertOk()
         ->assertSee('Profil Admin')
         ->assertSee('Admin Profile QA')
         ->assertSee(asset('storage/admin/avatars/current.jpg'), false)
         ->assertSee('Foto profil admin')
+        ->assertSee('Pilih Foto')
+        ->assertSee('Belum ada foto dipilih')
         ->assertSee('name="avatar"', false)
         ->assertSee('accept="image/jpeg,image/png,image/webp"', false)
         ->assertSee(route('admin.profile-photo.update'), false)
         ->assertSee('Kelola Keamanan Akun')
-        ->assertSee('Buka Audit Log');
+        ->assertSee('Audit Log')
+        ->assertDontSee('Akses & Audit')
+        ->assertDontSee('Buka Audit Log')
+        ->assertDontSee('Data aman akun admin saat ini.');
+
+    expect(substr_count($response->getContent(), '<table'))->toBe(0);
 });
 
 test('admin profile photo upload stores valid file and replaces only local admin avatar', function () {

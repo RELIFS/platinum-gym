@@ -21,10 +21,10 @@ class GymmiFallbackResponder
     public function outOfScope(string $context = 'public'): string
     {
         if ($context === 'member') {
-            return 'Saya belum menemukan topik itu di data portal member. Saya bisa bantu status membership, booking kelas, transaksi, QR member, profil, atau info layanan Platinum Gym. Untuk bantuan di luar akun, silakan hubungi admin.';
+            return 'Saya belum menangkap topiknya. Coba tulis seperti status membership, booking kelas, transaksi, QR member, atau profil.';
         }
 
-        return 'Saya belum menemukan data resmi untuk pertanyaan itu. Saya bisa bantu info membership, jadwal kelas, personal trainer, fasilitas, produk katalog, promo, lokasi, jam operasional, dan kontak Platinum Gym. Coba sebutkan topik yang ingin dicek.';
+        return 'Saya belum menangkap topiknya. Coba tulis seperti harga Gym Umum, jadwal Muaythai, lokasi gym, atau metode pembayaran.';
     }
 
     /**
