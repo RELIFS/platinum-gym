@@ -1,368 +1,284 @@
 <?php
 
+use App\Models\ClassAttendance;
+use App\Models\ClassEnrollment;
 use App\Models\GymCheckIn;
+use App\Models\Member;
 use App\Models\MemberPackageSession;
 use App\Models\MemberPackageSessionUsage;
+use App\Models\Package as ServicePackage;
+use App\Models\QrToken;
+use App\Models\Trainer;
 use Database\Seeders\RolePermissionSeeder;
-use Tests\Feature\Admin\Support\AdminPortalFixtures as AdminFixture;
+use Illuminate\Support\Str;
+use Tests\Feature\Admin\Support\AdminPortalFixtures as AdminFixtures;
 
 beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
 });
 
-test('admin qr preview validates member without creating check in record', function () {
-    $admin = AdminFixture::admin();
-    [, $member] = AdminFixture::member('PG-ADM-QR');
-    AdminFixture::membership($member);
-    $qrToken = AdminFixture::qrToken($member);
-
-    $this->actingAs($admin)
-        ->post(route('admin.check-in.preview'), ['token' => $qrToken->token])
-        ->assertRedirect()
-        ->assertSessionHas('status', 'QR valid. Cek data member lalu konfirmasi tindakan.')
-        ->assertSessionHas('check_in_preview');
-
-    expect(GymCheckIn::query()->where('member_id', $member->id)->exists())->toBeFalse();
-});
-
-test('admin qr preview rejects revoked token and member without active membership', function () {
-    $admin = AdminFixture::admin();
-    [, $member] = AdminFixture::member('PG-ADM-QR-REVOKED');
-    AdminFixture::membership($member);
-    $revoked = AdminFixture::qrToken($member, ['is_revoked' => true]);
-
-    $this->actingAs($admin)
-        ->post(route('admin.check-in.preview'), ['token' => $revoked->token])
-        ->assertRedirect()
-        ->assertSessionHas('status_kind', 'error')
-        ->assertSessionHas('status', 'QR member tidak valid.');
-
-    [, $inactiveMember] = AdminFixture::member('PG-ADM-QR-INACTIVE');
-    $inactiveToken = AdminFixture::qrToken($inactiveMember);
-
-    $this->actingAs($admin)
-        ->post(route('admin.check-in.preview'), ['token' => $inactiveToken->token])
-        ->assertRedirect()
-        ->assertSessionHas('status_kind', 'error')
-        ->assertSessionHas('status', 'Membership atau paket sesi aktif tidak ditemukan.');
-});
-
-test('admin can use standalone package session from qr without creating membership check in', function () {
-    $admin = AdminFixture::admin();
-    [, $member] = AdminFixture::member('PG-ADM-QR-STANDALONE-SESSION');
-    $sessionPackage = AdminFixture::package([
-        'name' => 'Muaythai Standalone QR',
-        'slug' => 'muaythai-standalone-qr',
-        'package_kind' => 'session',
-        'type' => 'muaythai',
-        'session_count' => 3,
+function makeAdminCheckInQr(Member $member): QrToken
+{
+    return QrToken::create([
+        'tokenable_type' => Member::class,
+        'tokenable_id' => $member->id,
+        'token' => Str::random(64),
+        'purpose' => 'member',
+        'is_revoked' => false,
     ]);
-    $packageSession = MemberPackageSession::create([
+}
+
+function makeAdminCheckInSession(Member $member, string $type = 'muaythai', ?Trainer $trainer = null, array $overrides = []): MemberPackageSession
+{
+    $package = ServicePackage::create(array_merge([
+        'name' => Str::headline($type).' Session QA',
+        'slug' => $type.'-session-qa-'.Str::lower(Str::random(6)),
+        'package_kind' => 'session',
+        'type' => $type,
+        'price' => 400000,
+        'session_count' => 4,
+        'is_active' => true,
+    ], $overrides['package'] ?? []));
+
+    return MemberPackageSession::create(array_merge([
         'member_id' => $member->id,
-        'package_id' => $sessionPackage->id,
-        'code' => 'MPS-STANDALONE-QR',
-        'total_sessions' => 3,
+        'package_id' => $package->id,
+        'trainer_id' => $trainer?->id,
+        'code' => 'MPS-CHECKIN-'.Str::upper(Str::random(8)),
+        'total_sessions' => 4,
         'used_sessions' => 0,
-        'remaining_sessions' => 3,
-        'price' => 300000,
+        'remaining_sessions' => 4,
+        'price' => 400000,
         'started_at' => now()->subDay()->toDateString(),
         'expired_at' => now()->addMonth()->toDateString(),
         'status' => 'active',
-    ]);
-    $qrToken = AdminFixture::qrToken($member);
+    ], $overrides['session'] ?? []));
+}
 
-    $this->actingAs($admin)
-        ->post(route('admin.check-in.preview'), ['token' => $qrToken->token])
-        ->assertRedirect()
-        ->assertSessionHas('check_in_preview')
-        ->assertSessionHas('check_in_preview.qr.status', 'Aktif untuk sesi');
+function makeAdminCheckInClassBooking(Member $member, string $status = 'confirmed', string $type = 'muaythai', ?Trainer $trainer = null, ?string $date = null): ClassEnrollment
+{
+    $date ??= now()->toDateString();
+
+    [, $schedule] = AdminFixtures::schedule($date, [
+        'name' => Str::headline($type).' Check In QA',
+        'slug' => $type.'-check-in-qa-'.Str::lower(Str::random(6)),
+        'class_type' => $type,
+        'access_type' => 'session_based',
+        'required_package_type' => $type,
+        'capacity' => 12,
+    ], [
+        'trainer_id' => $trainer?->id,
+        'capacity' => 12,
+    ]);
+
+    return AdminFixtures::enrollment($member, $schedule, [
+        'session_date' => $date,
+        'status' => $status,
+    ]);
+}
+
+test('admin cannot use class package session without confirmed booking today', function () {
+    $admin = AdminFixtures::admin();
+    [, $member] = AdminFixtures::member('PG-CHECKIN-NO-BOOKING');
+    $packageSession = makeAdminCheckInSession($member, 'muaythai');
+    $qrToken = makeAdminCheckInQr($member);
+
+    $this->actingAs($admin)->post(route('admin.check-in.preview'), [
+        'token' => $qrToken->token,
+    ])->assertRedirect()->assertSessionHas('check_in_preview');
 
     $preview = session('check_in_preview');
-    expect($preview['membership'])->toBeNull();
 
-    $this->actingAs($admin)
-        ->withSession(['admin_check_in_preview_tokens.'.$preview['preview_key'] => $qrToken->token])
-        ->post(route('admin.check-in.confirm'), [
-            'preview_key' => $preview['preview_key'],
-            'action' => 'use_package_session',
-            'member_package_session_id' => $packageSession->id,
-        ])
-        ->assertRedirect()
-        ->assertSessionHas('status');
+    expect($preview['sessions'])->toBe([])
+        ->and($preview['session_notice'])->toBe('Tidak ada booking kelas confirmed hari ini untuk paket sesi ini.');
 
-    expect(GymCheckIn::query()->where('member_id', $member->id)->count())->toBe(0)
-        ->and(MemberPackageSessionUsage::query()->where('member_package_session_id', $packageSession->id)->count())->toBe(1)
-        ->and($packageSession->refresh()->used_sessions)->toBe(1)
-        ->and($packageSession->remaining_sessions)->toBe(2);
+    $this->actingAs($admin)->get(route('admin.check-in'))
+        ->assertOk()
+        ->assertSee('Tidak ada booking kelas confirmed hari ini untuk paket sesi ini.')
+        ->assertSee('value="use_package_session" class="admin-button-secondary w-full"', false)
+        ->assertSee('disabled', false);
+
+    $this->actingAs($admin)->post(route('admin.check-in.confirm'), [
+        'preview_key' => $preview['preview_key'],
+        'action' => 'use_package_session',
+        'member_package_session_id' => $packageSession->id,
+    ])->assertRedirect()->assertSessionHas('status_kind', 'error');
+
+    expect($packageSession->refresh())
+        ->used_sessions->toBe(0)
+        ->remaining_sessions->toBe(4)
+        ->and(MemberPackageSessionUsage::query()->where('member_id', $member->id)->count())->toBe(0);
 });
 
-test('admin qr preview for standalone session disables membership actions in view', function () {
-    $admin = AdminFixture::admin();
+test('admin can use class package session only for confirmed booking today', function () {
+    $admin = AdminFixtures::admin();
+    [, $member] = AdminFixtures::member('PG-CHECKIN-CONFIRMED');
+    $trainer = AdminFixtures::trainer(['name' => 'Coach Confirmed', 'specialization' => 'Muaythai']);
+    $packageSession = makeAdminCheckInSession($member, 'muaythai', $trainer);
+    $enrollment = makeAdminCheckInClassBooking($member, 'confirmed', 'muaythai', $trainer);
+    $qrToken = makeAdminCheckInQr($member);
 
-    $preview = [
-        'member_id' => 999,
-        'member_code' => 'PG-ADM-QR-SESSION-UI',
-        'name' => 'Member Session Only',
-        'phone' => '081200000000',
-        'membership' => null,
-        'qr' => ['status' => 'Aktif untuk sesi', 'expires_at' => null, 'last_used_at' => null],
-        'today_check_in' => null,
-        'sessions' => [
-            ['id' => 99, 'name' => 'Poundfit Session', 'remaining' => 2, 'total' => 4, 'trainer' => null, 'expired_at' => null],
-        ],
-        'preview_key' => 'preview-session-only-ui',
+    $this->actingAs($admin)->post(route('admin.check-in.preview'), [
+        'token' => $qrToken->token,
+    ])->assertRedirect()->assertSessionHas('check_in_preview');
+
+    $preview = session('check_in_preview');
+
+    expect($preview['sessions'])->toHaveCount(1)
+        ->and($preview['sessions'][0]['id'])->toBe($packageSession->id)
+        ->and($preview['sessions'][0]['class_enrollment_id'])->toBe($enrollment->id)
+        ->and($preview['sessions'][0]['class_name'])->toContain('Muaythai')
+        ->and($preview['sessions'][0]['trainer'])->toBe('Coach Confirmed');
+
+    $this->actingAs($admin)->post(route('admin.check-in.confirm'), [
+        'preview_key' => $preview['preview_key'],
+        'action' => 'use_package_session',
+        'member_package_session_id' => $packageSession->id,
+        'class_enrollment_id' => $enrollment->id,
+    ])->assertRedirect()->assertSessionHas('status');
+
+    $usage = MemberPackageSessionUsage::query()->where('member_package_session_id', $packageSession->id)->firstOrFail();
+
+    expect($packageSession->refresh())
+        ->used_sessions->toBe(1)
+        ->remaining_sessions->toBe(3)
+        ->and($usage->class_enrollment_id)->toBe($enrollment->id)
+        ->and($usage->gym_check_in_id)->toBeNull()
+        ->and($enrollment->refresh()->status)->toBe('attended')
+        ->and(ClassAttendance::query()->where('enrollment_id', $enrollment->id)->exists())->toBeTrue()
+        ->and(GymCheckIn::query()->where('member_id', $member->id)->exists())->toBeFalse();
+});
+
+test('admin cannot use class package session for unconfirmed past or mismatched booking', function (string $status, int $dayOffset, ?string $sessionType, ?string $packageType) {
+    $admin = AdminFixtures::admin();
+    [, $member] = AdminFixtures::member('PG-CHECKIN-GUARD-'.Str::upper(Str::random(4)));
+    $trainer = AdminFixtures::trainer(['specialization' => 'Muaythai']);
+    $packageSession = makeAdminCheckInSession($member, $packageType ?? 'muaythai', $trainer);
+    $enrollment = makeAdminCheckInClassBooking(
+        $member,
+        $status,
+        $sessionType ?? 'muaythai',
+        $trainer,
+        now()->addDays($dayOffset)->toDateString(),
+    );
+    $qrToken = makeAdminCheckInQr($member);
+
+    $this->actingAs($admin)->post(route('admin.check-in.preview'), [
+        'token' => $qrToken->token,
+    ])->assertRedirect()->assertSessionHas('check_in_preview');
+
+    $preview = session('check_in_preview');
+
+    expect($preview['sessions'])->toBe([]);
+
+    $this->actingAs($admin)->post(route('admin.check-in.confirm'), [
+        'preview_key' => $preview['preview_key'],
+        'action' => 'use_package_session',
+        'member_package_session_id' => $packageSession->id,
+        'class_enrollment_id' => $enrollment->id,
+    ])->assertRedirect()->assertSessionHas('status_kind', 'error');
+
+    expect($packageSession->refresh())
+        ->used_sessions->toBe(0)
+        ->remaining_sessions->toBe(4)
+        ->and($enrollment->refresh()->status)->toBe($status);
+})->with([
+    'booked today' => ['booked', 0, 'muaythai', 'muaythai'],
+    'confirmed tomorrow' => ['confirmed', 1, 'muaythai', 'muaythai'],
+    'confirmed today different type' => ['confirmed', 0, 'poundfit', 'muaythai'],
+]);
+
+test('admin cannot use trainer-bound muaythai session for another coach schedule', function () {
+    $admin = AdminFixtures::admin();
+    [, $member] = AdminFixtures::member('PG-CHECKIN-TRAINER-MISMATCH');
+    $packageTrainer = AdminFixtures::trainer(['name' => 'Coach Package', 'specialization' => 'Muaythai']);
+    $scheduleTrainer = AdminFixtures::trainer(['name' => 'Coach Schedule', 'specialization' => 'Muaythai']);
+    $packageSession = makeAdminCheckInSession($member, 'muaythai', $packageTrainer);
+    $enrollment = makeAdminCheckInClassBooking($member, 'confirmed', 'muaythai', $scheduleTrainer);
+    $qrToken = makeAdminCheckInQr($member);
+
+    $this->actingAs($admin)->post(route('admin.check-in.preview'), [
+        'token' => $qrToken->token,
+    ])->assertRedirect()->assertSessionHas('check_in_preview');
+
+    $preview = session('check_in_preview');
+
+    expect($preview['sessions'])->toBe([]);
+
+    $this->actingAs($admin)->post(route('admin.check-in.confirm'), [
+        'preview_key' => $preview['preview_key'],
+        'action' => 'use_package_session',
+        'member_package_session_id' => $packageSession->id,
+        'class_enrollment_id' => $enrollment->id,
+    ])->assertRedirect()->assertSessionHas('status_kind', 'error');
+
+    expect($packageSession->refresh())->remaining_sessions->toBe(4);
+});
+
+test('duplicate class package session usage for same booking does not decrement again', function () {
+    $admin = AdminFixtures::admin();
+    [, $member] = AdminFixtures::member('PG-CHECKIN-DUPLICATE');
+    $trainer = AdminFixtures::trainer(['specialization' => 'Muaythai']);
+    $packageSession = makeAdminCheckInSession($member, 'muaythai', $trainer);
+    $enrollment = makeAdminCheckInClassBooking($member, 'confirmed', 'muaythai', $trainer);
+    $qrToken = makeAdminCheckInQr($member);
+
+    $this->actingAs($admin)->post(route('admin.check-in.preview'), ['token' => $qrToken->token])
+        ->assertRedirect()
+        ->assertSessionHas('check_in_preview');
+
+    $preview = session('check_in_preview');
+    $payload = [
+        'preview_key' => $preview['preview_key'],
+        'action' => 'use_package_session',
+        'member_package_session_id' => $packageSession->id,
+        'class_enrollment_id' => $enrollment->id,
     ];
 
-    $this->actingAs($admin)
-        ->withSession(['check_in_preview' => $preview])
-        ->get(route('admin.check-in'))
-        ->assertOk()
-        ->assertSee('Tidak ada membership aktif')
-        ->assertSee('QR ini aktif dari paket sesi')
-        ->assertSee('disabled>Check-in Member', false)
-        ->assertSee('Gunakan Sesi')
-        ->assertSee('disabled>Check-in + Gunakan Sesi', false);
-});
-
-test('admin cannot use personal trainer session from qr without active membership', function () {
-    $admin = AdminFixture::admin();
-    [, $member] = AdminFixture::member('PG-ADM-QR-PT-NO-MEMBERSHIP');
-    $sessionPackage = AdminFixture::package([
-        'name' => 'PT QR Membership Guard',
-        'slug' => 'pt-qr-membership-guard',
-        'package_kind' => 'session',
-        'type' => 'pt',
-        'session_count' => 3,
-    ]);
-    $packageSession = MemberPackageSession::create([
-        'member_id' => $member->id,
-        'package_id' => $sessionPackage->id,
-        'code' => 'MPS-PT-QR-GUARD',
-        'total_sessions' => 3,
-        'used_sessions' => 0,
-        'remaining_sessions' => 3,
-        'price' => 300000,
-        'started_at' => now()->subDay()->toDateString(),
-        'expired_at' => now()->addMonth()->toDateString(),
-        'status' => 'active',
-    ]);
-    $qrToken = AdminFixture::qrToken($member);
-
-    $this->actingAs($admin)
-        ->withSession(['admin_check_in_preview_tokens.preview-pt-no-membership' => $qrToken->token])
-        ->post(route('admin.check-in.confirm'), [
-            'preview_key' => 'preview-pt-no-membership',
-            'action' => 'use_package_session',
-            'member_package_session_id' => $packageSession->id,
-        ])
+    $this->actingAs($admin)->post(route('admin.check-in.confirm'), $payload)->assertRedirect();
+    $this->actingAs($admin)->post(route('admin.check-in.preview'), ['token' => $qrToken->token])
         ->assertRedirect()
-        ->assertSessionHas('status_kind', 'error')
-        ->assertSessionHas('status', 'Membership aktif diperlukan untuk menggunakan paket sesi ini.');
+        ->assertSessionHas('check_in_preview');
 
-    expect(MemberPackageSessionUsage::query()->where('member_package_session_id', $packageSession->id)->count())->toBe(0);
-});
+    $secondPreview = session('check_in_preview');
 
-test('admin qr confirm requires valid preview session key', function () {
-    $admin = AdminFixture::admin();
-
-    $this->actingAs($admin)
-        ->post(route('admin.check-in.confirm'), [
-            'preview_key' => 'missing-preview',
-            'action' => 'check_in_membership',
-        ])
-        ->assertRedirect()
-        ->assertSessionHas('status_kind', 'error')
-        ->assertSessionHas('status', 'Preview check-in sudah tidak berlaku. Scan ulang QR member.');
-});
-
-test('admin qr confirm records membership check in once', function () {
-    $admin = AdminFixture::admin();
-    [, $member] = AdminFixture::member('PG-ADM-QR-CONFIRM');
-    AdminFixture::membership($member);
-    $qrToken = AdminFixture::qrToken($member);
-
-    $this->actingAs($admin)
-        ->withSession(['admin_check_in_preview_tokens.preview-ok' => $qrToken->token])
-        ->post(route('admin.check-in.confirm'), [
-            'preview_key' => 'preview-ok',
-            'action' => 'check_in_membership',
-        ])
-        ->assertRedirect()
-        ->assertSessionHas('status');
-
-    expect(GymCheckIn::query()->where('member_id', $member->id)->count())->toBe(1);
-
-    $this->actingAs($admin)
-        ->withSession(['admin_check_in_preview_tokens.preview-again' => $qrToken->token])
-        ->post(route('admin.check-in.confirm'), [
-            'preview_key' => 'preview-again',
-            'action' => 'check_in_membership',
-        ])
-        ->assertRedirect()
-        ->assertSessionHas('status_kind', 'error')
-        ->assertSessionHas('status', 'Member sudah check-in hari ini.');
-});
-
-test('admin check in starts paid membership duration on first successful check in only', function () {
-    $admin = AdminFixture::admin();
-    [, $member] = AdminFixture::member('PG-ADM-QR-DEFERRED');
-    $membership = AdminFixture::membership($member, overrides: [
-        'start_date' => null,
-        'end_date' => null,
-        'duration_days_snapshot' => 120,
-        'activated_at' => now(),
-        'status' => 'active',
-    ]);
-    $qrToken = AdminFixture::qrToken($member);
-
-    $this->actingAs($admin)
-        ->post(route('admin.check-in.preview'), ['token' => $qrToken->token])
-        ->assertRedirect()
-        ->assertSessionHas('check_in_preview.membership.end_date', 'Mulai saat check-in pertama');
-
-    $this->actingAs($admin)
-        ->withSession(['admin_check_in_preview_tokens.preview-deferred' => $qrToken->token])
-        ->post(route('admin.check-in.confirm'), [
-            'preview_key' => 'preview-deferred',
-            'action' => 'check_in_membership',
-        ])
-        ->assertRedirect()
-        ->assertSessionHas('status');
-
-    $startedAt = now()->toDateString();
-    $endsAt = now()->addDays(119)->toDateString();
-
-    expect($membership->refresh())
-        ->start_date->toDateString()->toBe($startedAt)
-        ->end_date->toDateString()->toBe($endsAt);
-
-    $this->travel(1)->day();
-
-    $this->actingAs($admin)
-        ->withSession(['admin_check_in_preview_tokens.preview-next-day' => $qrToken->token])
-        ->post(route('admin.check-in.confirm'), [
-            'preview_key' => 'preview-next-day',
-            'action' => 'check_in_membership',
-        ])
-        ->assertRedirect()
-        ->assertSessionHas('status');
-
-    expect($membership->refresh())
-        ->start_date->toDateString()->toBe($startedAt)
-        ->end_date->toDateString()->toBe($endsAt)
-        ->and(GymCheckIn::query()->where('member_id', $member->id)->count())->toBe(2);
-
-    $this->travelBack();
-});
-
-test('admin check in plus session records check in only when selected package session was already used today', function () {
-    $admin = AdminFixture::admin();
-    [, $member] = AdminFixture::member('PG-ADM-QR-DUPLICATE-SESSION');
-    AdminFixture::membership($member);
-    $sessionPackage = AdminFixture::package([
-        'name' => 'Duplicate Session Guard',
-        'slug' => 'duplicate-session-guard',
-        'package_kind' => 'session',
-        'type' => 'muaythai',
-        'session_count' => 4,
-    ]);
-    $packageSession = MemberPackageSession::create([
-        'member_id' => $member->id,
-        'package_id' => $sessionPackage->id,
-        'code' => 'MPS-DUPLICATE-GUARD',
-        'total_sessions' => 4,
-        'used_sessions' => 1,
-        'remaining_sessions' => 3,
-        'price' => 400000,
-        'started_at' => now()->subDay()->toDateString(),
-        'expired_at' => now()->addMonth()->toDateString(),
-        'status' => 'active',
-    ]);
-    $usage = MemberPackageSessionUsage::create([
-        'member_package_session_id' => $packageSession->id,
-        'member_id' => $member->id,
-        'gym_check_in_id' => null,
-        'usage_date' => now()->toDateString(),
-        'used_at' => now()->subMinute(),
-        'method' => 'admin_qr',
-        'recorded_by' => $admin->id,
-        'request_key' => 'duplicate-session-used-first',
-    ]);
-    $qrToken = AdminFixture::qrToken($member);
-
-    $this->actingAs($admin)
-        ->withSession(['admin_check_in_preview_tokens.preview-duplicate-session' => $qrToken->token])
-        ->post(route('admin.check-in.confirm'), [
-            'preview_key' => 'preview-duplicate-session',
-            'action' => 'check_in_and_use_session',
-            'member_package_session_id' => $packageSession->id,
-        ])
-        ->assertRedirect()
-        ->assertSessionHas('status');
+    $this->actingAs($admin)->post(route('admin.check-in.confirm'), array_merge($payload, [
+        'preview_key' => $secondPreview['preview_key'],
+    ]))->assertRedirect()->assertSessionHas('status_kind', 'error');
 
     expect($packageSession->refresh())
         ->used_sessions->toBe(1)
         ->remaining_sessions->toBe(3)
-        ->and(MemberPackageSessionUsage::query()->where('member_package_session_id', $packageSession->id)->count())->toBe(1)
-        ->and($usage->refresh()->gym_check_in_id)->toBeNull()
-        ->and(GymCheckIn::query()->where('member_id', $member->id)->count())->toBe(1);
-
-    $this->actingAs($admin)
-        ->get(route('admin.check-in'))
-        ->assertOk()
-        ->assertSee('Check-in')
-        ->assertSee('Sesi')
-        ->assertDontSee('Check-in + Sesi');
+        ->and(MemberPackageSessionUsage::query()->where('class_enrollment_id', $enrollment->id)->count())->toBe(1);
 });
 
-test('admin use package session is idempotent when selected session was already used today', function () {
-    $admin = AdminFixture::admin();
-    [, $member] = AdminFixture::member('PG-ADM-QR-IDEMPOTENT-SESSION');
-    AdminFixture::membership($member);
-    $sessionPackage = AdminFixture::package([
-        'name' => 'Idempotent Session Guard',
-        'slug' => 'idempotent-session-guard',
-        'package_kind' => 'session',
-        'type' => 'pt',
-        'session_count' => 4,
-    ]);
-    $packageSession = MemberPackageSession::create([
-        'member_id' => $member->id,
-        'package_id' => $sessionPackage->id,
-        'code' => 'MPS-IDEMPOTENT-GUARD',
-        'total_sessions' => 4,
-        'used_sessions' => 1,
-        'remaining_sessions' => 3,
-        'price' => 400000,
-        'started_at' => now()->subDay()->toDateString(),
-        'expired_at' => now()->addMonth()->toDateString(),
-        'status' => 'active',
-    ]);
-    MemberPackageSessionUsage::create([
-        'member_package_session_id' => $packageSession->id,
-        'member_id' => $member->id,
-        'gym_check_in_id' => null,
-        'usage_date' => now()->toDateString(),
-        'used_at' => now()->subMinute(),
-        'method' => 'admin_qr',
-        'recorded_by' => $admin->id,
-        'request_key' => 'idempotent-session-used-first',
-    ]);
-    $qrToken = AdminFixture::qrToken($member);
+test('personal trainer session remains usable with active membership without class booking', function () {
+    $admin = AdminFixtures::admin();
+    [, $member] = AdminFixtures::member('PG-CHECKIN-PT');
+    AdminFixtures::membership($member);
+    $packageSession = makeAdminCheckInSession($member, 'personal_trainer');
+    $qrToken = makeAdminCheckInQr($member);
 
-    $this->actingAs($admin)
-        ->withSession(['admin_check_in_preview_tokens.preview-idempotent-session' => $qrToken->token])
-        ->post(route('admin.check-in.confirm'), [
-            'preview_key' => 'preview-idempotent-session',
-            'action' => 'use_package_session',
-            'member_package_session_id' => $packageSession->id,
-        ])
-        ->assertRedirect()
-        ->assertSessionHas('status');
+    $this->actingAs($admin)->post(route('admin.check-in.preview'), [
+        'token' => $qrToken->token,
+    ])->assertRedirect()->assertSessionHas('check_in_preview');
+
+    $preview = session('check_in_preview');
+
+    expect($preview['sessions'])->toHaveCount(1)
+        ->and($preview['sessions'][0]['id'])->toBe($packageSession->id)
+        ->and($preview['sessions'][0]['class_enrollment_id'])->toBeNull();
+
+    $this->actingAs($admin)->post(route('admin.check-in.confirm'), [
+        'preview_key' => $preview['preview_key'],
+        'action' => 'use_package_session',
+        'member_package_session_id' => $packageSession->id,
+    ])->assertRedirect()->assertSessionHas('status');
+
+    $usage = MemberPackageSessionUsage::query()->where('member_package_session_id', $packageSession->id)->firstOrFail();
 
     expect($packageSession->refresh())
         ->used_sessions->toBe(1)
         ->remaining_sessions->toBe(3)
-        ->and(MemberPackageSessionUsage::query()->where('member_package_session_id', $packageSession->id)->count())->toBe(1)
-        ->and(GymCheckIn::query()->where('member_id', $member->id)->count())->toBe(0);
+        ->and($usage->class_enrollment_id)->toBeNull();
 });

@@ -26,6 +26,7 @@ class ConfirmQrCheckInRequest extends FormRequest
                 ConfirmMemberQrCheckInAction::CHECK_IN_AND_USE_SESSION,
             ])],
             'member_package_session_id' => ['nullable', 'integer', 'exists:member_package_sessions,id'],
+            'class_enrollment_id' => ['nullable', 'integer', 'exists:class_enrollments,id'],
         ];
     }
 
@@ -53,6 +54,7 @@ class ConfirmQrCheckInRequest extends FormRequest
             'preview_key' => 'pratinjau check-in',
             'action' => 'aksi check-in',
             'member_package_session_id' => 'paket sesi',
+            'class_enrollment_id' => 'booking kelas',
         ];
     }
 }

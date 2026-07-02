@@ -5,18 +5,20 @@
 @endphp
 
 <x-admin-layout :portal="$portal" :navigation="$navigation" :title="$page['title']">
-    <x-admin.page-header :title="$page['title']" :description="$page['description']">
-        @if (! empty($page['secondaryCreateResource']) || ! empty($page['createResource']))
-            <x-slot:actions>
-                @if (! empty($page['secondaryCreateResource']))
-                    <a href="{{ route('admin.resources.create', $page['secondaryCreateResource']) }}" class="admin-button-secondary">{{ $page['secondaryCreateLabel'] ?? 'Tambah Data Pendukung' }}</a>
-                @endif
-                @if (! empty($page['createResource']))
-                    <a href="{{ route('admin.resources.create', $page['createResource']) }}" class="admin-button-primary">Tambah {{ $page['title'] }}</a>
-                @endif
-            </x-slot:actions>
-        @endif
-    </x-admin.page-header>
+    @if ($page['key'] !== 'profile')
+        <x-admin.page-header :title="$page['title']" :description="$page['description']">
+            @if (! empty($page['secondaryCreateResource']) || ! empty($page['createResource']))
+                <x-slot:actions>
+                    @if (! empty($page['secondaryCreateResource']))
+                        <a href="{{ route('admin.resources.create', $page['secondaryCreateResource']) }}" class="admin-button-secondary">{{ $page['secondaryCreateLabel'] ?? 'Tambah Data Pendukung' }}</a>
+                    @endif
+                    @if (! empty($page['createResource']))
+                        <a href="{{ route('admin.resources.create', $page['createResource']) }}" class="admin-button-primary">Tambah {{ $page['title'] }}</a>
+                    @endif
+                </x-slot:actions>
+            @endif
+        </x-admin.page-header>
+    @endif
 
     @if ($page['key'] === 'check-in')
         <section class="admin-card mt-6">
@@ -125,23 +127,28 @@
                         <h3 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Pilih aksi admin</h3>
                         <p class="mt-2 admin-copy">{{ $hasPreviewMembership ? 'Pemindaian QR hanya menampilkan pratinjau. Check-in dan penggunaan sesi terjadi setelah tombol di bawah dikonfirmasi.' : 'QR ini aktif dari paket sesi. Gunakan tombol Gunakan Sesi; check-in membership tersedia setelah member memiliki membership aktif.' }}</p>
 
-                        <form method="POST" action="{{ route('admin.check-in.confirm') }}" class="mt-5 grid gap-4" x-data="{ submitting: false, selectedAction: '', selectedSessionId: '', sessionError: '', requiresSession(action) { return ['use_package_session', 'check_in_and_use_session'].includes(action) } }" x-on:submit="if (requiresSession(selectedAction) && ! selectedSessionId) { $event.preventDefault(); sessionError = 'Pilih paket sesi terlebih dahulu sebelum menggunakan sesi.'; return; } if (submitting) { $event.preventDefault() } else { submitting = true }">
+                        <form method="POST" action="{{ route('admin.check-in.confirm') }}" class="mt-5 grid gap-4" x-data="{ submitting: false, selectedAction: '', selectedSessionId: '', selectedEnrollmentId: '', sessionError: '', requiresSession(action) { return ['use_package_session', 'check_in_and_use_session'].includes(action) }, syncSelectedSession(event) { const option = event.target.selectedOptions[0]; this.selectedEnrollmentId = option?.dataset.classEnrollmentId || ''; this.sessionError = ''; } }" x-on:submit="if (requiresSession(selectedAction) && ! selectedSessionId) { $event.preventDefault(); sessionError = 'Pilih paket sesi terlebih dahulu sebelum menggunakan sesi.'; return; } if (submitting) { $event.preventDefault() } else { submitting = true }">
                             @csrf
                             <input type="hidden" name="preview_key" value="{{ $checkInPreview['preview_key'] ?? '' }}">
                             <input type="hidden" name="action" x-bind:value="selectedAction">
+                            <input type="hidden" name="class_enrollment_id" x-bind:value="selectedEnrollmentId">
 
                             @if ($previewSessions->isNotEmpty())
                                 <label class="admin-field">
                                     <span class="admin-field-label">Paket sesi aktif</span>
-                                    <select name="member_package_session_id" class="admin-form-input" x-model="selectedSessionId" x-on:change="sessionError = ''">
+                                    <select name="member_package_session_id" class="admin-form-input" x-model="selectedSessionId" x-on:change="syncSelectedSession($event)">
                                         <option value="">Pilih paket sesi yang ingin digunakan</option>
                                         @foreach ($previewSessions as $session)
-                                            <option value="{{ $session['id'] }}">{{ $session['name'] }} - {{ $session['remaining'] }}/{{ $session['total'] }} sesi{{ filled($session['trainer'] ?? null) ? ' - '.$session['trainer'] : '' }}</option>
+                                            <option value="{{ $session['id'] }}" data-class-enrollment-id="{{ $session['class_enrollment_id'] ?? '' }}">{{ $session['usage_label'] ?? ($session['name'].' - '.$session['remaining'].'/'.$session['total'].' sesi') }}</option>
                                         @endforeach
                                     </select>
                                 </label>
                             @else
-                                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-bold text-zinc-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400">Tidak ada paket sesi aktif yang bisa digunakan.</div>
+                                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-bold text-zinc-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400">{{ $checkInPreview['session_notice'] ?? 'Tidak ada paket sesi aktif yang bisa digunakan.' }}</div>
+                            @endif
+
+                            @if (filled($checkInPreview['session_notice'] ?? null) && $previewSessions->isNotEmpty())
+                                <div class="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-800 dark:text-amber-200">{{ $checkInPreview['session_notice'] }}</div>
                             @endif
 
                             <div x-cloak x-show="sessionError" class="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm font-bold text-red-700 dark:text-red-200" role="alert" aria-live="assertive" x-text="sessionError"></div>
@@ -160,16 +167,18 @@
 
     @include('admin.pages.operations')
 
-    <div class="mt-6">
-        @if ($module)
+    @if (! in_array($page['key'], ['settings', 'profile'], true))
+        <div class="mt-6">
+            @if ($module)
             @include($module['view'] ?? 'admin.partials.data-table', ['module' => $module])
-        @else
+            @else
             <section class="admin-card">
                 <div class="admin-soft-panel text-center">
                     @include('admin.partials.icon', ['name' => 'empty', 'class' => 'mx-auto h-10 w-10 text-zinc-400'])
                     <p class="mt-3 font-black text-zinc-950 dark:text-white">Data belum tersedia.</p>
                 </div>
             </section>
-        @endif
-    </div>
+            @endif
+        </div>
+    @endif
 </x-admin-layout>
