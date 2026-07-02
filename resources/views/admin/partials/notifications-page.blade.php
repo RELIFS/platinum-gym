@@ -5,9 +5,9 @@
 @php
     $rows = collect($module['rows'] ?? [])->values();
     $paginator = $module['paginator'] ?? null;
-    $title = $module['title'] ?? 'Notifikasi Aktivitas Member';
-    $description = $module['description'] ?? 'Pantau aktivitas member terbaru.';
-    $empty = $module['empty'] ?? 'Belum ada aktivitas member pada periode ini.';
+    $title = $module['title'] ?? 'Inbox Persetujuan Admin';
+    $description = $module['description'] ?? 'Pantau persetujuan yang membutuhkan tindakan admin.';
+    $empty = $module['empty'] ?? 'Tidak ada persetujuan yang perlu ditinjau.';
     $filters = collect($module['filters'] ?? []);
     $statusOptions = collect($module['statusOptions'] ?? []);
     $tableId = 'admin-table-'.str($title)->slug()->toString();
@@ -24,22 +24,22 @@
 <section class="admin-card" aria-labelledby="{{ $tableId }}-title">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div class="min-w-0">
-            <p class="admin-eyebrow">Aktivitas Member</p>
+            <p class="admin-eyebrow">Persetujuan Admin</p>
             <h2 id="{{ $tableId }}-title" class="mt-2 text-xl font-black text-zinc-950 dark:text-white">{{ $title }}</h2>
             <p class="mt-2 admin-copy">{{ $description }}</p>
         </div>
-        <span class="admin-status-pill admin-status-neutral shrink-0">{{ $totalRows }} aktivitas</span>
+        <span class="admin-status-pill admin-status-neutral shrink-0">{{ $totalRows }} persetujuan</span>
     </div>
 
     <form method="GET" action="{{ url()->current() }}" class="admin-panel mt-5 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_auto] lg:items-end">
         <label class="admin-field">
-            <span class="admin-field-label">Cari aktivitas</span>
-            <input type="search" name="q" value="{{ $filters->get('q') }}" class="admin-form-input" placeholder="{{ $module['searchPlaceholder'] ?? 'Cari member atau aktivitas...' }}">
+            <span class="admin-field-label">Cari persetujuan</span>
+            <input type="search" name="q" value="{{ $filters->get('q') }}" class="admin-form-input" placeholder="{{ $module['searchPlaceholder'] ?? 'Cari member atau persetujuan...' }}">
         </label>
         <label class="admin-field">
-            <span class="admin-field-label">Jenis aktivitas</span>
+            <span class="admin-field-label">Jenis persetujuan</span>
             <select name="status" class="admin-form-input">
-                <option value="">Semua aktivitas</option>
+                <option value="">Semua persetujuan</option>
                 @foreach ($statusOptions as $statusValue => $statusLabel)
                     <option value="{{ $statusValue }}" @selected($filters->get('status') === $statusValue)>{{ $statusLabel }}</option>
                 @endforeach
@@ -65,7 +65,7 @@
                 <caption class="sr-only">{{ $title }}</caption>
                 <thead class="admin-table-head">
                     <tr>
-                        <th scope="col" class="px-4 py-3">Aktivitas</th>
+                        <th scope="col" class="px-4 py-3">Persetujuan</th>
                         <th scope="col" class="px-4 py-3">Member</th>
                         <th scope="col" class="px-4 py-3">Status</th>
                         <th scope="col" class="px-4 py-3">Waktu</th>
@@ -89,7 +89,7 @@
                             <td class="admin-table-cell max-w-[24rem]">{{ $row['note'] ?? '-' }}</td>
                             <td class="admin-table-cell text-right">
                                 @if (filled($row['url'] ?? null))
-                                    <a href="{{ $row['url'] }}" class="admin-button-secondary min-h-10 px-3">Lihat</a>
+                                    <a href="{{ $row['url'] }}" class="admin-button-secondary min-h-10 px-3">Review Bukti</a>
                                 @else
                                     <span class="text-xs font-bold text-zinc-400">-</span>
                                 @endif
@@ -117,12 +117,12 @@
                             <dd class="admin-table-value">{{ $row['time'] ?? '-' }}</dd>
                         </div>
                         <div class="min-w-0">
-                            <dt class="admin-table-label">Catatan</dt>
+                                <dt class="admin-table-label">Catatan</dt>
                             <dd class="admin-table-value">{{ $row['note'] ?? '-' }}</dd>
                         </div>
                     </dl>
                     @if (filled($row['url'] ?? null))
-                        <a href="{{ $row['url'] }}" class="admin-button-secondary mt-4 w-full justify-center">Lihat Detail</a>
+                        <a href="{{ $row['url'] }}" class="admin-button-secondary mt-4 w-full justify-center">Review Bukti</a>
                     @endif
                 </article>
             @endforeach
