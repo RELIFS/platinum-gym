@@ -1,6 +1,8 @@
 @php
     $admin = $portal['admin'] ?? auth()->user();
     $pendingPaymentCount = data_get(collect($portal['stats'] ?? [])->firstWhere('label', 'Pembayaran Pending'), 'value', '0');
+    $pendingApprovalCount = (int) ($portal['pendingApprovalCount'] ?? 0);
+    $pendingApprovalBadgeText = $pendingApprovalCount > 99 ? '99+' : (string) $pendingApprovalCount;
     $adminName = (string) ($admin?->name ?? 'Admin');
     $adminEmail = (string) ($admin?->email ?? '');
     $adminInitial = mb_strtoupper(mb_substr($adminName, 0, 1));
@@ -12,6 +14,9 @@
     $pendingBadgeAria = ((int) $pendingPaymentCount > 0)
         ? $pendingPaymentCount.' pembayaran menunggu verifikasi'
         : 'Tidak ada pembayaran menunggu verifikasi';
+    $pendingApprovalAria = $pendingApprovalCount > 0
+        ? $pendingApprovalCount.' persetujuan admin menunggu review'
+        : 'Tidak ada persetujuan admin menunggu review';
 @endphp
 
 <!DOCTYPE html>
@@ -56,6 +61,7 @@
 
                         <div class="border-t border-zinc-200 pt-5 dark:border-white/10">
                             @include('admin.partials.sidebar-navigation-item', [
+                                'item' => [],
                                 'href' => route('public.home'),
                                 'label' => 'Website Utama',
                                 'icon' => 'globe',
@@ -90,6 +96,7 @@
 
                         <div class="border-t border-zinc-200 pt-5 dark:border-white/10">
                             @include('admin.partials.sidebar-navigation-item', [
+                                'item' => [],
                                 'href' => route('public.home'),
                                 'label' => 'Website Utama',
                                 'icon' => 'globe',
@@ -132,6 +139,13 @@
                         </div>
 
                         <div class="flex items-center gap-2 sm:gap-3">
+                            <a href="{{ route('admin.notifications') }}" class="relative inline-flex h-11 min-w-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-2 text-zinc-700 shadow-sm transition hover:border-gold-500/60 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300 dark:hover:text-gold-400" aria-label="{{ $pendingApprovalAria }}">
+                                @include('admin.partials.icon', ['name' => 'bell', 'class' => 'h-4 w-4'])
+                                @if ($pendingApprovalCount > 0)
+                                    <span class="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-gold-500 px-1 text-[0.65rem] font-black leading-none text-zinc-950 ring-2 ring-white dark:ring-zinc-950" aria-hidden="true">{{ $pendingApprovalBadgeText }}</span>
+                                    <span class="sr-only">{{ $pendingApprovalCount }} persetujuan menunggu review</span>
+                                @endif
+                            </a>
                             <a href="{{ route('admin.payments') }}" class="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-black text-amber-700 transition hover:border-amber-500/50 hover:bg-amber-500/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 dark:text-amber-300" aria-label="{{ $pendingBadgeAria }}">
                                 @include('admin.partials.icon', ['name' => 'receipt', 'class' => 'h-4 w-4'])
                                 <span>{{ $pendingPaymentCount }}</span>

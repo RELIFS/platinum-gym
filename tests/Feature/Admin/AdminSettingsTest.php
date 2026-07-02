@@ -32,10 +32,12 @@ function adminSettingsPayload(array $overrides = []): array
 
 test('admin settings update only persists editable public settings', function () {
     $admin = AdminFixture::admin();
+    AdminFixture::setting('maps_url', 'https://maps.example.test/original', 'text', 'contact');
 
     $this->actingAs($admin)
         ->patch(route('admin.settings.update'), adminSettingsPayload([
             'midtrans_server_key' => 'secret-server-key',
+            'maps_url' => 'https://maps.example.test/changed-from-form',
         ]))
         ->assertRedirect()
         ->assertSessionHas('status', 'Pengaturan website berhasil diperbarui.');
@@ -43,6 +45,8 @@ test('admin settings update only persists editable public settings', function ()
     expect(Setting::query()->where('key', 'site_name')->value('value'))->toBe('Platinum Gym QA')
         ->and(json_decode((string) Setting::query()->where('key', 'operational_hours')->value('value'), true))
         ->toMatchArray(['weekday' => '06:00-22:00', 'weekend' => '07:00-20:00'])
+        ->and(Setting::query()->where('key', 'maps_url')->value('value'))->toBe('https://maps.example.test/original')
+        ->and(Setting::query()->where('key', 'maps_search_url')->exists())->toBeFalse()
         ->and(Setting::query()->where('key', 'midtrans_server_key')->exists())->toBeFalse();
 });
 
@@ -55,6 +59,16 @@ test('admin settings form masks sensitive operational context and validates publ
         ->assertOk()
         ->assertSee('Pengaturan')
         ->assertSee('Nama Website')
+        ->assertSee('Media Sosial')
+        ->assertDontSee('Media Sosial &amp; Peta', false)
+        ->assertDontSee('URL Google Maps')
+        ->assertDontSee('URL pencarian Maps')
+        ->assertDontSee('URL share Maps')
+        ->assertDontSee('Link embed peta Google')
+        ->assertDontSee('Konfigurasi teknis dan sensitif')
+        ->assertDontSee('Kunci')
+        ->assertDontSee('Tersamarkan')
+        ->assertDontSee('midtrans_server_key')
         ->assertDontSee('server-secret-value');
 
     $this->actingAs($admin)
@@ -67,21 +81,21 @@ test('admin settings form masks sensitive operational context and validates publ
         ->assertSessionHasErrors(['site_name', 'public_email']);
 });
 
-test('admin settings search does not match sensitive setting values', function () {
+test('admin settings page hides raw technical settings table and sensitive values', function () {
     $admin = AdminFixture::admin();
     AdminFixture::setting('gemini_api_key', 'secret-search-sentinel', 'secret', 'ai');
-    AdminFixture::setting('site_name', 'Public Search Sentinel', 'text', 'general');
+    AdminFixture::setting('site_tagline', 'Public Search Sentinel', 'text', 'general');
 
     $this->actingAs($admin)
         ->get(route('admin.settings', ['q' => 'secret-search-sentinel']))
         ->assertOk()
         ->assertDontSee('gemini_api_key')
         ->assertDontSee('Tersamarkan')
-        ->assertSee('Tidak ada data yang cocok dengan filter ini.');
-
-    $this->actingAs($admin)
-        ->get(route('admin.settings', ['q' => 'Public Search Sentinel']))
-        ->assertOk()
-        ->assertSee('site_name')
-        ->assertSee('Public Search Sentinel');
+        ->assertDontSee('secret-search-sentinel')
+        ->assertDontSee('site_tagline')
+        ->assertDontSee('Public Search Sentinel')
+        ->assertDontSee('Kunci')
+        ->assertDontSee('Grup')
+        ->assertDontSee('Tipe')
+        ->assertDontSee('Nilai');
 });

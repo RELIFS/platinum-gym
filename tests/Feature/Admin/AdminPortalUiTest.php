@@ -60,6 +60,29 @@ test('admin layout exposes accessible navigation controls and identity regions',
         ->and((bool) preg_match('/<a(?=[^>]*data-admin-website-link="(?:desktop|mobile)")(?=[^>]*aria-current=)/s', $content))->toBeFalse();
 });
 
+test('admin website shortcut never inherits active state from profile navigation', function () {
+    $admin = AdminFixture::admin([
+        'name' => 'Admin Active QA',
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('admin.profile'));
+    $content = $response->getContent();
+    $profileUrl = preg_quote(route('admin.profile'), '/');
+
+    $response
+        ->assertOk()
+        ->assertSee('Profil Admin')
+        ->assertSee('Website Utama')
+        ->assertSee('data-admin-website-link="desktop"', false)
+        ->assertSee('data-admin-website-link="mobile"', false);
+
+    expect(substr_count($content, 'Website Utama'))->toBe(2)
+        ->and((bool) preg_match('/<a(?=[^>]*href="'.$profileUrl.'")(?=[^>]*aria-current="page")(?=[^>]*admin-sidebar-nav-link-active)/s', $content))->toBeTrue()
+        ->and((bool) preg_match('/<a(?=[^>]*data-admin-website-link="(?:desktop|mobile)")(?=[^>]*aria-current=)/s', $content))->toBeFalse()
+        ->and((bool) preg_match('/<a(?=[^>]*data-admin-website-link="(?:desktop|mobile)")(?=[^>]*admin-sidebar-nav-link-active)/s', $content))->toBeFalse()
+        ->and((bool) preg_match('/<a(?=[^>]*data-admin-website-link="(?:desktop|mobile)")(?:(?!<\/a>).)*admin-sidebar-icon-frame-active/s', $content))->toBeFalse();
+});
+
 test('admin forms expose labels helper text and validation state near fields', function () {
     $admin = AdminFixture::admin();
 
