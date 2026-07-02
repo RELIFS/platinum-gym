@@ -6,6 +6,10 @@ use Illuminate\Support\Str;
 
 class GymmiKnowledgeMatcher
 {
+    public function __construct(
+        private readonly GymmiTextNormalizer $normalizer,
+    ) {}
+
     /**
      * @return array{type: string, answer: string|null, snippets: array<int, string>, topic: string|null, confidence: int}
      */
@@ -292,12 +296,7 @@ class GymmiKnowledgeMatcher
 
     private function normalize(string $value): string
     {
-        return Str::of($value)
-            ->lower()
-            ->ascii()
-            ->replaceMatches('/[^a-z0-9]+/', ' ')
-            ->squish()
-            ->toString();
+        return $this->normalizer->normalize($value);
     }
 
     /**

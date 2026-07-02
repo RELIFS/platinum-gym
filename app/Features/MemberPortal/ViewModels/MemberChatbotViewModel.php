@@ -27,6 +27,9 @@ class MemberChatbotViewModel
                 'greeting' => [
                     'text' => 'Halo! Saya Gymmi, asisten portal member Platinum Gym Padang. Saya bisa bantu cek status membership, booking kelas, transaksi, QR member, profil, dan info layanan.',
                 ],
+                'check' => [
+                    'text' => 'Gymmi aktif. Saya bisa bantu cek membership, booking kelas, transaksi, QR member, profil, atau info layanan Platinum Gym.',
+                ],
                 'thanks' => [
                     'text' => 'Sama-sama. Kalau masih ada yang ingin dicek, sebutkan topiknya seperti membership, booking kelas, transaksi, QR member, atau profil.',
                 ],
@@ -48,6 +51,11 @@ class MemberChatbotViewModel
                     'text' => 'Jadwal kelas aktif tersedia di halaman Booking Kelas. Jika memenuhi syarat paket, booking dapat dilakukan langsung dari halaman tersebut.',
                     'actionLabel' => 'Buka Jadwal Kelas',
                     'actionUrl' => route('member.booking'),
+                ],
+                'classPrice' => [
+                    'text' => 'Muaythai dan Poundfit memakai paket sesi terpisah. Harga dan sisa sesi bisa dicek dari halaman Membership, lalu booking dilakukan dari halaman Booking Kelas.',
+                    'actionLabel' => 'Buka Membership',
+                    'actionUrl' => route('member.membership'),
                 ],
                 'transactions' => [
                     'text' => 'Riwayat pembayaran, status transaksi, dan tombol lanjut bayar tersedia di halaman Transaksi.',
@@ -80,9 +88,7 @@ class MemberChatbotViewModel
                     'actionUrl' => route('public.services'),
                 ],
                 'fallback' => [
-                    'text' => 'Saya belum menemukan topik yang cocok. Pilih salah satu bantuan cepat atau buka dashboard member untuk melihat ringkasan akun.',
-                    'actionLabel' => 'Buka Dashboard',
-                    'actionUrl' => route('member.dashboard'),
+                    'text' => 'Saya belum menangkap topiknya. Coba tulis seperti status membership, booking kelas, transaksi, QR member, atau profil.',
                 ],
             ],
         ];

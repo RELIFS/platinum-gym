@@ -2,16 +2,22 @@
 
 namespace App\Features\Gymmi\Support;
 
-use Illuminate\Support\Str;
-
 class GymmiConversationalResponder
 {
+    public function __construct(
+        private readonly GymmiTextNormalizer $normalizer,
+    ) {}
+
     public function replyFor(string $message, string $context): ?string
     {
         $normalized = $this->normalize($message);
 
         if ($normalized === '') {
             return null;
+        }
+
+        if ($this->isBotCheck($normalized)) {
+            return $this->botCheckReply($context);
         }
 
         if ($this->isCapabilityQuestion($normalized)) {
@@ -75,6 +81,20 @@ class GymmiConversationalResponder
         }
 
         return 'Gymmi bisa bantu menjawab info resmi Platinum Gym seperti membership, jadwal kelas, personal trainer, fasilitas, produk katalog, promo, lokasi, jam operasional, dan kontak admin.';
+    }
+
+    private function botCheckReply(string $context): string
+    {
+        if ($context === 'member') {
+            return 'Gymmi aktif. Saya bisa bantu cek membership, booking kelas, transaksi, QR member, profil, atau info layanan Platinum Gym.';
+        }
+
+        return 'Gymmi aktif. Silakan tanyakan membership, jadwal kelas, harga, lokasi, atau kontak admin Platinum Gym.';
+    }
+
+    private function isBotCheck(string $message): bool
+    {
+        return preg_match('/^(test|tes|cek bot|cek gymmi|coba bot|coba gymmi|bot aktif|gymmi aktif)$/u', $message) === 1;
     }
 
     private function isGreeting(string $message): bool
@@ -166,11 +186,6 @@ class GymmiConversationalResponder
 
     private function normalize(string $message): string
     {
-        return Str::of($message)
-            ->lower()
-            ->ascii()
-            ->replaceMatches('/[^a-z0-9]+/', ' ')
-            ->squish()
-            ->toString();
+        return $this->normalizer->normalize($message);
     }
 }
