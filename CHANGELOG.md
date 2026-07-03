@@ -10,21 +10,26 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 
 - Menambahkan kode verifikasi email 6 digit, undangan akun member dari admin, dan template email operasional branded untuk auth, pembayaran, dan booking.
 - Menambahkan upload bukti mahasiswa pada profil member sebagai pengganti input NIM di UI member.
+- Menambahkan inbox persetujuan admin untuk review bukti mahasiswa, termasuk route pratinjau file privat, aksi setujui/tolak, badge jumlah pengajuan, dan activity log.
 - Menambahkan Gymmi hybrid RAG berbasis knowledge JSON terkompilasi, database live aman, key pool Gemini, dan command sync key yang tidak mencetak secret.
-- Menambahkan notifikasi aktivitas admin untuk booking, membership/paket sesi, pembayaran, dan check-in member.
+- Menambahkan normalisasi teks Gymmi dan knowledge override agar variasi pertanyaan layanan, harga, jadwal, produk, bukti mahasiswa, dan kontak lebih stabil.
 - Menambahkan Flatpickr untuk tanggal booking kelas Member/Admin agar tanggal di luar hari jadwal tidak bisa dipilih di UI.
+- Menambahkan relasi penggunaan sesi kelas ke booking terkonfirmasi agar satu booking hanya dapat dipakai satu kali pada alur check-in.
 
 ### Changed
 
 - Menyamakan eligibility checkout semua paket agar membership, Muaythai, Poundfit, dan Personal Trainer wajib melewati profil dasar lengkap sebelum payment/session dibuat.
-- Menyempurnakan booking kelas: label Instruktur/Pro/Coach, jadwal Muaythai per trainer, aturan booking H-1, aturan cancel H-3 jam, datepicker sesuai hari jadwal, dan card kelas yang disabled tanpa caption tambahan saat akses belum memenuhi syarat.
-- Memoles sidebar/admin/member/owner account menu, shortcut Website Utama, home public responsif, copy halaman Tentang untuk tim pelatih, serta widget Gymmi public/member.
+- Menyempurnakan booking kelas: label Instruktur/Pro/Coach, jadwal Muaythai per trainer, aturan booking H-1, aturan cancel H-3 jam, datepicker sesuai hari jadwal, dan card kelas yang disabled tanpa caption tambahan saat akses membership atau paket sesi belum sesuai.
+- Memoles sidebar/admin/member/owner account menu, shortcut Website Utama, profil admin ringkas, pengaturan admin whitelist, home public responsif, copy halaman Tentang untuk tim pelatih, serta widget Gymmi public/member.
+- Mengubah admin check-in paket sesi Muaythai/Poundfit agar wajib memakai booking kelas `confirmed` hari ini yang cocok, belum attended, dan belum pernah dipakai.
+- Mengubah halaman admin notifikasi dari feed aktivitas pasif menjadi approval inbox untuk pekerjaan yang perlu diproses admin.
+- Menghapus NIM dari tabel/form/review admin anggota; status mahasiswa diverifikasi melalui bukti mahasiswa yang disimpan privat.
 - Memperbarui knowledge Gymmi dari workbook internal menjadi FAQ 137 dan Alias 1578 tanpa membaca Excel saat runtime.
 
 ### Testing
 
 - Menambahkan dan memperbarui coverage Auth, Member, Admin, Public Website, Booking, Gymmi, dan command key sync.
-- Validasi fresh 2026-07-01 sebelum commit/push: `composer validate --strict --no-check-publish`, `composer audit`, `npm.cmd audit --audit-level=moderate`, `npm.cmd audit --omit=dev --audit-level=moderate`, `vendor\bin\pint --test`, `npm.cmd run build`, `php artisan test --no-ansi` (`662 passed / 5125 assertions`), `php artisan route:list --except-vendor --no-ansi` (`109 routes`), `php artisan config:cache`, `php artisan route:cache`, `php artisan view:cache`, dan `php artisan optimize:clear` lulus.
+- Validasi fresh 2026-07-02 sebelum commit/push: `git diff --check`, `composer validate --strict --no-check-publish`, `composer audit`, `npm.cmd audit --audit-level=moderate`, `npm.cmd audit --omit=dev --audit-level=moderate`, `vendor\bin\pint --test`, `npm.cmd run build`, `php artisan test --no-ansi` (`680 passed / 5370 assertions`), `php artisan route:list --except-vendor --no-ansi` (`113 routes`), `php artisan config:cache`, `php artisan route:cache`, `php artisan view:cache`, `php artisan optimize:clear`, dan validasi skill lokal lulus.
 
 ## [Unreleased] - Owner Portal, Reports, Invoice, Dan Portal Polish
 

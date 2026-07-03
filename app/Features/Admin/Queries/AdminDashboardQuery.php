@@ -68,6 +68,7 @@ class AdminDashboardQuery
             'bookingSchedules' => $bookingSchedules,
             'bookingMemberScheduleAccess' => AdminOperationalRules::bookingMemberScheduleAccess($bookingMembers, $bookingSchedules),
             'todayCheckIns' => $this->todayCheckIns($today),
+            'pendingApprovalCount' => $this->pendingStudentProofApprovalCount(),
             'moduleSummaries' => $this->moduleSummaries($today),
             'modules' => $this->modules($today, $user, $filters, $activeModule),
             'settings' => $this->settings(),
@@ -82,8 +83,10 @@ class AdminDashboardQuery
     }
 
     /** @return array<int, array<string, mixed>> */
-    public function navigation(): array
+    public function navigation(?int $pendingApprovalCount = null): array
     {
+        $pendingApprovalCount ??= $this->pendingStudentProofApprovalCount();
+
         return [
             ['label' => 'Ringkasan', 'items' => [
                 ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard', 'icon' => 'dashboard'],
@@ -91,7 +94,7 @@ class AdminDashboardQuery
             ['label' => 'Operasional', 'items' => [
                 ['label' => 'Check-in', 'route' => 'admin.check-in', 'active' => 'admin.check-in', 'icon' => 'qr-scan'],
                 ['label' => 'Booking', 'route' => 'admin.booking', 'active' => 'admin.booking', 'icon' => 'calendar-check'],
-                ['label' => 'Notifikasi', 'route' => 'admin.notifications', 'active' => 'admin.notifications', 'icon' => 'bell'],
+                ['label' => 'Notifikasi', 'route' => 'admin.notifications', 'active' => 'admin.notifications', 'icon' => 'bell', 'count' => $pendingApprovalCount],
             ]],
             ['label' => 'Anggota & Paket', 'items' => [
                 ['label' => 'Anggota', 'route' => 'admin.members', 'active' => 'admin.members', 'icon' => 'members'],
@@ -348,19 +351,16 @@ class AdminDashboardQuery
 
     private function notificationsModule(array $filters): array
     {
-        [$from, $to] = $this->dateRange($filters);
+        $from = $this->parseDate($filters['date_from'] ?? null) ?? Carbon::create(2000, 1, 1)->startOfDay();
+        $to = $this->parseDate($filters['date_to'] ?? null) ?? now();
         $displayFilters = array_replace($filters, [
-            'date_from' => $from->toDateString(),
-            'date_to' => $to->toDateString(),
+            'date_from' => $filters['date_from'] ?? '',
+            'date_to' => $filters['date_to'] ?? '',
         ]);
         $statusOptions = [
-            'booking' => 'Booking Kelas',
-            'membership' => 'Membership',
-            'package_session' => 'Paket Sesi',
-            'payment' => 'Pembayaran',
-            'check_in' => 'Check-in',
+            'student_proof' => 'Bukti Mahasiswa',
         ];
-        $rows = $this->memberActivityNotificationRows($from, $to);
+        $rows = $this->studentProofApprovalRows($from, $to);
 
         if (filled($filters['status']) && array_key_exists($filters['status'], $statusOptions)) {
             $rows = $rows->filter(fn (array $row): bool => ($row['type'] ?? '') === $filters['status'])->values();
@@ -373,21 +373,25 @@ class AdminDashboardQuery
 
         $paginator = $this->paginateActivityRows($rows, $displayFilters);
 
-        return array_replace($this->module('Notifikasi Aktivitas Member', 'Pantau aktivitas member terbaru seperti booking kelas, pembelian membership, paket sesi, pembayaran, dan check-in.', 'Belum ada aktivitas member pada periode ini.', ['Aktivitas', 'Member', 'Status', 'Waktu']), [
+        return array_replace($this->module('Inbox Persetujuan Admin', 'Tinjau pengajuan member yang membutuhkan persetujuan admin sebelum dipakai di alur operasional.', 'Tidak ada persetujuan yang perlu ditinjau.', ['Persetujuan', 'Member', 'Status', 'Waktu']), [
             'view' => 'admin.partials.notifications-page',
             'rows' => $paginator->getCollection(),
             'paginator' => $paginator,
             'filters' => $displayFilters,
             'statusOptions' => $statusOptions,
             'dateFilters' => true,
-            'searchPlaceholder' => 'Cari member, kode, aktivitas, kelas, atau pembayaran...',
+            'searchPlaceholder' => 'Cari member, kode, email, WhatsApp, atau bukti mahasiswa...',
         ]);
     }
 
     private function membersModule(array $filters, bool $loadRows): array
     {
         $options = ['active' => 'Aktif', 'inactive' => 'Nonaktif'];
-        $module = array_replace($this->module('Daftar Anggota', 'Akun member, kode keanggotaan, dan status akses.', 'Belum ada data member.', ['Nama', 'Kode', 'Status', 'Bergabung']), ['statusOptions' => $options]);
+        $module = array_replace($this->module('Daftar Anggota', 'Akun member, kode keanggotaan, status akses, dan verifikasi bukti mahasiswa.', 'Belum ada data member.', ['Nama', 'Kode Member', 'WhatsApp', 'Status Member', 'Kategori', 'Verifikasi', 'Bergabung']), [
+            'statusOptions' => $options,
+            'pillColumns' => ['Status Member', 'Kategori', 'Verifikasi'],
+            'searchPlaceholder' => 'Cari nama, kode, WhatsApp, email, atau status...',
+        ]);
         if (! $loadRows) {
             return $module;
         }
@@ -396,12 +400,38 @@ class AdminDashboardQuery
         $this->applyMemberSearch($query, $filters['q']);
         $this->applyExactStatusFilter($query, $filters['status'], array_keys($options));
 
-        return $this->withPaginatedRows($module, $query, fn (Member $member): array => $this->actionRow('members', $member, [
-            $member->user?->name ?? '-',
-            $member->member_code,
-            $this->headline($member->status),
-            $member->joined_at?->translatedFormat('d M Y') ?? '-',
-        ], 'status'), $filters, $options);
+        return $this->withPaginatedRows($module, $query, fn (Member $member): array => $this->memberRow($member), $filters, $options);
+    }
+
+    private function memberRow(Member $member): array
+    {
+        $actions = [];
+
+        if ($member->is_student && filled($member->student_proof_path)) {
+            $actions[] = [
+                'label' => 'Review Bukti',
+                'url' => route('admin.members.student-proof.review', $member),
+                'method' => 'GET',
+                'variant' => 'primary',
+                'aria_label' => 'Review bukti mahasiswa '.$member->member_code,
+            ];
+        }
+
+        return [
+            'cells' => [
+                $member->user?->name ?? '-',
+                $member->member_code,
+                $member->user?->phone ?: '-',
+                $this->statusLabel($member->status),
+                $member->is_student ? 'Mahasiswa' : 'Umum',
+                $this->studentVerificationLabel($member),
+                $member->joined_at?->translatedFormat('d M Y') ?? '-',
+            ],
+            'actions' => array_merge($actions, [
+                ['label' => 'Edit', 'url' => route('admin.resources.edit', ['resource' => 'members', 'id' => $member->getKey()]), 'method' => 'GET', 'variant' => 'secondary'],
+                ['label' => $this->toggleLabel($member, 'status'), 'url' => route('admin.resources.toggle', ['resource' => 'members', 'id' => $member->getKey()]), 'method' => 'PATCH', 'variant' => 'secondary'],
+            ]),
+        ];
     }
 
     private function packagesModule(array $filters, bool $loadRows): array
@@ -774,6 +804,57 @@ class AdminDashboardQuery
             ->values();
     }
 
+    private function pendingStudentProofApprovalCount(): int
+    {
+        return Member::query()
+            ->where('is_student', true)
+            ->where('student_verification_status', 'pending_review')
+            ->whereNotNull('student_proof_path')
+            ->count();
+    }
+
+    private function studentProofApprovalRows(Carbon $from, Carbon $to): Collection
+    {
+        return Member::query()
+            ->with('user')
+            ->where('is_student', true)
+            ->where('student_verification_status', 'pending_review')
+            ->whereNotNull('student_proof_path')
+            ->whereBetween('student_proof_uploaded_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->latest('student_proof_uploaded_at')
+            ->get()
+            ->map(function (Member $member): array {
+                $uploadedAt = $member->student_proof_uploaded_at ?? $member->updated_at ?? now();
+                $memberName = $member->user?->name ?? 'Member Platinum Gym';
+                $memberCode = $member->member_code ?? '-';
+                $phone = $member->user?->phone ?: '-';
+                $email = $member->user?->email ?: '-';
+
+                return [
+                    'type' => 'student_proof',
+                    'title' => 'Review bukti mahasiswa',
+                    'member' => $memberName,
+                    'member_code' => $memberCode,
+                    'status' => $this->studentVerificationLabel($member),
+                    'kind' => 'warning',
+                    'note' => 'Upload bukti mahasiswa menunggu persetujuan admin. WhatsApp: '.$phone,
+                    'time' => $uploadedAt->translatedFormat('d M Y H:i'),
+                    'url' => route('admin.members.student-proof.review', $member),
+                    'sort_at' => $uploadedAt->timestamp,
+                    'search' => $this->searchableRowText([
+                        'student_proof',
+                        'Review bukti mahasiswa',
+                        $memberName,
+                        $memberCode,
+                        $phone,
+                        $email,
+                        $this->studentVerificationLabel($member),
+                    ]),
+                ];
+            })
+            ->values();
+    }
+
     private function paymentActivityRows(Carbon $from, Carbon $to): Collection
     {
         return Payment::query()
@@ -923,8 +1004,8 @@ class AdminDashboardQuery
     private function statusKind(?string $status): string
     {
         return match ((string) $status) {
-            'active', 'paid', 'booked', 'confirmed', 'attended' => 'success',
-            'pending', 'waiting_payment', 'waiting_confirmation', 'unpaid', 'pending_payment' => 'warning',
+            'active', 'paid', 'booked', 'confirmed', 'attended', 'verified' => 'success',
+            'pending', 'waiting_payment', 'waiting_confirmation', 'unpaid', 'pending_payment', 'pending_review' => 'warning',
             'rejected', 'failed', 'expired', 'cancelled', 'canceled' => 'danger',
             default => 'neutral',
         };
@@ -1305,7 +1386,24 @@ class AdminDashboardQuery
             'booked' => 'Terdaftar',
             'confirmed' => 'Terkonfirmasi',
             'attended' => 'Hadir',
+            'pending_review' => 'Menunggu Review',
+            'verified' => 'Terverifikasi',
             default => $this->headline($status),
+        };
+    }
+
+    private function studentVerificationLabel(Member $member): string
+    {
+        if (! $member->is_student) {
+            return '-';
+        }
+
+        return match ((string) $member->student_verification_status) {
+            'pending_review' => 'Menunggu review',
+            'verified' => 'Terverifikasi',
+            'failed' => 'Ditolak',
+            'unverified', '' => 'Belum diverifikasi',
+            default => $this->statusLabel($member->student_verification_status),
         };
     }
 

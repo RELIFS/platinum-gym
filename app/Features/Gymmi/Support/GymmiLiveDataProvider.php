@@ -14,6 +14,7 @@ use App\Models\Promo;
 use App\Models\QrToken;
 use App\Models\Setting;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
@@ -21,6 +22,7 @@ class GymmiLiveDataProvider
 {
     public function __construct(
         private readonly GymmiIntentDetector $intentDetector,
+        private readonly GymmiTextNormalizer $normalizer,
     ) {}
 
     /**
@@ -89,7 +91,7 @@ class GymmiLiveDataProvider
         $isLocationIntent = ($intent['intent'] ?? null) === 'location_contact'
             || $this->hasAny($normalized, ['alamat', 'lokasi', 'dimana', 'di mana', 'arah', 'rute', 'maps', 'google maps', 'wa', 'whatsapp', 'kontak', 'instagram', 'ig', 'jam buka', 'operasional']);
 
-        if (! $isLocationIntent && (($intent['intent'] ?? null) === 'membership_price' || ($intent['subject'] ?? null) === null && $this->hasAny($normalized, ['harga', 'biaya', 'paket', 'membership', 'member', 'gym', 'pt', 'personal trainer', 'sesi']))) {
+        if (! $isLocationIntent && $this->shouldUsePackageSnippets($normalized, $intent)) {
             $snippets = array_merge($snippets, $this->packageSnippets($normalized));
         }
 
@@ -97,7 +99,7 @@ class GymmiLiveDataProvider
             $snippets = array_merge($snippets, $this->promoSnippets($normalized));
         }
 
-        if ($this->isClassIntent($intent) || $this->hasAny($normalized, ['jadwal', 'kelas', 'senam', 'muay', 'zumba', 'poundfit', 'trainer', 'coach'])) {
+        if ($this->shouldUseScheduleSnippets($normalized, $intent)) {
             $snippets = array_merge($snippets, $this->scheduleSnippets($normalized, $intent));
         }
 
@@ -119,7 +121,7 @@ class GymmiLiveDataProvider
     {
         $tokens = $this->tokens($message);
 
-        return Package::query()
+        $rows = Package::query()
             ->where('is_active', true)
             ->orderBy('package_kind')
             ->orderBy('price')
@@ -143,6 +145,7 @@ class GymmiLiveDataProvider
                 'description',
             ])
             ->map(fn (Package $package): array => [
+                'package' => $package,
                 'score' => $this->score($message, $tokens, collect([
                     $package->name,
                     $package->package_kind,
@@ -150,14 +153,39 @@ class GymmiLiveDataProvider
                     $package->category,
                     $package->description,
                 ])->filter()->implode(' ')),
-                'text' => $this->packageText($package),
             ])
             ->filter(fn (array $row): bool => $row['score'] > 0 || count($tokens) <= 2)
             ->sortByDesc('score')
+            ->values();
+
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        $packages = $this->focusedPackageRows($message, $rows)
             ->take(5)
-            ->pluck('text')
-            ->values()
-            ->all();
+            ->pluck('package')
+            ->values();
+
+        if ($packages->isEmpty()) {
+            return [];
+        }
+
+        return [$this->packageReply($message, $packages)];
+    }
+
+    private function shouldUsePackageSnippets(string $message, array $intent): bool
+    {
+        if (($intent['intent'] ?? null) === 'membership_price') {
+            return true;
+        }
+
+        if ($this->isClassPackageQuestion($message, $intent)) {
+            return true;
+        }
+
+        return ($intent['subject'] ?? null) === null
+            && $this->hasAny($message, ['harga', 'biaya', 'paket', 'membership', 'member', 'gym', 'pt', 'personal trainer', 'sesi', 'muaythai', 'poundfit']);
     }
 
     /**
@@ -420,19 +448,208 @@ class GymmiLiveDataProvider
             : 'QR member Anda belum aktif atau sudah tidak berlaku. Pastikan membership aktif di portal member.';
     }
 
+    /**
+     * @param  Collection<int, array{package: Package, score: int}>  $rows
+     * @return Collection<int, array{package: Package, score: int}>
+     */
+    private function focusedPackageRows(string $message, Collection $rows): Collection
+    {
+        $focused = null;
+
+        if (str_contains($message, 'gym umum') && ! str_contains($message, 'senam')) {
+            $focused = $rows->filter(fn (array $row): bool => $this->packageNameHas($row['package'], ['gym umum'])
+                && ! $this->packageNameHas($row['package'], ['senam', 'mahasiswa']));
+        } elseif (str_contains($message, 'gym mahasiswa') && ! str_contains($message, 'senam')) {
+            $focused = $rows->filter(fn (array $row): bool => $this->packageNameHas($row['package'], ['gym mahasiswa'])
+                && ! $this->packageNameHas($row['package'], ['senam']));
+        } elseif (str_contains($message, 'gym') && str_contains($message, 'senam') && str_contains($message, 'umum')) {
+            $focused = $rows->filter(fn (array $row): bool => $this->packageNameHas($row['package'], ['gym', 'senam', 'umum']));
+        } elseif (str_contains($message, 'gym') && str_contains($message, 'senam') && str_contains($message, 'mahasiswa')) {
+            $focused = $rows->filter(fn (array $row): bool => $this->packageNameHas($row['package'], ['gym', 'senam', 'mahasiswa']));
+        } elseif (str_contains($message, 'senam umum')) {
+            $focused = $rows->filter(fn (array $row): bool => $this->packageNameHas($row['package'], ['senam umum'])
+                && ! $this->packageNameHas($row['package'], ['mahasiswa']));
+        } elseif (str_contains($message, 'senam mahasiswa')) {
+            $focused = $rows->filter(fn (array $row): bool => $this->packageNameHas($row['package'], ['senam mahasiswa']));
+        } elseif (str_contains($message, 'muaythai')) {
+            $focused = $rows->filter(fn (array $row): bool => $this->packageNameHas($row['package'], ['muaythai']));
+        } elseif (str_contains($message, 'poundfit')) {
+            $focused = $rows->filter(fn (array $row): bool => $this->packageNameHas($row['package'], ['poundfit']));
+        } elseif (str_contains($message, 'personal trainer')) {
+            $focused = $rows->filter(fn (array $row): bool => $this->packageNameHas($row['package'], ['personal trainer']));
+        }
+
+        return $focused instanceof Collection && $focused->isNotEmpty() ? $focused->values() : $rows;
+    }
+
+    /**
+     * @param  Collection<int, Package>  $packages
+     */
+    private function packageReply(string $message, Collection $packages): string
+    {
+        if ($this->isClassPackageMessage($message) && ! $this->wantsPackageList($message)) {
+            return $this->compactClassPackageReply($message, $packages);
+        }
+
+        if ($packages->count() === 1) {
+            return 'Harga '.$this->packageText($packages->first()).'.';
+        }
+
+        return 'Harga '.$this->packageSubjectLabel($message, $packages).' yang tersedia:'."\n"
+            .$packages
+                ->map(fn (Package $package): string => '- '.$this->packageText($package))
+                ->implode("\n");
+    }
+
+    /**
+     * @param  Collection<int, Package>  $packages
+     */
+    private function packageSubjectLabel(string $message, Collection $packages): string
+    {
+        return match (true) {
+            str_contains($message, 'gym umum') && ! str_contains($message, 'senam') => 'Gym Umum',
+            str_contains($message, 'gym mahasiswa') && ! str_contains($message, 'senam') => 'Gym Mahasiswa',
+            str_contains($message, 'gym') && str_contains($message, 'senam') && str_contains($message, 'umum') => 'Gym + Senam Umum',
+            str_contains($message, 'gym') && str_contains($message, 'senam') && str_contains($message, 'mahasiswa') => 'Gym + Senam Mahasiswa',
+            str_contains($message, 'senam umum') => 'Senam Umum',
+            str_contains($message, 'senam mahasiswa') => 'Senam Mahasiswa',
+            str_contains($message, 'muaythai') => 'Muaythai',
+            str_contains($message, 'poundfit') => 'Poundfit',
+            str_contains($message, 'personal trainer') => 'Personal Trainer',
+            default => 'paket',
+        };
+    }
+
+    /**
+     * @param  Collection<int, Package>  $packages
+     */
+    private function compactClassPackageReply(string $message, Collection $packages): string
+    {
+        $ordered = $packages
+            ->sortBy(fn (Package $package): float => $this->packagePrice($package))
+            ->values();
+        $startingPackage = $ordered->first();
+
+        if (! $startingPackage instanceof Package) {
+            return '';
+        }
+
+        $label = $this->packageSubjectLabel($message, $ordered);
+        $prefix = $ordered->count() > 1 ? 'mulai ' : '';
+        $reply = 'Harga '.$label.' '.$prefix.$this->rupiah($this->packagePrice($startingPackage)).' untuk '.$this->packageUnit($startingPackage).'.';
+        $sessionOptions = $this->additionalSessionOptions($ordered, $startingPackage);
+
+        if ($sessionOptions !== '') {
+            $audience = $this->packageAudienceLabel($ordered);
+            $reply .= ' Paket '.$sessionOptions.' juga tersedia'.($audience !== '' ? ' untuk '.$audience : '').'.';
+        }
+
+        return $reply;
+    }
+
+    /**
+     * @param  array<int, string>  $needles
+     */
+    private function packageNameHas(Package $package, array $needles): bool
+    {
+        $haystack = $this->normalize(collect([
+            $package->name,
+            $package->package_kind,
+            $package->type,
+            $package->category,
+        ])->filter()->implode(' '));
+
+        foreach ($needles as $needle) {
+            if (! str_contains($haystack, $this->normalize($needle))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private function packageText(Package $package): string
     {
-        $activePromoPrice = $this->activePromoPrice($package);
+        return $package->name.': '.$this->packageDetails($package);
+    }
 
-        $details = collect([
-            'harga '.$this->rupiah($activePromoPrice ?: $package->price),
+    private function packageDetails(Package $package): string
+    {
+        $activePromoPrice = $this->activePromoPrice($package);
+        $price = $this->rupiah($activePromoPrice ?: $package->price);
+
+        $notes = collect([
             $activePromoPrice ? 'harga normal '.$this->rupiah($package->price) : null,
             $package->durationMarketingLabel(),
             $package->session_count ? $package->session_count.' sesi' : null,
             $package->requires_active_membership ? 'perlu membership aktif' : null,
         ])->filter()->implode(', ');
 
-        return 'Paket aktif '.$package->name.($details !== '' ? ' memiliki '.$details : '').'.';
+        return $price.($notes !== '' ? ' ('.$notes.')' : '');
+    }
+
+    private function packagePrice(Package $package): float
+    {
+        return (float) ($this->activePromoPrice($package) ?: $package->price);
+    }
+
+    private function packageUnit(Package $package): string
+    {
+        if ($package->session_count) {
+            return $package->session_count.' sesi';
+        }
+
+        $duration = $package->durationMarketingLabel();
+
+        return $duration !== '' ? $duration : 'paket ini';
+    }
+
+    /**
+     * @param  Collection<int, Package>  $packages
+     */
+    private function additionalSessionOptions(Collection $packages, Package $startingPackage): string
+    {
+        $options = $packages
+            ->pluck('session_count')
+            ->filter(fn (mixed $sessionCount): bool => (int) $sessionCount > (int) $startingPackage->session_count)
+            ->map(fn (mixed $sessionCount): int => (int) $sessionCount)
+            ->unique()
+            ->sort()
+            ->map(fn (int $sessionCount): string => $sessionCount.'x')
+            ->values()
+            ->all();
+
+        return $this->joinLabels($options);
+    }
+
+    /**
+     * @param  Collection<int, Package>  $packages
+     */
+    private function packageAudienceLabel(Collection $packages): string
+    {
+        $audiences = $packages
+            ->pluck('category')
+            ->filter(fn (mixed $category): bool => is_string($category) && filled(trim($category)))
+            ->map(fn (string $category): string => trim($category))
+            ->unique()
+            ->values()
+            ->all();
+
+        return implode('/', $audiences);
+    }
+
+    /**
+     * @param  array<int, string>  $labels
+     */
+    private function joinLabels(array $labels): string
+    {
+        if (count($labels) <= 1) {
+            return $labels[0] ?? '';
+        }
+
+        $last = array_pop($labels);
+
+        return implode(', ', $labels).' dan '.$last;
     }
 
     private function promoText(Promo $promo): string
@@ -607,9 +824,52 @@ class GymmiLiveDataProvider
             ->all();
     }
 
-    private function isClassIntent(array $intent): bool
+    private function shouldUseScheduleSnippets(string $message, array $intent): bool
     {
-        return in_array((string) ($intent['intent'] ?? ''), ['class_schedule', 'class_price', 'class_coach', 'class_capacity', 'private_or_group'], true);
+        $intentName = (string) ($intent['intent'] ?? '');
+
+        if ($this->isClassPackageQuestion($message, $intent)) {
+            return false;
+        }
+
+        if (in_array($intentName, ['class_schedule', 'class_coach', 'class_capacity', 'private_or_group'], true)) {
+            return true;
+        }
+
+        if ($intentName === 'class_price') {
+            return false;
+        }
+
+        return $this->hasAny($message, ['jadwal', 'kelas', 'senam', 'zumba', 'trainer', 'coach']);
+    }
+
+    private function isClassPackageQuestion(string $message, array $intent): bool
+    {
+        return in_array((string) ($intent['subject'] ?? ''), ['muaythai', 'poundfit'], true)
+            && $this->isClassPackageMessage($message)
+            && ! $this->isScheduleQuestion($message)
+            && ! $this->isPackageRuleQuestion($message);
+    }
+
+    private function isClassPackageMessage(string $message): bool
+    {
+        return $this->hasAny($message, ['muaythai', 'poundfit'])
+            && $this->hasAny($message, ['harga', 'biaya', 'tarif', 'berapa', 'bayar', 'paket', 'sesi', 'pilihan', 'daftar', 'semua', 'opsi']);
+    }
+
+    private function isScheduleQuestion(string $message): bool
+    {
+        return $this->hasAny($message, ['jadwal', 'hari apa', 'jam', 'kapan', 'booking']);
+    }
+
+    private function isPackageRuleQuestion(string $message): bool
+    {
+        return $this->hasAny($message, ['terpisah', 'termasuk', 'include', 'included']);
+    }
+
+    private function wantsPackageList(string $message): bool
+    {
+        return $this->hasAny($message, ['semua paket', 'daftar paket', 'pilihan paket', 'opsi paket', 'list paket', 'paket apa saja', 'harga lengkap', 'rincian harga', 'detail harga']);
     }
 
     private function subjectScore(string $haystack, ?string $subject): int
@@ -689,11 +949,6 @@ class GymmiLiveDataProvider
 
     private function normalize(string $value): string
     {
-        return Str::of($value)
-            ->lower()
-            ->ascii()
-            ->replaceMatches('/[^a-z0-9]+/', ' ')
-            ->squish()
-            ->toString();
+        return $this->normalizer->normalize($value);
     }
 }

@@ -281,31 +281,39 @@ test('admin settings save form requires confirmation', function () {
         ->assertSee('Simpan perubahan pengaturan website', false)
         ->assertSee('Informasi Umum')
         ->assertSee('Kontak Publik')
-        ->assertSee('Media Sosial &amp; Peta', false)
-        ->assertSee('Link embed peta Google')
+        ->assertSee('Media Sosial')
         ->assertSee('Awalan Nomor Invoice')
         ->assertSee('Catatan Footer Invoice')
-        ->assertSee('Konfigurasi sensitif')
+        ->assertDontSee('Media Sosial &amp; Peta', false)
+        ->assertDontSee('Link embed peta Google')
+        ->assertDontSee('Konfigurasi sensitif')
         ->assertDontSee('URL Embed Maps')
         ->assertDontSee('Prefix Invoice');
 });
 
-test('admin notifications page renders member activity feed', function () {
+test('admin notifications page renders pending approval inbox', function () {
     $admin = AdminFixtures::improvementsAdmin();
-    [, $member] = AdminFixtures::improvementsMember('PG-ADMIN-NOTIF-ACTIVITY');
-    AdminFixtures::payment($member, overrides: [
-        'payment_code' => 'PAY-ADMIN-ACTIVITY',
-        'status' => 'paid',
-        'paid_at' => now(),
+    [, $member] = AdminFixtures::member('PG-ADMIN-NOTIF-PROOF', [
+        'name' => 'Member Proof Pending',
+        'phone' => '081299990331',
+    ], [
+        'is_student' => true,
+        'student_proof_path' => 'member/student-proofs/notif-proof.jpg',
+        'student_proof_uploaded_at' => now(),
+        'student_verification_status' => 'pending_review',
     ]);
+    AdminFixtures::member('PG-ADMIN-NOTIF-UMUM');
 
     $this->actingAs($admin)->get('/admin/notifikasi')
         ->assertOk()
-        ->assertSee('Notifikasi Aktivitas Member')
-        ->assertSee('PAY-ADMIN-ACTIVITY')
-        ->assertSee('Pembayaran Lunas')
-        ->assertSee('PG-ADMIN-NOTIF-ACTIVITY')
-        ->assertSee('admin-status-success', false);
+        ->assertSee('Inbox Persetujuan Admin')
+        ->assertSee('Review bukti mahasiswa')
+        ->assertSee('Member Proof Pending')
+        ->assertSee('PG-ADMIN-NOTIF-PROOF')
+        ->assertSee('Menunggu review')
+        ->assertSee('Review Bukti')
+        ->assertSee(route('admin.members.student-proof.review', $member), false)
+        ->assertDontSee('PG-ADMIN-NOTIF-UMUM');
 });
 
 test('admin layout renders success flash banner with emerald palette and polite live region', function () {

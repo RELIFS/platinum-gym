@@ -1,6 +1,6 @@
 # Feature Documentation
 
-Status: Updated 2026-07-01. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
+Status: Updated 2026-07-02. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
 
 Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Platinum Gym Padang.
 
@@ -27,15 +27,15 @@ Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Pla
 | Policy own-data | Sudah tersedia | Member |
 | Auth UI Platinum Gym | Sudah tersedia dan dipoles visual | Pengunjung/member |
 | Theme toggle | Sudah tersedia | Pengguna UI |
-| Member portal | Operasional: profil/avatar/bukti mahasiswa, eligibility checkout, membership checkout, paket sesi, booking, transaksi, QR visual/download, notifikasi, dan server-side pagination/filter | Member |
-| Admin portal | Production custom Blade: CRUD master data, pembayaran, booking, preview-confirm check-in, settings, audit, laporan CSV/Excel/PDF, invoice/struk, dan tabel paginated | Admin |
+| Member portal | Operasional: profil/avatar/bukti mahasiswa, eligibility checkout, membership checkout, paket sesi, booking dengan guard akses membership/paket sesi, transaksi, QR visual/download, notifikasi, dan server-side pagination/filter | Member |
+| Admin portal | Production custom Blade: CRUD master data, approval inbox, review bukti mahasiswa, pembayaran, booking, preview-confirm check-in, pemakaian sesi kelas berbasis booking, settings, audit, laporan CSV/Excel/PDF, invoice/struk, dan tabel paginated | Admin |
 | Owner portal | Operasional read-only: dashboard bisnis, laporan, export CSV/Excel/PDF, invoice web, dan struk transaksi | Owner |
 | Membership package | Checkout Midtrans dan approval admin aktif | Member, admin |
 | Booking kelas | Booking/cancel member dan confirm/cancel admin aktif | Member, admin |
 | Pembayaran | Midtrans Sandbox, webhook, invoice, approval/reject admin aktif | Member, admin |
-| Check-in gym | QR member stabil per member, aktif untuk membership atau sesi Muaythai/Poundfit aktif, download QR, preview-confirm admin, dan pemakaian paket sesi eksplisit | Member, admin |
+| Check-in gym | QR member stabil per member, aktif untuk membership atau sesi Muaythai/Poundfit aktif, download QR, preview-confirm admin, dan pemakaian paket sesi kelas yang wajib terhubung ke booking terkonfirmasi | Member, admin |
 | Laporan owner | Sudah tersedia dengan filter dan export CSV/Excel/PDF | Owner |
-| Gymmi Gemini AI | Operasional hybrid RAG dengan dataset, database live, Gemini, fallback aman berbasis data resmi, guardrail, dan conversation log | Pengunjung, member |
+| Gymmi Gemini AI | Operasional hybrid RAG dengan dataset, database live, normalizer teks, knowledge override, Gemini, jawaban lokal aman berbasis data resmi, guardrail, dan conversation log | Pengunjung, member |
 
 ## Public Website
 
@@ -219,10 +219,14 @@ Admin login melalui `/login`. User dengan role `admin` diarahkan ke `/admin` dan
 | Route | Fungsi |
 |---|---|
 | `/admin` | Dashboard ringkasan operasional |
-| `/admin/check-in` | Preview QR member, confirm check-in, pemakaian paket sesi, dan input manual |
+| `/admin/check-in` | Preview QR member, confirm check-in, dan pemakaian paket sesi kelas yang terhubung ke booking terkonfirmasi |
 | `/admin/booking` | Booking kelas admin, konfirmasi, dan pembatalan |
-| `/admin/notifikasi` | Ringkasan notifikasi operasional |
-| `/admin/anggota` | Daftar member terbaru |
+| `/admin/notifikasi` | Inbox persetujuan admin untuk pengajuan yang perlu ditinjau |
+| `/admin/anggota` | Daftar member, status akses, kategori, dan verifikasi bukti mahasiswa |
+| `/admin/anggota/{member}/bukti-mahasiswa/review` | Halaman review bukti mahasiswa |
+| `/admin/anggota/{member}/bukti-mahasiswa` | Preview aman bukti mahasiswa dari private storage |
+| `/admin/anggota/{member}/bukti-mahasiswa/setujui` | Setujui bukti mahasiswa |
+| `/admin/anggota/{member}/bukti-mahasiswa/tolak` | Tolak bukti mahasiswa |
 | `/admin/paket` | Katalog paket layanan |
 | `/admin/kelas` | Jadwal kelas aktif |
 | `/admin/pembayaran` | Pembayaran terbaru, cash payment, approve, dan reject |
@@ -236,7 +240,7 @@ Admin login melalui `/login`. User dengan role `admin` diarahkan ke `/admin` dan
 | `/admin/invoice/{invoice}/struk` | Struk POS compact transaksi |
 | `/admin/invoice/{invoice}/download` | Download PDF invoice atau struk |
 | `/admin/audit-log` | Activity log terbaru dengan filter |
-| `/admin/pengaturan` | Setting website whitelist dengan value sensitif tersamarkan |
+| `/admin/pengaturan` | Form whitelist untuk informasi publik website dan invoice |
 | `/admin/profil` | Profil admin login dengan upload foto profil |
 | `/admin/profil/foto` | Update foto profil admin |
 
@@ -264,15 +268,19 @@ Admin login melalui `/login`. User dengan role `admin` diarahkan ke `/admin` dan
 - Dashboard admin memakai pusat kerja operasional dengan KPI ringkas, quick links, dan data terbaru dari database.
 - Tabel modul admin memakai server-side search, status filter, query string persistence, dan pagination 12 data per halaman pada data yang dapat bertambah.
 - Master data anggota, paket, kelas, jadwal kelas, produk, galeri, testimoni, promo, dan trainer memakai reusable custom Blade resource form untuk tambah/edit.
+- `/admin/notifikasi` dipakai sebagai approval inbox untuk data yang membutuhkan tindakan admin. Tahap aktif saat ini adalah review bukti mahasiswa yang diunggah member.
+- `/admin/anggota` memakai kolom operasional `Nama`, `Kode Member`, `WhatsApp`, `Status Member`, `Kategori`, `Verifikasi`, dan `Bergabung`; NIM tidak ditampilkan di tabel, review, atau form admin karena bukti KTM/portal mahasiswa menjadi dasar verifikasi.
+- Bukti mahasiswa disimpan di private local disk dan hanya dipreview lewat route terproteksi admin/member pemilik. Admin dapat menyetujui atau menolak bukti dengan catatan tanpa membuka path file mentah.
 - Pembayaran cash membuat payment, invoice, dan aktivasi layanan dalam transaksi aman.
 - Pembayaran dapat disetujui/ditolak admin; Midtrans webhook tetap menjadi sumber kebenaran untuk payment online.
 - Check-in admin memvalidasi QR dari kamera, menampilkan preview data member terlebih dahulu, lalu confirm check-in atau pemakaian paket sesi secara eksplisit. Scan QR saja tidak membuat check-in dan tidak mengurangi sesi.
-- QR member adalah identitas stabil per member. Pembelian membership baru tidak mengganti QR yang sudah aktif; QR juga bisa aktif untuk penggunaan sesi Muaythai/Poundfit aktif tanpa membership, sedangkan check-in membership tetap membutuhkan membership aktif.
+- `Gunakan Sesi` untuk Muaythai/Poundfit hanya tersedia jika member punya booking kelas `confirmed` hari ini, jadwal/kelas aktif, paket dan coach cocok, serta booking belum pernah dipakai. Saat berhasil, sistem mengurangi satu sesi, membuat attendance kelas, menautkan usage ke booking, dan mengubah booking menjadi `attended`.
+- QR member adalah identitas stabil per member. Pembelian membership baru tidak mengganti QR yang sudah aktif; QR juga bisa aktif untuk penggunaan sesi Muaythai/Poundfit aktif tanpa membership, sedangkan check-in membership tetap membutuhkan membership aktif. Personal Trainer tetap memakai flow sesi existing dengan membership Gym/Include aktif dan belum memakai booking kelas.
 - Modul paket, produk, galeri, testimoni, promo, trainer, dan member memiliki aksi status aman berupa aktif/nonaktif atau tayang/draft, bukan hard delete.
 - Semua route admin memakai middleware `auth`, `verified`, dan `role:admin`; aksi tulis juga mengecek permission.
-- Nilai setting sensitif seperti API key, token, secret, OAuth, prompt, dan password disamarkan sebagai `Tersamarkan`.
+- Nilai setting sensitif seperti API key, token, secret, OAuth, prompt, dan password tidak ditampilkan di halaman pengaturan operasional.
 - Foto profil admin hanya menerima gambar lokal tervalidasi dan tidak menghapus avatar eksternal atau folder avatar role lain saat replace.
-- Form pengaturan hanya mengubah kontak publik, maps, jam operasional, dan invoice footer; secret/API key tidak bisa diedit dari UI ini.
+- Form pengaturan hanya mengubah kontak publik, Instagram, jam operasional, dan invoice footer; Google Maps dikelola sebagai konfigurasi teknis non-UI, dan secret/API key tidak bisa diedit dari UI ini.
 
 ## Owner Portal
 
@@ -328,10 +336,10 @@ Gymmi membantu pengunjung dan member menemukan informasi layanan dari data resmi
 - Knowledge base utama berasal dari workbook internal `data_AI_Chatbot.xlsx` dan dikompilasi menjadi `resources/data/gymmi/knowledge-base.json` lewat `php artisan gymmi:import-knowledge`.
 - Artifact knowledge base terbaru berisi FAQ 137 dan Alias 1578, termasuk tambahan variasi alias untuk gym, Muaythai, pendaftaran, bukti mahasiswa/KTM, kontak, produk, fasilitas, dan kebijakan.
 - Runtime chat membaca JSON terkompilasi dengan cache, bukan membaca Excel per request.
-- Strategi jawaban: input guard, FAQ direct answer, Alias untuk memahami variasi pertanyaan, intent ringan untuk topik seperti jadwal kelas/harga/coach/kapasitas/private, Config/catalog snippets, database live snippets, Gemini composition, lalu fallback aman.
+- Strategi jawaban: normalisasi teks, input guard, FAQ direct answer, Alias untuk memahami variasi pertanyaan, intent ringan untuk topik seperti jadwal kelas/harga/coach/kapasitas/private, Config/catalog snippets, knowledge override, database live snippets, Gemini composition, lalu jawaban lokal aman.
 - Database live hanya mengambil snippet aman dari data aktif/published: paket, promo valid, jadwal kelas aktif, trainer aktif, produk/kategori aktif, dan setting publik whitelist. Data live menang untuk harga, promo, jadwal, dan stok jika berbeda dari dataset.
 - Retrieval kelas dibuat spesifik agar pertanyaan Muaythai, termasuk typo seperti `muaytai`, tidak menarik Aerobic/Poundfit. Jika data resmi belum menyebut sesi privat, Gymmi menjawab konservatif dan mengarahkan konfirmasi ke admin.
-- `resources/data/gymmi/knowledge-overrides.json` menyimpan koreksi knowledge kecil yang sudah divalidasi setelah import workbook, misalnya FAQ/Alias Muaythai privat; file ini digabung saat runtime tanpa membaca Excel per request.
+- `resources/data/gymmi/knowledge-overrides.json` menyimpan koreksi knowledge yang sudah divalidasi setelah import workbook, termasuk variasi alias layanan, produk, bukti mahasiswa, kontak, dan pertanyaan Muaythai; file ini digabung saat runtime tanpa membaca Excel per request.
 - Gymmi member hanya boleh memakai data user login sendiri: ringkasan membership aktif, paket sesi aktif, transaksi menunggu, booking sendiri, dan status QR tanpa token mentah. Data member lain, raw payment payload, raw QR token, dan secret tidak boleh dikirim ke Gemini atau ditampilkan.
 - Produk tetap bersifat katalog informasi; Gymmi tidak membuat klaim checkout produk online.
 - Gemini hanya dipanggil jika input lolos guard dan ada snippet data resmi yang relevan; pertanyaan kosong, spam, prompt injection, permintaan API key/token/secret, bypass role, akses database, dan topik di luar Platinum Gym dijawab aman tanpa dikirim ke provider.
@@ -566,7 +574,7 @@ Member portal digunakan agar member yang sudah login dapat mengecek informasi ak
 | `/member/dashboard` | Ringkasan membership, paket sesi, transaksi, booking, QR, dan notifikasi |
 | `/member/profil` | Profil member editable dan akses ke keamanan akun |
 | `/member/membership` | Status membership, katalog paket, dan checkout Midtrans |
-| `/member/booking-kelas` | Booking jadwal kelas sesuai membership/paket sesi/payment |
+| `/member/booking-kelas` | Booking jadwal kelas sesuai membership atau paket sesi aktif |
 | `/member/riwayat-booking` | Riwayat booking member |
 | `/member/transaksi` | Riwayat transaksi, detail, invoice, struk, PDF, dan tombol bayar Midtrans |
 | `/member/qr` | QR member stabil per member tanpa menampilkan token mentah |
@@ -593,13 +601,13 @@ Member portal digunakan agar member yang sudah login dapat mengecek informasi ak
 - Sidebar dan mobile drawer berisi navigasi portal, shortcut menu bawah, footer identity, dan grouped menu `Utama`, `Aktivitas`, dan `Akun`.
 - Identitas member, kode member, status membership, dan invoice tidak ditampilkan di sidebar agar tidak redundan.
 - `Website Utama` ditampilkan sebagai item menu paling bawah menuju website publik; desktop identity/logout berada di topbar account menu, sementara mobile drawer tetap menyimpan identity member dan `Keluar`. Shortcut akun login tidak diduplikasi di sidebar member.
-- Booking kelas memakai datepicker Flatpickr default dengan display lokal `dd/mm/yyyy` yang menonaktifkan tanggal di luar hari jadwal kelas; jika member belum punya membership/paket yang sesuai, card tetap tampil tetapi tanggal dan tombol `Booking Kelas` disabled tanpa caption tambahan.
+- Booking kelas memakai datepicker Flatpickr default dengan display lokal `dd/mm/yyyy` yang menonaktifkan tanggal di luar hari jadwal kelas; jika member belum punya membership atau paket sesi yang sesuai, card tetap tampil tetapi tanggal dan tombol `Booking Kelas` disabled tanpa caption tambahan. Membership `include` membuka semua kelas included, membership dengan tipe yang sama membuka kelas included yang sesuai, dan membership yang tidak relevan tidak membuka akses kelas lain.
 - Katalog membership, booking kelas, riwayat booking, transaksi, dan notifikasi memakai server-side pagination/filter dengan query string agar pencarian berlaku pada seluruh data milik member, bukan hanya item yang sedang terlihat.
 - Batas list member dibuat tetap: paket 6 item, jadwal 9 item, transaksi 8 item, riwayat booking 8 item, dan notifikasi 8 item per halaman.
 - Checkout membership dan paket sesi mewajibkan profil dasar lengkap plus foto profil sebelum payment/session dibuat; Muaythai, Poundfit, dan Personal Trainer menampilkan disabled state dengan CTA `Lengkapi data` jika profil belum lengkap.
 - Gymmi tersedia sebagai floating widget global Gemini-backed di semua halaman member dan tetap memakai data member login sendiri untuk action aman.
 - Gymmi member menampilkan action `QR Member` ke `/member/qr` dan tidak menampilkan token QR mentah.
-- QR member tetap sama selama token tidak dirotasi/dicabut secara internal; status aktifnya mengikuti membership aktif atau paket sesi Muaythai/Poundfit aktif. Paket Personal Trainer tetap membutuhkan membership Gym/Include aktif dan tidak mengaktifkan QR sendiri.
+- QR member tetap sama selama token tidak dirotasi/dicabut secara internal; status aktifnya mengikuti membership aktif atau paket sesi Muaythai/Poundfit aktif. Pemakaian sesi Muaythai/Poundfit melalui admin check-in tetap mensyaratkan booking kelas `confirmed` hari ini yang cocok dan belum dipakai. Paket Personal Trainer tetap membutuhkan membership Gym/Include aktif dan tidak mengaktifkan QR sendiri.
 - Route/page `/member/ai-assistant` tidak aktif; Gymmi tetap berupa widget global, bukan halaman terpisah.
 - Checkout membership/paket sesi, booking kelas, QR check-in admin, payment webhook Midtrans Sandbox, approval admin, dan notifikasi member aktif. Produk tetap katalog informasi, bukan checkout produk.
 

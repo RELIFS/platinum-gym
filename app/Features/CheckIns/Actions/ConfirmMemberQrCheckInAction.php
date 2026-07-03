@@ -2,6 +2,8 @@
 
 namespace App\Features\CheckIns\Actions;
 
+use App\Models\ClassAttendance;
+use App\Models\ClassEnrollment;
 use App\Models\GymCheckIn;
 use App\Models\Member;
 use App\Models\MemberPackageSession;
@@ -23,9 +25,9 @@ class ConfirmMemberQrCheckInAction
     /**
      * @return array{member_name: string, check_in?: GymCheckIn|null, usage?: MemberPackageSessionUsage|null}
      */
-    public function handle(string $token, string $action, int $adminUserId, ?int $packageSessionId = null, ?string $requestKey = null): array
+    public function handle(string $token, string $action, int $adminUserId, ?int $packageSessionId = null, ?int $classEnrollmentId = null, ?string $requestKey = null): array
     {
-        return DB::transaction(function () use ($token, $action, $adminUserId, $packageSessionId, $requestKey): array {
+        return DB::transaction(function () use ($token, $action, $adminUserId, $packageSessionId, $classEnrollmentId, $requestKey): array {
             $qrToken = QrToken::query()
                 ->where('token', $token)
                 ->where('purpose', 'member')
@@ -70,7 +72,7 @@ class ConfirmMemberQrCheckInAction
                     throw new RuntimeException('Pilih paket sesi yang akan digunakan.');
                 }
 
-                $usage = $this->usePackageSession($member, $packageSessionId, $adminUserId, $checkIn, $requestKey, (bool) $membership);
+                $usage = $this->usePackageSession($member, $packageSessionId, $adminUserId, $checkIn, $classEnrollmentId, $requestKey, (bool) $membership);
             }
 
             $qrToken->forceFill(['last_used_at' => now()])->save();
@@ -107,7 +109,7 @@ class ConfirmMemberQrCheckInAction
             ->first();
     }
 
-    private function usePackageSession(Member $member, int $packageSessionId, int $adminUserId, ?GymCheckIn $checkIn, ?string $requestKey, bool $hasActiveMembership): ?MemberPackageSessionUsage
+    private function usePackageSession(Member $member, int $packageSessionId, int $adminUserId, ?GymCheckIn $checkIn, ?int $classEnrollmentId, ?string $requestKey, bool $hasActiveMembership): ?MemberPackageSessionUsage
     {
         if (filled($requestKey)) {
             $existingUsage = MemberPackageSessionUsage::query()->where('request_key', $requestKey)->first();
@@ -134,19 +136,27 @@ class ConfirmMemberQrCheckInAction
             throw new RuntimeException('Paket sesi aktif tidak tersedia atau sesi sudah habis.');
         }
 
-        if (! $hasActiveMembership && ! MemberQrAccess::isStandaloneSessionType($session->package?->type)) {
+        $isClassSession = MemberQrAccess::isStandaloneSessionType($session->package?->type);
+
+        if (! $hasActiveMembership && ! $isClassSession) {
             throw new RuntimeException('Membership aktif diperlukan untuk menggunakan paket sesi ini.');
         }
 
-        $existingUsageToday = MemberPackageSessionUsage::query()
-            ->where('member_package_session_id', $packageSessionId)
-            ->where('member_id', $member->id)
-            ->whereDate('usage_date', $today)
-            ->lockForUpdate()
-            ->first();
+        $classEnrollment = null;
 
-        if ($existingUsageToday) {
-            return $checkIn ? null : $existingUsageToday;
+        if ($isClassSession) {
+            $classEnrollment = $this->eligibleClassEnrollment($member, $session, $classEnrollmentId, $today);
+        } else {
+            $existingUsageToday = MemberPackageSessionUsage::query()
+                ->where('member_package_session_id', $packageSessionId)
+                ->where('member_id', $member->id)
+                ->whereDate('usage_date', $today)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingUsageToday) {
+                return $checkIn ? null : $existingUsageToday;
+            }
         }
 
         if ((int) $session->remaining_sessions <= 0) {
@@ -162,15 +172,96 @@ class ConfirmMemberQrCheckInAction
             $session->forceFill(['status' => 'exhausted'])->save();
         }
 
+        if ($classEnrollment) {
+            ClassAttendance::create([
+                'enrollment_id' => $classEnrollment->id,
+                'schedule_id' => $classEnrollment->schedule_id,
+                'member_id' => $member->id,
+                'attendance_date' => $today,
+                'attended_at' => now(),
+                'method' => 'admin_qr',
+                'status' => 'present',
+                'scanned_by' => $adminUserId,
+            ]);
+
+            $classEnrollment->forceFill(['status' => 'attended'])->save();
+        }
+
         return MemberPackageSessionUsage::create([
             'member_package_session_id' => $session->id,
             'member_id' => $member->id,
             'gym_check_in_id' => $checkIn?->id,
+            'class_enrollment_id' => $classEnrollment?->id,
             'usage_date' => $today,
             'used_at' => now(),
             'method' => 'admin_qr',
             'recorded_by' => $adminUserId,
             'request_key' => filled($requestKey) ? $requestKey : null,
         ]);
+    }
+
+    private function eligibleClassEnrollment(Member $member, MemberPackageSession $session, ?int $classEnrollmentId, string $today): ClassEnrollment
+    {
+        if (! $classEnrollmentId) {
+            throw new RuntimeException('Tidak ada booking kelas confirmed hari ini untuk paket sesi ini.');
+        }
+
+        $enrollment = ClassEnrollment::query()
+            ->whereKey($classEnrollmentId)
+            ->where('member_id', $member->id)
+            ->lockForUpdate()
+            ->first();
+
+        if (! $enrollment) {
+            throw new RuntimeException('Booking kelas tidak valid untuk member ini.');
+        }
+
+        $enrollment->loadMissing(['schedule.gymClass', 'schedule.trainer']);
+
+        if ($enrollment->status !== 'confirmed') {
+            throw new RuntimeException('Booking kelas harus sudah dikonfirmasi admin sebelum sesi digunakan.');
+        }
+
+        if (! $enrollment->session_date?->isSameDay($today)) {
+            throw new RuntimeException('Gunakan Sesi hanya bisa untuk booking kelas hari ini.');
+        }
+
+        $schedule = $enrollment->schedule;
+        $gymClass = $schedule?->gymClass;
+
+        if (! $schedule || ! $schedule->is_active || ! $gymClass || ! $gymClass->is_active) {
+            throw new RuntimeException('Jadwal kelas tidak aktif.');
+        }
+
+        if ((int) $schedule->day_of_week !== (int) $enrollment->session_date->dayOfWeekIso) {
+            throw new RuntimeException('Tanggal booking tidak sesuai jadwal kelas.');
+        }
+
+        if (! $this->packageMatchesClass((string) $session->package?->type, $gymClass->required_package_type, $gymClass->class_type)) {
+            throw new RuntimeException('Paket sesi tidak sesuai dengan kelas yang dibooking.');
+        }
+
+        if ($session->trainer_id && (int) $schedule->trainer_id !== (int) $session->trainer_id) {
+            throw new RuntimeException('Paket sesi tidak sesuai dengan coach pada jadwal booking.');
+        }
+
+        if (ClassAttendance::query()->where('enrollment_id', $enrollment->id)->lockForUpdate()->exists()) {
+            throw new RuntimeException('Booking kelas ini sudah digunakan.');
+        }
+
+        if (MemberPackageSessionUsage::query()->where('class_enrollment_id', $enrollment->id)->lockForUpdate()->exists()) {
+            throw new RuntimeException('Sesi untuk booking kelas ini sudah digunakan.');
+        }
+
+        return $enrollment;
+    }
+
+    private function packageMatchesClass(string $packageType, ?string $requiredPackageType, ?string $classType): bool
+    {
+        if (filled($requiredPackageType)) {
+            return $requiredPackageType === $packageType;
+        }
+
+        return $classType === $packageType;
     }
 }

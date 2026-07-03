@@ -623,7 +623,8 @@ test('membership page groups packages and hides empty poundfit section', functio
         ->assertSee('Gym Mahasiswa Group Test')
         ->assertSee('Personal Trainer')
         ->assertSee('PT Group Test')
-        ->assertDontSee('Poundfit');
+        ->assertDontSee('package-group-poundfit', false)
+        ->assertDontSee('Poundfit Group Test');
 });
 
 test('poundfit package appears in membership catalog and activates as package session after payment', function () {

@@ -1,7 +1,11 @@
 <?php
 
 use App\Features\Gymmi\Support\GymmiIntentDetector;
+use App\Features\Gymmi\Support\GymmiKnowledgeRepository;
 use App\Features\Gymmi\Support\GymmiLiveDataProvider;
+use App\Features\Gymmi\Support\GymmiTextNormalizer;
+use App\Features\MemberPortal\ViewModels\MemberChatbotViewModel;
+use App\Features\PublicWebsite\ViewModels\PublicChatbotViewModel;
 use App\Models\AiConversation;
 use App\Models\ClassEnrollment;
 use App\Models\ClassSchedule;
@@ -168,6 +172,38 @@ test('gymmi compiled knowledge artifact includes latest workbook refresh', funct
         ->toMatchArray(['category' => 'Pendaftaran', 'intent' => 'syarat mahasiswa / KTM']);
 });
 
+test('gymmi normalizes curated slang without unsafe raw dataset mappings', function () {
+    $normalizer = app(GymmiTextNormalizer::class);
+
+    expect($normalizer->normalize('hiiii kak brp hrg jim umum?'))
+        ->toBe('hai kak berapa harga gym umum')
+        ->and($normalizer->normalize('mksh yaaa, mau buking muay tay'))
+        ->toBe('terima kasih iya mau booking muaythai')
+        ->and($normalizer->normalize('jdwl pound fit dmn?'))
+        ->toBe('jadwal poundfit dimana')
+        ->and($normalizer->normalize('jim'))
+        ->toBe('gym');
+});
+
+test('gymmi knowledge overrides include curated answer dataset', function () {
+    $knowledge = app(GymmiKnowledgeRepository::class)->all();
+
+    expect(collect($knowledge['faq'])->firstWhere('question', 'test'))
+        ->toMatchArray([
+            'category' => 'Gymmi',
+            'answer' => 'Gymmi aktif. Silakan tanyakan membership, jadwal kelas, harga, lokasi, atau kontak admin Platinum Gym.',
+        ])
+        ->and(collect($knowledge['faq'])->firstWhere('question', 'booking muaythai gimana'))
+        ->toMatchArray([
+            'category' => 'Class',
+            'answer' => 'Booking Muaythai dilakukan dari portal member pada halaman Booking Kelas. Jika paket sesi Muaythai aktif dan masih ada sisa sesi, tombol booking akan tersedia pada jadwal yang sesuai.',
+        ])
+        ->and(collect($knowledge['aliases'])->firstWhere('phrase', 'brp hrg gym'))
+        ->toMatchArray(['category' => 'Membership', 'intent' => 'berapa harga paket gym'])
+        ->and(collect($knowledge['aliases'])->firstWhere('phrase', 'qr saya'))
+        ->toMatchArray(['category' => 'Member Portal', 'intent' => 'qr saya gimana']);
+});
+
 test('public gymmi chat uses gemini and stores conversation', function () {
     configureGeminiForTest();
 
@@ -267,11 +303,327 @@ test('public gymmi handles conversational messages locally without gemini', func
 })->with([
     ['halo', 'asisten Platinum Gym Padang'],
     ['hai', 'membership, jadwal kelas'],
+    ['hiiii gymmi', 'membership, jadwal kelas'],
     ['selamat pagi', 'produk katalog'],
     ['makasih', 'Sama-sama'],
+    ['makasiiih', 'Sama-sama'],
     ['apa kabar', 'Saya siap bantu info Platinum Gym'],
     ['kamu bisa apa', 'Gymmi bisa bantu menjawab info resmi Platinum Gym'],
 ]);
+
+test('gymmi uses curated slang aliases for price questions without gemini', function () {
+    configureGeminiForTest();
+
+    Http::preventStrayRequests();
+
+    $this->postJson(route('gymmi.chat'), [
+        'message' => 'brp hrg jim umum?',
+        'context' => 'public',
+    ])
+        ->assertOk()
+        ->assertJsonPath('source', 'faq')
+        ->assertJsonPath('reply.text', 'Harga Gym Umum adalah Rp249.000.')
+        ->assertDontSee('anjing');
+});
+
+test('gymmi formats live gym umum package prices as a concise chat list', function () {
+    configureGeminiForTest([
+        'services.gemini.api_key' => null,
+        'services.gemini.api_keys' => null,
+    ]);
+
+    Http::preventStrayRequests();
+
+    Package::create([
+        'name' => 'Gym Umum',
+        'slug' => 'gym-umum-live-format',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'category' => 'umum',
+        'price' => 249000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    Package::create([
+        'name' => 'Gym Umum 3 Bulan',
+        'slug' => 'gym-umum-3-bulan-live-format',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'category' => 'umum',
+        'price' => 747000,
+        'duration_days' => 120,
+        'base_duration_days' => 90,
+        'bonus_duration_days' => 30,
+        'bonus_label' => 'Gratis 1 bulan',
+        'is_active' => true,
+    ]);
+
+    Package::create([
+        'name' => 'Gym + Senam Umum',
+        'slug' => 'gym-senam-umum-live-format',
+        'package_kind' => 'membership',
+        'type' => 'gym_senam',
+        'category' => 'umum',
+        'price' => 250000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    Package::create([
+        'name' => 'Gym Mahasiswa',
+        'slug' => 'gym-mahasiswa-live-format',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'category' => 'mahasiswa',
+        'price' => 199000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    $response = $this->postJson(route('gymmi.chat'), [
+        'message' => 'berapa harga gym umum',
+        'context' => 'public',
+    ])
+        ->assertOk()
+        ->assertJsonPath('source', 'knowledge')
+        ->assertDontSee('Paket aktif');
+
+    expect($response->json('reply.text'))
+        ->toContain("Harga Gym Umum yang tersedia:\n")
+        ->toContain('- Gym Umum: Rp249.000 (30 hari)')
+        ->toContain('- Gym Umum 3 Bulan: Rp747.000 (3 bulan + gratis 1 bulan)')
+        ->not->toContain('Gym + Senam Umum')
+        ->not->toContain('Gym Mahasiswa');
+});
+
+test('gymmi formats live class package prices instead of local schedule copy', function (string $message, string $subject, string $expectedHeader, array $expectedLines, array $unexpected) {
+    configureGeminiForTest([
+        'services.gemini.api_key' => null,
+        'services.gemini.api_keys' => null,
+    ]);
+
+    Http::preventStrayRequests();
+
+    Package::create([
+        'name' => 'Muaythai 1x',
+        'slug' => 'muaythai-1x-live-format',
+        'package_kind' => 'muaythai',
+        'type' => 'muaythai',
+        'category' => 'umum',
+        'price' => 85000,
+        'session_count' => 1,
+        'is_active' => true,
+    ]);
+
+    Package::create([
+        'name' => 'Muaythai Umum 4x',
+        'slug' => 'muaythai-umum-4x-live-format',
+        'package_kind' => 'muaythai',
+        'type' => 'muaythai',
+        'category' => 'umum',
+        'price' => 300000,
+        'session_count' => 4,
+        'is_active' => true,
+    ]);
+
+    Package::create([
+        'name' => 'Muaythai Mahasiswa 4x',
+        'slug' => 'muaythai-mahasiswa-4x-live-format',
+        'package_kind' => 'muaythai',
+        'type' => 'muaythai',
+        'category' => 'mahasiswa',
+        'price' => 250000,
+        'session_count' => 4,
+        'is_active' => true,
+    ]);
+
+    Package::create([
+        'name' => 'Poundfit 1x',
+        'slug' => 'poundfit-1x-live-format',
+        'package_kind' => 'session',
+        'type' => 'poundfit',
+        'category' => 'umum',
+        'price' => 50000,
+        'session_count' => 1,
+        'is_active' => true,
+    ]);
+
+    $trainer = Trainer::create([
+        'name' => 'Coach Harga Kelas',
+        'specialization' => $subject,
+        'is_active' => true,
+    ]);
+
+    $class = GymClass::create([
+        'name' => ucfirst($subject),
+        'slug' => $subject.'-harga-live-format',
+        'class_type' => $subject,
+        'access_type' => 'session_based',
+        'capacity' => 12,
+        'is_active' => true,
+    ]);
+
+    ClassSchedule::create([
+        'gym_class_id' => $class->id,
+        'trainer_id' => $trainer->id,
+        'day_of_week' => 1,
+        'start_time' => '18:00',
+        'end_time' => '19:00',
+        'capacity' => 12,
+        'is_active' => true,
+    ]);
+
+    $response = $this->postJson(route('gymmi.chat'), [
+        'message' => $message,
+        'context' => 'public',
+    ])
+        ->assertOk()
+        ->assertJsonPath('source', 'knowledge')
+        ->assertDontSee('Jadwal kelas meliputi')
+        ->assertDontSee('Paket aktif')
+        ->assertDontSee('tersedia Senin')
+        ->assertDontSee('Coach Harga Kelas');
+
+    $reply = (string) $response->json('reply.text');
+
+    expect($reply)->toContain($expectedHeader);
+
+    foreach ($expectedLines as $line) {
+        expect($reply)->toContain($line);
+    }
+
+    foreach ($unexpected as $line) {
+        expect($reply)->not->toContain($line);
+    }
+
+    expect(preg_split("/\r?\n/", trim($reply)))->toHaveCount(1);
+})->with([
+    'muaythai' => [
+        'berapa harga muaythai',
+        'muaythai',
+        'Harga Muaythai mulai Rp85.000 untuk 1 sesi.',
+        [
+            'Paket 4x juga tersedia untuk umum/mahasiswa.',
+        ],
+        ['Poundfit 1x', 'Muaythai Umum 4x:', 'Muaythai Mahasiswa 4x:'],
+    ],
+    'poundfit' => [
+        'berapa biaya poundfit',
+        'poundfit',
+        'Harga Poundfit Rp50.000 untuk 1 sesi.',
+        [],
+        ['Muaythai 1x', 'Muaythai Umum 4x'],
+    ],
+]);
+
+test('gymmi answers bot check messages naturally without gemini', function (string $message, string $context, string $needle) {
+    configureGeminiForTest();
+
+    Http::preventStrayRequests();
+
+    $user = null;
+
+    if ($context === 'member') {
+        $user = User::factory()->create([
+            'name' => 'Check Gymmi Member',
+            'email' => 'check.gymmi@example.com',
+        ]);
+        $user->assignRole('member');
+
+        Member::create([
+            'user_id' => $user->id,
+            'member_code' => 'PG-GYMMI-CHECK',
+            'gender' => 'male',
+            'birth_date' => '2000-01-01',
+            'joined_at' => now()->toDateString(),
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user);
+    }
+
+    $this->postJson(route('gymmi.chat'), [
+        'message' => $message,
+        'context' => $context,
+    ])
+        ->assertOk()
+        ->assertJsonPath('source', 'fallback')
+        ->assertSee($needle)
+        ->assertDontSee('Saya belum menemukan jawaban yang cocok')
+        ->assertDontSee('Gemini')
+        ->assertDontSee('provider');
+
+    $conversation = AiConversation::query()->latest()->first();
+
+    expect($conversation)->not->toBeNull()
+        ->and($conversation->user_id)->toBe($user?->id)
+        ->and($conversation->meta)->toMatchArray(['source' => 'fallback']);
+})->with([
+    ['test', 'public', 'Gymmi aktif'],
+    ['tes', 'public', 'membership, jadwal kelas, harga'],
+    ['cek gymmi', 'member', 'cek membership, booking kelas'],
+]);
+
+test('gymmi uses curated answer dataset for common short questions', function (string $message, string $context, string $expectedSource, string $needle) {
+    configureGeminiForTest([
+        'services.gemini.api_key' => null,
+        'services.gemini.api_keys' => null,
+    ]);
+
+    Http::preventStrayRequests();
+
+    $user = null;
+
+    if ($context === 'member') {
+        $user = User::factory()->create([
+            'name' => 'Dataset Gymmi Member',
+            'email' => 'dataset.gymmi@example.com',
+        ]);
+        $user->assignRole('member');
+
+        Member::create([
+            'user_id' => $user->id,
+            'member_code' => 'PG-GYMMI-DATASET',
+            'gender' => 'female',
+            'birth_date' => '1999-01-01',
+            'joined_at' => now()->toDateString(),
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user);
+    }
+
+    $this->postJson(route('gymmi.chat'), [
+        'message' => $message,
+        'context' => $context,
+    ])
+        ->assertOk()
+        ->assertJsonPath('source', $expectedSource)
+        ->assertSee($needle)
+        ->assertDontSee('Gemini')
+        ->assertDontSee('fallback')
+        ->assertDontSee('provider');
+})->with([
+    ['cara daftar', 'public', 'faq', 'Pendaftaran member bisa dilakukan lewat menu Daftar Member'],
+    ['bayar qris bisa?', 'public', 'faq', 'Cash, QRIS Bank Nagari, dan Transfer Bank Mandiri'],
+    ['booking muaythai gimana?', 'public', 'faq', 'Booking Muaythai dilakukan dari portal member'],
+    ['qr saya gimana?', 'member', 'knowledge', 'QR member Anda'],
+]);
+
+test('gymmi chatbot view models expose polished local fallback replies', function () {
+    $public = PublicChatbotViewModel::make([]);
+    $member = MemberChatbotViewModel::make([]);
+
+    expect($public['replies']['check'])->toBe('Gymmi aktif. Silakan tanyakan membership, jadwal kelas, harga, lokasi, atau kontak admin Platinum Gym.')
+        ->and($public['replies']['classPrice'])->toBe('Muaythai dan Poundfit memakai paket sesi terpisah. Untuk harga terbaru, cek halaman Layanan atau tanyakan langsung nama kelasnya, misalnya harga Muaythai atau harga Poundfit.')
+        ->and($public['replies']['fallback'])->toBe('Saya belum menangkap topiknya. Coba tulis seperti harga Gym Umum, jadwal Muaythai, lokasi gym, atau metode pembayaran.')
+        ->and($member['replies']['check']['text'])->toBe('Gymmi aktif. Saya bisa bantu cek membership, booking kelas, transaksi, QR member, profil, atau info layanan Platinum Gym.')
+        ->and($member['replies']['classPrice']['text'])->toBe('Muaythai dan Poundfit memakai paket sesi terpisah. Harga dan sisa sesi bisa dicek dari halaman Membership, lalu booking dilakukan dari halaman Booking Kelas.')
+        ->and($member['replies']['fallback']['text'])->toBe('Saya belum menangkap topiknya. Coba tulis seperti status membership, booking kelas, transaksi, QR member, atau profil.')
+        ->and($member['replies']['fallback'])->not->toHaveKey('actionLabel')
+        ->and($member['replies']['fallback'])->not->toHaveKey('actionUrl');
+});
 
 test('member gymmi greeting is contextual and logs to authenticated member', function () {
     configureGeminiForTest();
