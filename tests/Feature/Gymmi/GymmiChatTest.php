@@ -52,6 +52,24 @@ function configureGeminiForTest(array $overrides = []): void
     ], $overrides));
 }
 
+function fakeGeminiContentResponse(string $text): array
+{
+    return [
+        'candidates' => [[
+            'content' => [
+                'parts' => [[
+                    'text' => $text,
+                ]],
+            ],
+        ]],
+    ];
+}
+
+function gymmiRequestPayloadText(mixed $request): string
+{
+    return (string) json_encode($request->data(), JSON_UNESCAPED_UNICODE);
+}
+
 function writeGymmiKnowledgeWorkbookFixture(string $path): void
 {
     File::ensureDirectoryExists(dirname($path));
@@ -990,7 +1008,13 @@ test('gymmi sends only muaythai context to gemini for typo private question', fu
         ->assertSee('Muaythai')
         ->assertDontSee('Aerobic');
 
-    Http::assertSentCount(1);
+    Http::assertSentCount(2);
+    Http::assertSent(function ($request): bool {
+        $payload = gymmiRequestPayloadText($request);
+
+        return str_contains($payload, 'Anda adalah Gymmi')
+            && str_contains($payload, 'Muaythai');
+    });
 
     $intent = app(GymmiIntentDetector::class)->detect('muay tay bisa private hanya saya dan coach?');
     $snippets = app(GymmiLiveDataProvider::class)->publicSnippets('muay tay bisa private hanya saya dan coach?', ['intent' => $intent]);
@@ -999,6 +1023,161 @@ test('gymmi sends only muaythai context to gemini for typo private question', fu
     expect($snippetText)
         ->toContain('Muaythai')
         ->not->toContain('Aerobic');
+});
+
+test('gymmi uses gemini normalizer before answer writer with safe laravel snippets', function () {
+    configureGeminiForTest([
+        'services.gemini.public_cache_seconds' => 0,
+    ]);
+
+    Package::create([
+        'name' => 'Gym Umum Normalizer RAG',
+        'slug' => 'gym-umum-normalizer-rag',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 345000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    Http::fakeSequence()
+        ->push(fakeGeminiContentResponse(json_encode([
+            'normalized_message' => 'berapa harga paket gym umum dan apakah bisa daftar paket mahasiswa jika tidak ada ktm',
+            'intents' => ['membership_price', 'student_package_requirement'],
+            'entities' => ['package' => 'gym umum', 'requirement' => 'ktm'],
+            'confidence' => 92,
+            'unsafe_flags' => [],
+        ], JSON_THROW_ON_ERROR)))
+        ->push(fakeGeminiContentResponse('Harga Gym Umum Normalizer RAG Rp345.000 per 30 hari. Untuk paket mahasiswa, biasanya perlu KTM; kalau belum ada, konfirmasi admin untuk opsi dokumen pengganti.'));
+
+    $this->postJson(route('gymmi.chat'), [
+        'message' => 'brp hargaa pktt gymm umum, apakah bisa daftar pakett mahasiswa jk tidk ada ktm?',
+        'context' => 'public',
+    ])
+        ->assertOk()
+        ->assertJsonPath('source', 'gemini')
+        ->assertSee('Rp345.000')
+        ->assertDontSee('test-gemini-key-one')
+        ->assertDontSee('test-gemini-key-two');
+
+    Http::assertSentCount(2);
+    Http::assertSent(function ($request): bool {
+        $payload = gymmiRequestPayloadText($request);
+
+        return str_contains($payload, 'Output wajib JSON valid saja')
+            && str_contains($payload, 'brp hargaa pktt gymm umum');
+    });
+    Http::assertSent(function ($request): bool {
+        $payload = gymmiRequestPayloadText($request);
+
+        return str_contains($payload, 'Anda adalah Gymmi')
+            && str_contains($payload, 'Pertanyaan user: berapa harga paket gym umum')
+            && str_contains($payload, 'Gym Umum Normalizer RAG')
+            && ! str_contains($payload, 'hargaa pktt gymm');
+    });
+
+    $conversation = AiConversation::query()->latest()->first();
+
+    expect($conversation)->not->toBeNull()
+        ->and($conversation->meta)->toMatchArray([
+            'source' => 'gemini',
+            'normalizer_source' => 'gemini',
+            'normalizer_confidence' => 92,
+            'normalizer_intents' => ['membership_price', 'student_package_requirement'],
+            'normalizer_unsafe_flags' => [],
+        ]);
+});
+
+test('gymmi rejects low confidence gemini normalization and keeps local lookup', function () {
+    configureGeminiForTest([
+        'services.gemini.public_cache_seconds' => 0,
+    ]);
+
+    Package::create([
+        'name' => 'Gym Umum Local RAG',
+        'slug' => 'gym-umum-local-rag',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 222000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    Http::fakeSequence()
+        ->push(fakeGeminiContentResponse(json_encode([
+            'normalized_message' => 'harga bitcoin hari ini',
+            'intents' => ['membership_price'],
+            'entities' => [],
+            'confidence' => 25,
+            'unsafe_flags' => [],
+        ], JSON_THROW_ON_ERROR)))
+        ->push(fakeGeminiContentResponse('Harga Gym Umum Local RAG Rp222.000 per 30 hari.'));
+
+    $this->postJson(route('gymmi.chat'), [
+        'message' => 'brp hrg gym umum?',
+        'context' => 'public',
+    ])
+        ->assertOk()
+        ->assertJsonPath('source', 'gemini')
+        ->assertSee('Rp222.000');
+
+    Http::assertSentCount(2);
+    Http::assertSent(function ($request): bool {
+        $payload = gymmiRequestPayloadText($request);
+
+        return str_contains($payload, 'Anda adalah Gymmi')
+            && str_contains($payload, 'Pertanyaan user: berapa harga gym umum')
+            && ! str_contains($payload, 'harga bitcoin hari ini');
+    });
+
+    $conversation = AiConversation::query()->latest()->first();
+
+    expect($conversation)->not->toBeNull()
+        ->and($conversation->meta)->toMatchArray([
+            'source' => 'gemini',
+            'normalizer_source' => 'local_ai_rejected',
+            'normalizer_confidence' => 25,
+        ]);
+});
+
+test('gymmi falls back to local knowledge when gemini normalizer hits quota', function () {
+    configureGeminiForTest();
+
+    Package::create([
+        'name' => 'Gym Umum Quota RAG',
+        'slug' => 'gym-umum-quota-rag',
+        'package_kind' => 'membership',
+        'type' => 'gym',
+        'price' => 199000,
+        'duration_days' => 30,
+        'is_active' => true,
+    ]);
+
+    Http::fake([
+        'generativelanguage.googleapis.com/*' => Http::response(['error' => ['status' => 'RESOURCE_EXHAUSTED']], 429),
+    ]);
+
+    $this->postJson(route('gymmi.chat'), [
+        'message' => 'brp hrg gym umum?',
+        'context' => 'public',
+    ])
+        ->assertOk()
+        ->assertJsonPath('source', 'knowledge')
+        ->assertSee('Gym Umum Quota RAG')
+        ->assertSee('Rp199.000')
+        ->assertDontSee('Gemini')
+        ->assertDontSee('fallback')
+        ->assertDontSee('rate limit');
+
+    Http::assertSentCount(1);
+
+    $conversation = AiConversation::query()->latest()->first();
+
+    expect($conversation)->not->toBeNull()
+        ->and($conversation->meta)->toMatchArray([
+            'source' => 'knowledge',
+            'normalizer_source' => 'local_ai_unavailable',
+        ]);
 });
 
 test('gymmi rate limit fallback remains natural for muaythai private question', function () {
