@@ -159,6 +159,9 @@ GEMINI_API_KEYS=
 GEMINI_MODEL=gemini-2.0-flash
 GEMINI_TIMEOUT=12
 GEMINI_MAX_RETRIES=2
+GYMMI_AI_NORMALIZER_ENABLED=true
+GYMMI_AI_NORMALIZER_MIN_CONFIDENCE=60
+GYMMI_AI_NORMALIZER_MAX_OUTPUT_TOKENS=260
 ```
 
 Nilai key tidak boleh ditulis di dokumentasi, commit, screenshot, atau output terminal yang dibagikan.
@@ -171,7 +174,7 @@ php artisan gymmi:sync-gemini-keys --status
 php artisan gymmi:sync-gemini-keys --write-env
 ```
 
-`GEMINI_API_KEYS` mendukung format comma-separated atau newline-separated. Command tidak mencetak nilai key, melakukan trim/deduplicate/validasi format, dan menolak `--write-env` saat `APP_ENV=production` tanpa `--force`. Untuk production/cPanel, masukkan key melalui environment/secret manager hosting, bukan membaca file `.txt` pada runtime request.
+`GEMINI_API_KEYS` mendukung format comma-separated atau newline-separated. Command tidak mencetak nilai key, melakukan trim/deduplicate/validasi format, dan menolak `--write-env` saat `APP_ENV=production` tanpa `--force`. Untuk batch 100 key, jalankan dry-run dulu dan jangan tulis `.env` kecuali output menunjukkan tepat `Valid unique keys: 100`. Untuk production/cPanel, masukkan key melalui environment/secret manager hosting, bukan membaca file `.txt` pada runtime request.
 
 Knowledge base Gymmi dikompilasi dari workbook internal tim ke JSON runtime. Jalankan ulang command ini setelah `data_AI_Chatbot.xlsx` berubah:
 
@@ -181,7 +184,7 @@ php artisan gymmi:import-knowledge
 
 Runtime membaca `resources/data/gymmi/knowledge-base.json`, bukan file Excel per request. File `Gymmi API Key.txt` tidak dipakai runtime dan tidak boleh dibaca, dicetak, atau disalin ke source code.
 
-Saat runtime, Gymmi memakai pola hybrid RAG: JSON knowledge base untuk FAQ/Alias/Config/knowledge stabil dan database live untuk data yang berubah seperti paket aktif, promo valid, jadwal kelas aktif, produk aktif/stok, setting publik whitelist, serta ringkasan data member login sendiri. Artifact workbook terbaru berisi FAQ 137 dan Alias 1578. File `resources/data/gymmi/knowledge-overrides.json` boleh dipakai untuk koreksi kecil yang sudah divalidasi setelah import workbook, tanpa membuat CSV runtime baru. Gemini hanya menyusun jawaban dari snippet yang sudah dipilih; jika provider rate limit/gagal, fallback lokal tetap dipakai dan tetap menjawab natural dari data resmi.
+Saat runtime, Gymmi memakai pola hybrid RAG dua tahap: Gemini normalizer hanya merapikan bahasa user menjadi JSON aman, Laravel memilih JSON knowledge base dan database live yang boleh diakses, lalu Gemini answer writer menyusun jawaban dari snippet yang sudah dipilih. JSON knowledge base dipakai untuk FAQ/Alias/Config/knowledge stabil, sedangkan database live dipakai untuk paket aktif, promo valid, jadwal kelas aktif, produk aktif/stok, setting publik whitelist, serta ringkasan data member login sendiri. Artifact workbook terbaru berisi FAQ 137 dan Alias 1578. File `resources/data/gymmi/knowledge-overrides.json` boleh dipakai untuk koreksi kecil yang sudah divalidasi setelah import workbook, tanpa membuat CSV runtime baru. Jika normalizer atau answer writer rate limit/gagal, fallback lokal tetap dipakai dan tetap menjawab natural dari data resmi.
 
 ## Build Asset Frontend
 

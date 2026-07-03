@@ -884,3 +884,35 @@ resources/views/admin/pages/settings-form.blade.php
 - `php artisan test --no-ansi` lulus 680 tests / 5370 assertions.
 - `php artisan route:list --except-vendor --no-ansi` lulus dengan 113 routes.
 - `php artisan config:cache`, `php artisan route:cache`, `php artisan view:cache`, dan `php artisan optimize:clear` lulus.
+
+## 26. Gymmi Two-Stage Gemini 2026-07-03
+
+### Perubahan
+
+Gymmi dipisah menjadi normalizer dan answer writer agar Gemini tidak membaca database langsung:
+
+```text
+app/Features/Gymmi/Contracts/GymmiInputNormalizerClient.php
+app/Features/Gymmi/Contracts/GymmiAnswerClient.php
+app/Features/Gymmi/Support/GeminiContentTransport.php
+app/Features/Gymmi/Support/GymmiNormalizedInput.php
+app/Features/Gymmi/Actions/AskGymmiAction.php
+app/Features/Gymmi/Clients/GeminiGymmiClient.php
+```
+
+### Detail
+
+- `AskGymmiAction` sekarang menjalankan guard, normalizer, retrieval Laravel allowlist, answer writer, fallback lokal, lalu conversation logging.
+- Gemini normalizer hanya menerima pesan user dan konteks permukaan, lalu mengembalikan JSON `normalized_message`, `intents`, `entities`, `confidence`, dan `unsafe_flags`.
+- Laravel menolak normalisasi AI jika JSON invalid, confidence rendah, unsafe flag terisi, intent tidak masuk allowlist, atau hasil normalisasi gagal guard.
+- Gemini answer writer hanya menerima pertanyaan normal dan snippet aman dari Laravel. Public snippet tetap public-only, sedangkan member snippet tetap own-data user login.
+- `GeminiContentTransport` menyatukan retry, timeout, key pool, cooldown 429, invalid-key marker 401/403, model circuit 404, dan fallback untuk normalizer maupun answer writer.
+- `.env.example` menambahkan `GYMMI_AI_NORMALIZER_ENABLED`, `GYMMI_AI_NORMALIZER_MIN_CONFIDENCE`, dan `GYMMI_AI_NORMALIZER_MAX_OUTPUT_TOKENS`.
+
+### Evidence
+
+- `php artisan test --filter=Gymmi --no-ansi` lulus 55 tests / 519 assertions.
+- `php artisan test --filter=MemberPortalUiTest --no-ansi` lulus 11 tests / 586 assertions.
+- `vendor\bin\pint --test`, `npm.cmd run build`, dan `git diff --check` lulus.
+- Dry-run sync key internal masih menghasilkan 0 valid unique keys dari 500 token, sehingga `.env` tidak ditulis.
+- Full `php artisan test --no-ansi` dicoba tetapi runtime PHP lokal tidak menyediakan `imagejpeg`, `imagewebp`, dan `intl`; kegagalan berada pada test upload/payment di luar Gymmi.
