@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Features\Gymmi\Clients\GeminiGymmiClient;
+use App\Features\Gymmi\Contracts\GymmiAnswerClient;
 use App\Features\Gymmi\Contracts\GymmiAssistantClient;
+use App\Features\Gymmi\Contracts\GymmiInputNormalizerClient;
 use App\Features\MemberPortal\Contracts\StudentVerificationGateway;
 use App\Features\MemberPortal\Gateways\PddiktiStudentVerificationGateway;
 use App\Features\Payments\Contracts\PaymentGateway;
@@ -34,7 +36,10 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(PaymentGateway::class, MidtransSnapGateway::class);
-        $this->app->singleton(GymmiAssistantClient::class, GeminiGymmiClient::class);
+        $this->app->singleton(GeminiGymmiClient::class);
+        $this->app->singleton(GymmiAssistantClient::class, fn ($app): GeminiGymmiClient => $app->make(GeminiGymmiClient::class));
+        $this->app->singleton(GymmiInputNormalizerClient::class, fn ($app): GeminiGymmiClient => $app->make(GeminiGymmiClient::class));
+        $this->app->singleton(GymmiAnswerClient::class, fn ($app): GeminiGymmiClient => $app->make(GeminiGymmiClient::class));
         $this->app->singleton(StudentVerificationGateway::class, PddiktiStudentVerificationGateway::class);
     }
 

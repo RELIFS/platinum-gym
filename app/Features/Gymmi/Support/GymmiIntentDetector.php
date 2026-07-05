@@ -2,10 +2,12 @@
 
 namespace App\Features\Gymmi\Support;
 
-use Illuminate\Support\Str;
-
 class GymmiIntentDetector
 {
+    public function __construct(
+        private readonly GymmiTextNormalizer $normalizer,
+    ) {}
+
     /**
      * @return array{intent: string, subject: string|null, normalized: string}
      */
@@ -79,11 +81,6 @@ class GymmiIntentDetector
 
     private function normalize(string $value): string
     {
-        return Str::of($value)
-            ->lower()
-            ->ascii()
-            ->replaceMatches('/[^a-z0-9]+/', ' ')
-            ->squish()
-            ->toString();
+        return $this->normalizer->normalize($value);
     }
 }

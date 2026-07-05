@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminResourceController;
 use App\Http\Controllers\Admin\AdminResourceStatusController;
 use App\Http\Controllers\Admin\AdminSettingsController;
+use App\Http\Controllers\Admin\AdminStudentProofReviewController;
 use App\Http\Controllers\AdminPortalController;
 use App\Http\Controllers\GymmiChatController;
 use App\Http\Controllers\Member\MemberBookingController;
@@ -98,6 +99,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::patch('/resource/{resource}/{id}/toggle', [AdminResourceStatusController::class, 'toggle'])->name('resources.toggle');
         Route::get('/anggota', [AdminPortalController::class, 'members'])->name('members');
         Route::post('/anggota/{member}/undangan', AdminMemberInvitationController::class)->name('members.invitation.send');
+        Route::get('/anggota/{member}/bukti-mahasiswa/review', [AdminStudentProofReviewController::class, 'show'])->name('members.student-proof.review');
+        Route::get('/anggota/{member}/bukti-mahasiswa', [AdminStudentProofReviewController::class, 'proof'])->name('members.student-proof.show');
+        Route::post('/anggota/{member}/bukti-mahasiswa/setujui', [AdminStudentProofReviewController::class, 'approve'])->name('members.student-proof.approve');
+        Route::post('/anggota/{member}/bukti-mahasiswa/tolak', [AdminStudentProofReviewController::class, 'reject'])->name('members.student-proof.reject');
         Route::get('/paket', [AdminPortalController::class, 'packages'])->name('packages');
         Route::get('/kelas', [AdminPortalController::class, 'classes'])->name('classes');
         Route::get('/pembayaran', [AdminPortalController::class, 'payments'])->name('payments');

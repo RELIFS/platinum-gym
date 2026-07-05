@@ -56,6 +56,7 @@ class AdminCheckInController extends Controller
                 (string) $request->validated('action'),
                 $request->user()->id,
                 $request->integer('member_package_session_id') ?: null,
+                $request->integer('class_enrollment_id') ?: null,
                 $previewKey,
             );
         } catch (RuntimeException $exception) {

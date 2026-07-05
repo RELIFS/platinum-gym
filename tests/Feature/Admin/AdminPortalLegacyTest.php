@@ -85,12 +85,13 @@ test('admin can access all admin pages', function (string $path, string $title) 
     ['/admin/profil', 'Profil Admin'],
 ]);
 
-test('admin member resource uses nim label', function () {
+test('admin member resource no longer shows legacy nim field', function () {
     $admin = AdminFixtures::admin(['name' => 'Admin Portal']);
 
     $this->actingAs($admin)->get(route('admin.resources.create', 'members'))
         ->assertOk()
-        ->assertSee('NIM')
+        ->assertSee('Kategori Mahasiswa')
+        ->assertDontSee('NIM')
         ->assertDontSee('Nomor Identitas Mahasiswa');
 });
 
@@ -268,11 +269,14 @@ test('admin settings page masks sensitive values', function () {
 
     $this->actingAs($admin)->get('/admin/pengaturan')
         ->assertOk()
-        ->assertSee('gemini_api_key')
-        ->assertSee('Tersamarkan')
         ->assertDontSee('secret-test-value')
-        ->assertSee('site_tagline')
-        ->assertSee('Gym premium di Padang');
+        ->assertDontSee('gemini_api_key')
+        ->assertDontSee('Tersamarkan')
+        ->assertDontSee('site_tagline')
+        ->assertDontSee('Gym premium di Padang')
+        ->assertDontSee('Kunci')
+        ->assertDontSee('URL Google Maps')
+        ->assertDontSee('Link embed peta Google');
 });
 
 test('admin check-in page renders paginated history with date range filters', function () {
@@ -839,8 +843,8 @@ test('admin can update whitelisted public settings without exposing secrets', fu
 
     $this->actingAs($admin)->get(route('admin.settings', ['q' => 'qr_secret']))
         ->assertOk()
-        ->assertSee('qr_secret')
-        ->assertSee('Tersamarkan')
+        ->assertDontSee('qr_secret')
+        ->assertDontSee('Tersamarkan')
         ->assertDontSee('do-not-render-this-secret');
 });
 
@@ -941,6 +945,33 @@ test('admin scan active member qr shows preview before confirm check in', functi
         'status' => 'active',
     ]);
 
+    $gymClass = GymClass::create([
+        'name' => 'Muaythai Admin Preview Class',
+        'slug' => 'muaythai-admin-preview-class',
+        'class_type' => 'muaythai',
+        'access_type' => 'session_based',
+        'required_package_type' => 'muaythai',
+        'capacity' => 12,
+        'is_active' => true,
+    ]);
+
+    $schedule = ClassSchedule::create([
+        'gym_class_id' => $gymClass->id,
+        'trainer_id' => $trainer->id,
+        'day_of_week' => now()->dayOfWeekIso,
+        'start_time' => '17:00:00',
+        'end_time' => '18:00:00',
+        'capacity' => 12,
+        'is_active' => true,
+    ]);
+
+    ClassEnrollment::create([
+        'schedule_id' => $schedule->id,
+        'member_id' => $member->id,
+        'session_date' => now()->toDateString(),
+        'status' => 'confirmed',
+    ]);
+
     $qrToken = QrToken::create([
         'tokenable_type' => Member::class,
         'tokenable_id' => $member->id,
@@ -969,7 +1000,10 @@ test('admin scan active member qr shows preview before confirm check in', functi
         ->assertSee("x-on:click=\"selectedAction = 'check_in_membership'\"", false)
         ->assertSee("x-on:click=\"selectedAction = 'use_package_session'\"", false)
         ->assertSee("x-on:click=\"selectedAction = 'check_in_and_use_session'\"", false)
-        ->assertSee('Muaythai Admin Preview 4x - 3/4 sesi - Coach Adi')
+        ->assertSee('Muaythai Admin Preview Class')
+        ->assertSee('Muaythai Admin Preview 4x')
+        ->assertSee('3/4 sesi')
+        ->assertSee('Coach Adi')
         ->assertDontSee('Pakai Sesi')
         ->assertDontSee('Coach Coach Adi');
 
@@ -1199,6 +1233,32 @@ test('admin can check in and use one package session after qr preview', function
         'status' => 'active',
     ]);
 
+    $gymClass = GymClass::create([
+        'name' => 'Muaythai Check In Session Class',
+        'slug' => 'muaythai-check-in-session-class',
+        'class_type' => 'muaythai',
+        'access_type' => 'session_based',
+        'required_package_type' => 'muaythai',
+        'capacity' => 12,
+        'is_active' => true,
+    ]);
+
+    $schedule = ClassSchedule::create([
+        'gym_class_id' => $gymClass->id,
+        'day_of_week' => now()->dayOfWeekIso,
+        'start_time' => '17:00:00',
+        'end_time' => '18:00:00',
+        'capacity' => 12,
+        'is_active' => true,
+    ]);
+
+    $enrollment = ClassEnrollment::create([
+        'schedule_id' => $schedule->id,
+        'member_id' => $member->id,
+        'session_date' => now()->toDateString(),
+        'status' => 'confirmed',
+    ]);
+
     $qrToken = QrToken::create([
         'tokenable_type' => Member::class,
         'tokenable_id' => $member->id,
@@ -1218,6 +1278,7 @@ test('admin can check in and use one package session after qr preview', function
         'preview_key' => $preview['preview_key'],
         'action' => 'check_in_and_use_session',
         'member_package_session_id' => $packageSession->id,
+        'class_enrollment_id' => $enrollment->id,
     ])->assertRedirect();
 
     $checkIn = GymCheckIn::query()->where('member_id', $member->id)->firstOrFail();
@@ -1227,7 +1288,9 @@ test('admin can check in and use one package session after qr preview', function
         ->used_sessions->toBe(1)
         ->remaining_sessions->toBe(3)
         ->and($checkIn->method)->toBe('qr')
-        ->and($usage->gym_check_in_id)->toBe($checkIn->id);
+        ->and($usage->gym_check_in_id)->toBe($checkIn->id)
+        ->and($usage->class_enrollment_id)->toBe($enrollment->id)
+        ->and($enrollment->refresh()->status)->toBe('attended');
 });
 
 test('admin can toggle product active status', function () {

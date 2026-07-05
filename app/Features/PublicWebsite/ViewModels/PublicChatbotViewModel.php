@@ -26,16 +26,18 @@ class PublicChatbotViewModel
             'quickReplies' => ['Info Membership', 'Jadwal Kelas', 'Harga Personal Trainer', 'Lokasi & Jam Buka'],
             'replies' => [
                 'greeting' => 'Halo! Saya Gymmi, asisten Platinum Gym Padang. Saya bisa bantu info membership, jadwal kelas, personal trainer, promo, produk katalog, lokasi, dan jam buka.',
+                'check' => 'Gymmi aktif. Silakan tanyakan membership, jadwal kelas, harga, lokasi, atau kontak admin Platinum Gym.',
                 'thanks' => 'Sama-sama. Kalau masih ada yang ingin dicek, sebutkan topiknya seperti membership, jadwal kelas, lokasi, promo, atau produk.',
                 'wellbeing' => 'Saya siap bantu info Platinum Gym. Mau cek harga membership, jadwal kelas, lokasi, promo, atau personal trainer?',
                 'capability' => 'Gymmi bisa bantu menjawab info resmi Platinum Gym seperti membership, jadwal kelas, personal trainer, fasilitas, produk katalog, promo, lokasi, jam operasional, dan kontak admin.',
                 'goodbye' => 'Baik, sampai jumpa. Semoga latihan Anda lancar di Platinum Gym Padang.',
                 'membership' => 'Paket membership tersedia untuk umum dan mahasiswa. Mulai dari Gym Umum, Gym Mahasiswa, serta paket khusus sesuai promo aktif. Untuk daftar, gunakan tombol Daftar Member.',
                 'schedule' => 'Jadwal kelas meliputi Aerobic, Zumba, Poundfit, dan Muaythai. Buka halaman Kelas untuk melihat hari, jam, pelatih, dan filter jadwal terbaru.',
+                'classPrice' => 'Muaythai dan Poundfit memakai paket sesi terpisah. Untuk harga terbaru, cek halaman Layanan atau tanyakan langsung nama kelasnya, misalnya harga Muaythai atau harga Poundfit.',
                 'trainer' => 'Personal Trainer tersedia dalam paket 5x, 10x, dan 24x sesi untuk member aktif. Program latihan dapat disesuaikan dengan target dan kondisi tubuh.',
                 'location' => 'Platinum Gym Padang berlokasi di Jl. H. Agus Salim No.3A, Sawahan, Padang. Jam operasional: Senin-Sabtu 08:00-22:00, Minggu tutup.',
                 'promo' => 'Promo aktif ditampilkan di halaman Beranda dan Layanan. Jika promo berubah, informasi di website mengikuti data terbaru dari admin.',
-                'fallback' => 'Saya belum menemukan jawaban yang cocok. Coba pilih topik cepat di bawah, atau hubungi admin untuk bantuan lanjutan.',
+                'fallback' => 'Saya belum menangkap topiknya. Coba tulis seperti harga Gym Umum, jadwal Muaythai, lokasi gym, atau metode pembayaran.',
             ],
         ];
     }

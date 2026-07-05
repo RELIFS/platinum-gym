@@ -27,7 +27,8 @@ class GymmiInputGuard
 
         if ($this->containsAny($normalized, [
             'api key', 'apikey', 'gemini key', 'resend key', 'token rahasia', 'secret', '.env',
-            'app key', 'midtrans key', 'qr token', 'password admin', 'kata sandi admin',
+            'app key', 'midtrans key', 'qr token', 'raw qr token', 'payment response',
+            'raw payment response', 'payload midtrans', 'password admin', 'kata sandi admin',
         ])) {
             return $this->blocked('secret_request', 'Saya tidak bisa membantu membuka API key, token, password, atau data rahasia. Untuk bantuan akun, gunakan menu resmi atau hubungi admin.');
         }
@@ -35,7 +36,8 @@ class GymmiInputGuard
         if ($this->containsAny($normalized, [
             'abaikan instruksi', 'ignore instruction', 'ignore previous', 'lupakan aturan',
             'jawab bebas', 'karang jawaban', 'buat data palsu', 'bypass role', 'akses database',
-            'lihat database', 'sql dump', 'role admin', 'jadikan saya admin',
+            'lihat database', 'sql dump', 'role admin', 'jadikan saya admin', 'data member lain',
+            'member lain', 'transaksi orang lain', 'booking orang lain',
         ])) {
             return $this->blocked('prompt_injection', 'Saya hanya bisa menjawab berdasarkan data resmi Platinum Gym dan tidak bisa mengikuti instruksi untuk melewati aturan sistem.');
         }
