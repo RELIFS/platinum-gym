@@ -64,7 +64,9 @@ class GymmiResponseFormatter
         $snippet = trim($snippet);
         $snippet = str_replace(['session_based', 'included'], ['kelas terpisah atau berbayar', 'akses mengikuti paket yang sesuai'], $snippet);
         $snippet = preg_replace('/\b(Gemini|fallback|provider|rate limit|snippet|prompt|data lokal)\b/i', '', $snippet) ?: $snippet;
-        $snippet = preg_replace('/\s+/', ' ', $snippet) ?: $snippet;
+        $snippet = preg_replace('/[ \t]+/', ' ', $snippet) ?: $snippet;
+        $snippet = preg_replace("/\n[ \t]+/", "\n", $snippet) ?: $snippet;
+        $snippet = preg_replace("/\n{3,}/", "\n\n", $snippet) ?: $snippet;
 
         return trim($snippet);
     }

@@ -57,6 +57,11 @@ class MemberDashboardQuery
 
         $activeMemberships = $startedMemberships->concat($awaitingMemberships)->values();
         $activeMembership = $activeMemberships->first();
+        $activeMembershipTypes = $activeMemberships
+            ->pluck('package.type')
+            ->filter()
+            ->unique()
+            ->values();
 
         $latestMembership = $member->memberships()
             ->with('package')
@@ -117,7 +122,7 @@ class MemberDashboardQuery
         $hasActiveGymMembership = $this->hasActiveGymMembership($member, $today);
         $hasActiveStandaloneSession = MemberQrAccess::hasActiveStandaloneSession($member, $today);
         $packages = $this->packages($member, $hiddenSessionPackageIds, $pageKey, $filters, (bool) $activeMembership, $hasActiveGymMembership);
-        $classSchedules = $this->classSchedules($member, $pageKey, $filters, $today);
+        $classSchedules = $this->classSchedules($member, $pageKey, $filters, $today, $activeMembershipTypes);
         $notifications = $this->notifications($user, $pageKey, $filters);
         $trainerOptions = $this->trainerOptionsForPackages($packages);
 
@@ -415,7 +420,7 @@ class MemberDashboardQuery
             || (string) $package->type === 'pt';
     }
 
-    private function classSchedules(Member $member, string $pageKey, array $filters, string $today): mixed
+    private function classSchedules(Member $member, string $pageKey, array $filters, string $today, Collection $activeMembershipTypes): mixed
     {
         $activeSessionTypes = $this->activePackageSessionTypes($member, $today);
         $activeMuaythaiTrainerIds = $this->activePackageSessionTrainerIds($member, 'muaythai', $today);
@@ -442,10 +447,10 @@ class MemberDashboardQuery
         if ($pageKey === 'booking-kelas') {
             $this->applyScheduleFilters($query, $filters);
 
-            return $query->paginate(24)->withQueryString()->through(fn (ClassSchedule $schedule) => $this->prepareSchedule($schedule, $activeSessionTypes, $activeMuaythaiTrainerIds));
+            return $query->paginate(24)->withQueryString()->through(fn (ClassSchedule $schedule) => $this->prepareSchedule($schedule, $activeMembershipTypes, $activeSessionTypes, $activeMuaythaiTrainerIds));
         }
 
-        return $query->limit(8)->get()->each(fn (ClassSchedule $schedule) => $this->prepareSchedule($schedule, $activeSessionTypes, $activeMuaythaiTrainerIds));
+        return $query->limit(8)->get()->each(fn (ClassSchedule $schedule) => $this->prepareSchedule($schedule, $activeMembershipTypes, $activeSessionTypes, $activeMuaythaiTrainerIds));
     }
 
     private function notifications(User $user, string $pageKey, array $filters): mixed
@@ -513,10 +518,11 @@ class MemberDashboardQuery
     }
 
     /**
+     * @param  Collection<int, string>  $activeMembershipTypes
      * @param  Collection<int, string>  $activeSessionTypes
      * @param  Collection<int, int>  $activeMuaythaiTrainerIds
      */
-    private function prepareSchedule(ClassSchedule $schedule, Collection $activeSessionTypes, Collection $activeMuaythaiTrainerIds): ClassSchedule
+    private function prepareSchedule(ClassSchedule $schedule, Collection $activeMembershipTypes, Collection $activeSessionTypes, Collection $activeMuaythaiTrainerIds): ClassSchedule
     {
         $schedule->setAttribute('next_session_date', $this->nextSessionDate((int) $schedule->day_of_week)->toDateString());
         $schedule->setAttribute('staff_role_label', ClassStaffPresenter::roleLabel($schedule));
@@ -524,6 +530,14 @@ class MemberDashboardQuery
         $schedule->setAttribute('time_label', ClassStaffPresenter::timeLabel($schedule));
         $meta = MemberPortalStatusViewModel::schedule($schedule);
         $requiredPackageType = (string) $schedule->gymClass?->required_package_type;
+
+        if (
+            ($meta['is_included'] ?? false)
+            && ! $this->membershipTypesCoverClass($activeMembershipTypes, $requiredPackageType)
+        ) {
+            $meta['can_book'] = false;
+            $meta['disabled_reason'] = 'Kelas ini membutuhkan membership aktif yang sesuai.';
+        }
 
         if (
             ($meta['is_session_based'] ?? false)
@@ -546,6 +560,18 @@ class MemberDashboardQuery
         $schedule->setAttribute('member_status_meta', $meta);
 
         return $schedule;
+    }
+
+    /**
+     * @param  Collection<int, string>  $activeMembershipTypes
+     */
+    private function membershipTypesCoverClass(Collection $activeMembershipTypes, string $requiredPackageType): bool
+    {
+        if ($activeMembershipTypes->contains('include')) {
+            return true;
+        }
+
+        return filled($requiredPackageType) && $activeMembershipTypes->contains($requiredPackageType);
     }
 
     /**

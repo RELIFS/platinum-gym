@@ -10,7 +10,7 @@ class MemberPackageSessionUsage extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['member_package_session_id', 'member_id', 'gym_check_in_id', 'usage_date', 'used_at', 'method', 'recorded_by', 'request_key', 'notes'];
+    protected $fillable = ['member_package_session_id', 'member_id', 'gym_check_in_id', 'class_enrollment_id', 'usage_date', 'used_at', 'method', 'recorded_by', 'request_key', 'notes'];
 
     protected function casts(): array
     {
@@ -30,6 +30,11 @@ class MemberPackageSessionUsage extends Model
     public function gymCheckIn(): BelongsTo
     {
         return $this->belongsTo(GymCheckIn::class);
+    }
+
+    public function classEnrollment(): BelongsTo
+    {
+        return $this->belongsTo(ClassEnrollment::class, 'class_enrollment_id');
     }
 
     public function recorder(): BelongsTo

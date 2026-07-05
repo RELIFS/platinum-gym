@@ -351,6 +351,10 @@ function resolveChatbotReply(text, config = {}) {
         return replies.greeting ?? replies.fallback;
     }
 
+    if (isBotCheck(normalized)) {
+        return replies.check ?? replies.fallback;
+    }
+
     if (isThanks(normalized)) {
         return replies.thanks ?? replies.fallback;
     }
@@ -381,6 +385,10 @@ function resolveChatbotReply(text, config = {}) {
 
     if (text === 'Info Membership' || normalized.includes('member') || normalized.includes('paket') || normalized.includes('gym umum')) {
         return replies.membership;
+    }
+
+    if (hasClassPriceIntent(normalized)) {
+        return replies.classPrice ?? replies.schedule ?? replies.fallback;
     }
 
     if (text === 'Jadwal Kelas' || normalized.includes('jadwal') || normalized.includes('kelas') || normalized.includes('zumba') || normalized.includes('aerobic') || normalized.includes('muaythai') || normalized.includes('pound')) {
@@ -418,6 +426,12 @@ function isGreeting(normalized) {
     return /^(halo|hai|hi|hello|pagi|siang|sore|malam|selamat pagi|selamat siang|selamat sore|selamat malam|assalamualaikum)( gymmi| kak| admin)?$/.test(normalized.trim());
 }
 
+function isBotCheck(normalized) {
+    const clean = normalized.trim().replace(/[?!.,]+$/g, '').replace(/\s+/g, ' ');
+
+    return /^(test|tes|cek bot|cek gymmi|coba bot|coba gymmi|bot aktif|gymmi aktif)$/.test(clean);
+}
+
 function isThanks(normalized) {
     return /\b(makasih|terima kasih|terimakasih|thanks|thank you|tengkyu)\b/.test(normalized) && !hasDomainIntent(normalized);
 }
@@ -436,6 +450,11 @@ function isCapabilityQuestion(normalized) {
 
 function hasDomainIntent(normalized) {
     return includesAny(normalized, ['harga', 'biaya', 'paket', 'membership', 'member', 'jadwal', 'kelas', 'lokasi', 'alamat', 'maps', 'produk', 'promo', 'trainer', 'coach', 'personal trainer', 'qr', 'transaksi', 'invoice', 'booking', 'profil', 'akun', 'jam buka', 'whatsapp', 'instagram', 'daftar', 'bayar']);
+}
+
+function hasClassPriceIntent(normalized) {
+    return includesAny(normalized, ['muaythai', 'muay thai', 'poundfit', 'pound fit'])
+        && includesAny(normalized, ['harga', 'biaya', 'tarif', 'bayar', 'berapa', 'paket']);
 }
 
 function includesAny(value, needles) {
@@ -608,7 +627,7 @@ function messageBubbleClass(isUser, quickReply, variant = 'public') {
         return 'max-w-full break-words rounded-2xl rounded-tr-sm bg-gold-500 px-3.5 py-2.5 text-sm font-semibold leading-6 text-zinc-950 shadow-sm';
     }
 
-    return 'max-w-full break-words rounded-2xl rounded-tl-sm border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm leading-6 text-zinc-700 dark:border-transparent dark:bg-zinc-800 dark:text-zinc-200';
+    return 'max-w-full whitespace-pre-line break-words rounded-2xl rounded-tl-sm border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm leading-6 text-zinc-700 dark:border-transparent dark:bg-zinc-800 dark:text-zinc-200';
 }
 
 function syncSendState(input, send, typing = false) {

@@ -39,7 +39,7 @@ class AdminResourceRegistry
             'members' => $this->resource('members', 'Anggota', Member::class, 'manage_members', 'admin.members', [
                 ['name', 'Nama Lengkap', 'text', true], ['email', 'Email Login', 'email', true], ['phone', 'No. WhatsApp', 'text'],
                 ['gender', 'Gender', 'select', true, ['male' => 'Laki-laki', 'female' => 'Perempuan']], ['birth_date', 'Tanggal Lahir', 'date'],
-                ['address', 'Alamat', 'textarea'], ['emergency_contact', 'Kontak Darurat', 'text'], ['is_student', 'Mahasiswa', 'checkbox'], ['student_id_number', 'NIM', 'text'],
+                ['address', 'Alamat', 'textarea'], ['emergency_contact', 'Kontak Darurat', 'text'], ['is_student', 'Kategori Mahasiswa', 'checkbox'],
                 ['status', 'Status Member', 'select', true, ['active' => 'Aktif', 'inactive' => 'Nonaktif']],
             ], 'Kelola akun member, profil, dan status akses.'),
             'packages' => $this->resource('packages', 'Paket', Package::class, 'manage_packages', 'admin.packages', [
@@ -172,7 +172,6 @@ class AdminResourceRegistry
             'phone' => ['placeholder' => '08xxxxxxxxxx'],
             'address' => ['placeholder' => 'Alamat lengkap member'],
             'emergency_contact' => ['placeholder' => '08xxxxxxxxxx'],
-            'student_id_number' => ['placeholder' => 'NIM member'],
             'price' => ['placeholder' => 'Contoh: 250000', 'help' => 'Masukkan nominal tanpa titik atau simbol rupiah.'],
             'promo_price' => ['placeholder' => 'Contoh: 200000', 'help' => 'Isi hanya jika harga promo sedang berlaku.'],
             'promo_starts_at' => ['help' => 'Kosongkan bila promo langsung aktif setelah disimpan.'],
@@ -233,7 +232,7 @@ class AdminResourceRegistry
     {
         $userId = $model instanceof Member ? $model->user_id : null;
 
-        return ['name' => ['required', 'string', 'max:150'], 'email' => ['required', 'email:rfc,dns', 'max:150', Rule::unique('users', 'email')->ignore($userId)], 'phone' => ['nullable', 'string', 'max:20', Rule::unique('users', 'phone')->ignore($userId)], 'gender' => ['required', Rule::in(['male', 'female'])], 'birth_date' => ['nullable', 'date', 'before:today'], 'address' => ['nullable', 'string', 'max:2000'], 'emergency_contact' => ['nullable', 'string', 'max:20'], 'is_student' => ['boolean'], 'student_id_number' => ['nullable', 'string', 'max:50'], 'student_verification_status' => ['nullable', Rule::in(['unverified', 'pending_review', 'verified', 'failed'])], 'student_verification_note' => ['nullable', 'string', 'max:2000'], 'status' => ['required', Rule::in(['active', 'inactive'])]];
+        return ['name' => ['required', 'string', 'max:150'], 'email' => ['required', 'email:rfc,dns', 'max:150', Rule::unique('users', 'email')->ignore($userId)], 'phone' => ['nullable', 'string', 'max:20', Rule::unique('users', 'phone')->ignore($userId)], 'gender' => ['required', Rule::in(['male', 'female'])], 'birth_date' => ['nullable', 'date', 'before:today'], 'address' => ['nullable', 'string', 'max:2000'], 'emergency_contact' => ['nullable', 'string', 'max:20'], 'is_student' => ['boolean'], 'student_verification_status' => ['nullable', Rule::in(['unverified', 'pending_review', 'verified', 'failed'])], 'student_verification_note' => ['nullable', 'string', 'max:2000'], 'status' => ['required', Rule::in(['active', 'inactive'])]];
     }
 
     private function slugRules(string $table, ?Model $model): array

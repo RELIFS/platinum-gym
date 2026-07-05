@@ -10,7 +10,7 @@
         <div class="min-w-0">
             <p class="admin-eyebrow">Pengaturan Website</p>
             <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Informasi publik website</h2>
-            <p class="mt-2 admin-copy">Perbarui informasi yang tampil di website publik. Credential, token, dan API key tidak diedit dari halaman ini.</p>
+            <p class="mt-2 admin-copy">Perbarui informasi operasional yang tampil di website publik dan dokumen transaksi.</p>
         </div>
     </div>
 
@@ -82,12 +82,8 @@
             @endif
         @endforeach
 
-        <aside class="rounded-lg border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm font-bold leading-6 text-amber-800 dark:text-amber-200" role="note">
-            Konfigurasi sensitif seperti credential, token, password, private key, dan API key tidak ditampilkan atau diedit dari halaman ini.
-        </aside>
-
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p class="text-sm font-semibold leading-6 text-zinc-500 dark:text-zinc-400">Periksa kembali nomor kontak dan link peta sebelum menyimpan.</p>
+            <p class="text-sm font-semibold leading-6 text-zinc-500 dark:text-zinc-400">Periksa kembali kontak publik, Instagram, dan invoice sebelum menyimpan.</p>
             <button type="submit" class="admin-button-primary">Simpan Pengaturan</button>
         </div>
     </x-confirm-form>

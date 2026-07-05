@@ -14,6 +14,8 @@
     $isActive = $activePattern ? request()->routeIs($activePattern) : false;
     $linkHref = $href ?? (isset($item['route']) ? route($item['route']) : '#');
     $linkLabel = $label ?? ($item['label'] ?? '');
+    $count = (int) ($item['count'] ?? 0);
+    $badgeText = $count > 99 ? '99+' : (string) $count;
 @endphp
 
 <a
@@ -27,4 +29,7 @@
         @include('admin.partials.icon', ['name' => $iconName, 'class' => 'admin-sidebar-icon-svg'])
     </span>
     <span class="min-w-0 flex-1 truncate">{{ $linkLabel }}</span>
+    @if ($count > 0)
+        <span class="rounded-full bg-gold-500 px-2 py-0.5 text-[0.65rem] font-black text-zinc-950" aria-label="{{ $count }} persetujuan menunggu review">{{ $badgeText }}</span>
+    @endif
 </a>
