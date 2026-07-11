@@ -35,14 +35,14 @@
         @include('partials.theme-script')
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=poppins:400,500,600,700,800,900&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=poppins:400,500,600,700,800&display=swap" rel="stylesheet" />
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="bg-zinc-50 font-sans text-zinc-950 antialiased selection:bg-gold-500 selection:text-zinc-950 dark:bg-zinc-950 dark:text-zinc-100">
         <a href="#main-content" class="public-skip-link">Lewati navigasi utama</a>
 
-        <div class="min-h-screen overflow-hidden" data-public-motion-root>
+        <div class="min-h-screen overflow-x-clip" data-public-motion-root>
             @include('public.partials.header', ['settings' => $settings ?? []])
 
             <main id="main-content" tabindex="-1">

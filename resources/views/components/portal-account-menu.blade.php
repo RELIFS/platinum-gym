@@ -45,7 +45,7 @@
             <span class="portal-account-name">{{ $displayName }}</span>
             <span class="portal-account-email">{{ $displayEmail }}</span>
         </span>
-        <svg class="h-4 w-4 shrink-0 text-zinc-400 transition group-hover:text-gold-600 dark:text-zinc-500 dark:group-hover:text-gold-400" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <svg class="h-4 w-4 shrink-0 text-zinc-400 transition group-hover:text-gold-text dark:text-zinc-500" viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
     </button>
