@@ -202,7 +202,7 @@ test('public light theme keeps utility map and final cta from using large black 
         ->assertOk()
         ->assertSee('public-home-cta-frame', false)
         ->assertSee('public-home-cta-panel', false)
-        ->assertSee('text-zinc-950 dark:text-white', false)
+        ->assertSee('text-zinc-950 dark:text-zinc-100', false)
         ->assertDontSee('overflow-hidden rounded-[2rem] bg-zinc-950 p-6 text-white shadow-2xl', false);
 
     $this->get('/galeri')

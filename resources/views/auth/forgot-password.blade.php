@@ -1,15 +1,15 @@
 <x-guest-layout>
     <div class="w-full">
         <div class="mb-8">
-            <h2 class="mb-3 text-3xl font-extrabold leading-tight text-zinc-950 dark:text-white">
-                Lupa <span class="text-gold-500">Kata Sandi</span>
+            <h2 class="mb-3 text-3xl type-title leading-tight text-zinc-950 dark:text-zinc-100">
+                Lupa <span class="text-gold-display">Kata Sandi</span>
             </h2>
             <p class="auth-panel-copy">
                 Masukkan email akun Anda. Kami akan mengirim link untuk membuat kata sandi baru.
             </p>
         </div>
 
-        <x-auth-session-status class="mb-5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm font-medium text-emerald-700 dark:text-emerald-400" :status="session('status')" />
+        <x-auth-session-status class="mb-5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm type-compact text-emerald-700 dark:text-emerald-400" :status="session('status')" />
 
         <form method="POST" action="{{ route('password.email') }}" class="space-y-5">
             @csrf
@@ -25,7 +25,7 @@
             </button>
         </form>
 
-        <p class="mt-8 text-center font-medium text-zinc-500 dark:text-zinc-400">
+        <p class="mt-8 text-center type-compact text-zinc-500 dark:text-zinc-400">
             Ingat kata sandi?
             <a href="{{ route('login') }}" class="auth-link">Masuk di sini</a>
         </p>

@@ -1,10 +1,10 @@
 <section>
     <header>
-        <h2 class="text-lg font-black text-zinc-950 dark:text-white">
+        <h2 class="text-lg type-control text-zinc-950 dark:text-zinc-100">
             Ubah Password
         </h2>
 
-        <p class="mt-1 text-sm font-medium leading-6 text-zinc-500 dark:text-zinc-400">
+        <p class="mt-1 text-sm type-compact leading-6 text-zinc-500 dark:text-zinc-400">
             Gunakan password yang kuat untuk menjaga keamanan akun.
         </p>
     </header>
@@ -40,7 +40,7 @@
                     x-show="show"
                     x-transition
                     x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm font-bold text-emerald-600 dark:text-emerald-400"
+                    class="text-sm type-control text-emerald-600 dark:text-emerald-400"
                 >Tersimpan.</p>
             @endif
         </div>

@@ -208,7 +208,7 @@ class PublicWebsiteFixtures
         self::setting('maps_url', 'https://www.google.com/maps?cid=12649542093238337913');
         self::setting('maps_search_url', 'https://www.google.com/maps/search/?api=1&query=Platinum%20Gym%20Padang');
         self::setting('maps_embed_url', 'https://www.google.com/maps/embed?pb=public-qa');
-        self::setting('operational_hours', ['weekday' => '06:00-22:00', 'weekend' => '06:00-20:00'], 'json');
+        self::setting('operational_hours', ['monday_saturday' => '08:00-22:00', 'sunday' => 'Tutup'], 'json');
     }
 
     public static function sensitiveSettings(): void

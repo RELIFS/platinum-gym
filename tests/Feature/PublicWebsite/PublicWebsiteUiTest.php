@@ -9,6 +9,8 @@ test('public pages render the public shell and do not bleed portal shells', func
         ->assertSee('brand-logo', false)
         ->assertSee('public-mobile-menu-button', false)
         ->assertSee('public-skip-link', false)
+        ->assertSee('data-auto-hide-topbar', false)
+        ->assertSee('data-auto-hide-scope="all"', false)
         ->assertDontSee('admin-main', false)
         ->assertDontSee('member-main', false)
         ->assertDontSee('owner-main', false)
@@ -60,12 +62,16 @@ test('public page hero exposes polished reusable hero and reduced motion safe an
         ->assertOk()
         ->assertSee('public-page-hero', false)
         ->assertSee('public-page-hero-content', false)
-        ->assertSee('public-page-hero-accent', false);
+        ->assertSee('public-page-hero-accent', false)
+        ->assertDontSee('public-page-hero-photo', false)
+        ->assertDontSee('public-page-hero-image', false);
 
     $css = file_get_contents(resource_path('css/app.css'));
 
     expect($css)
         ->toContain('@keyframes publicHeroIn')
         ->toContain('@keyframes publicHeroAccent')
-        ->toContain('prefers-reduced-motion: reduce');
+        ->toContain('prefers-reduced-motion: reduce')
+        ->not->toContain('public-page-hero-photo')
+        ->not->toContain('public-page-hero-image');
 });
