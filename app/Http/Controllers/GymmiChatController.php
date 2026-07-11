@@ -11,19 +11,17 @@ class GymmiChatController extends Controller
     public function __invoke(GymmiChatRequest $request, AskGymmiAction $askGymmi): JsonResponse
     {
         $validated = $request->validated();
+        $surface = $request->routeIs('member.gymmi.chat') ? 'member' : 'public';
 
-        $reply = $askGymmi->execute(
+        $response = $askGymmi->execute(
             message: $validated['message'],
-            context: $validated['context'] ?? 'public',
+            surface: $surface,
             user: $request->user(),
-            history: $validated['history'] ?? [],
+            conversationId: $validated['conversation_id'] ?? null,
+            clientMessageId: $validated['client_message_id'],
+            sessionId: $request->session()->getId(),
         );
 
-        return response()->json([
-            'reply' => [
-                'text' => $reply['text'],
-            ],
-            'source' => $reply['source'],
-        ]);
+        return response()->json($response);
     }
 }

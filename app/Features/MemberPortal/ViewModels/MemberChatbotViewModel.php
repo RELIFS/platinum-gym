@@ -17,9 +17,13 @@ class MemberChatbotViewModel
             'avatarDarkUrl' => asset('images/gymmi/avatar-gymmi-dark-96.webp'),
             'typingLabel' => 'Gymmi sedang mengetik',
             'context' => 'member',
-            'endpoint' => route('gymmi.chat'),
+            'endpoint' => route('member.gymmi.chat'),
             'csrfToken' => csrf_token(),
-            'aiEnabled' => self::hasGeminiKeys(),
+            'chatEnabled' => (bool) config('gymmi.enabled', true),
+            'memoryEnabled' => (bool) config('gymmi.memory_enabled', true),
+            'storageScope' => 'member',
+            'storageNamespace' => hash_hmac('sha256', 'member|'.auth()->id().'|'.session()->getId(), (string) config('app.key')),
+            'timeoutMs' => (int) config('gymmi.client_timeout_ms', 9000),
             'showEscalation' => false,
             'initialMessage' => 'Halo! Saya Gymmi dari portal member Platinum Gym Padang. Saya bisa bantu status membership, jadwal kelas, transaksi, QR member, dan bantuan akun.',
             'quickReplies' => ['Status Membership', 'Jadwal Kelas', 'Transaksi', 'QR Member', 'Bantuan Akun'],
@@ -92,11 +96,5 @@ class MemberChatbotViewModel
                 ],
             ],
         ];
-    }
-
-    private static function hasGeminiKeys(): bool
-    {
-        return (bool) config('services.gemini.enabled', true)
-            && (filled(config('services.gemini.api_key')) || filled(config('services.gemini.api_keys')));
     }
 }
