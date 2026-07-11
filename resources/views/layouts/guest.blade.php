@@ -25,15 +25,15 @@
                 <div class="absolute rounded-full -left-24 top-24 h-72 w-72 bg-gold-500/20 blur-3xl" aria-hidden="true"></div>
 
                 <div class="relative z-10 flex flex-col justify-between w-full h-full p-12 xl:p-16">
-                    <a href="/" class="inline-flex items-center text-white w-fit" aria-label="Platinum Gym Padang">
+                    <a href="/" class="inline-flex items-center text-zinc-100 w-fit" aria-label="Platinum Gym Padang">
                         <img src="{{ asset('images/brand/platinum-gym-wordmark-480.webp') }}" alt="Platinum Gym Padang" class="w-auto h-12 brand-logo" draggable="false" width="480" height="112">
                     </a>
 
                     <div class="max-w-xl">
-                        <div class="inline-flex items-center px-4 py-2 mb-8 text-sm font-semibold border rounded-lg shadow-2xl border-gold-500/35 bg-zinc-950/45 text-gold-400 shadow-zinc-950/30 backdrop-blur-md">
+                        <div class="inline-flex items-center px-4 py-2 mb-8 text-sm type-control border rounded-lg shadow-2xl border-gold-500/35 bg-zinc-950/45 text-gold-400 shadow-zinc-950/30 backdrop-blur-md">
                             Premium Fitness Center Padang
                         </div>
-                        <div class="mb-6 text-5xl font-extrabold leading-tight text-white xl:text-6xl" aria-hidden="true">
+                        <div class="mb-6 text-5xl type-display leading-tight text-zinc-100 xl:text-6xl" aria-hidden="true">
                             <span class="block">YOUR COMFORT</span>
                             <span class="block text-gold-500">GYM</span>
                         </div>
@@ -44,16 +44,16 @@
 
                     <div class="grid max-w-lg grid-cols-3 gap-3">
                         <div class="p-4 border rounded-xl border-white/10 bg-zinc-950/35 backdrop-blur-md">
-                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Member</p>
-                            <p class="mt-2 text-sm font-bold text-white">Portal Akun</p>
+                            <p class="text-xs type-control uppercase tracking-[0.18em] text-zinc-400">Member</p>
+                            <p class="mt-2 text-sm type-control text-zinc-100">Portal Akun</p>
                         </div>
                         <div class="p-4 border rounded-xl border-white/10 bg-zinc-950/35 backdrop-blur-md">
-                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Booking</p>
-                            <p class="mt-2 text-sm font-bold text-white">Kelas Gym</p>
+                            <p class="text-xs type-control uppercase tracking-[0.18em] text-zinc-400">Booking</p>
+                            <p class="mt-2 text-sm type-control text-zinc-100">Kelas Gym</p>
                         </div>
                         <div class="p-4 border rounded-xl border-white/10 bg-zinc-950/35 backdrop-blur-md">
-                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Check-in</p>
-                            <p class="mt-2 text-sm font-bold text-white">QR Member</p>
+                            <p class="text-xs type-control uppercase tracking-[0.18em] text-zinc-400">Check-in</p>
+                            <p class="mt-2 text-sm type-control text-zinc-100">QR Member</p>
                         </div>
                     </div>
                 </div>
@@ -62,7 +62,7 @@
             <main class="relative flex min-h-dvh w-full items-start justify-center overflow-x-hidden bg-zinc-50 px-5 pb-8 pt-[4.5rem] dark:bg-zinc-950 sm:px-8 sm:pb-12 sm:pt-28 lg:w-[52%] lg:px-10 lg:pb-10 lg:pt-24 xl:w-1/2 xl:pt-20">
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_16%_8%,rgba(254,180,37,0.12),transparent_30%),radial-gradient(circle_at_86%_18%,rgba(24,24,27,0.08),transparent_28%)] dark:bg-[radial-gradient(circle_at_16%_8%,rgba(254,180,37,0.14),transparent_30%),radial-gradient(circle_at_86%_18%,rgba(255,255,255,0.06),transparent_28%)]" aria-hidden="true"></div>
                 <div class="absolute inset-x-0 top-0 z-20 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-                    <a href="/" aria-label="Kembali ke Beranda" class="inline-flex h-11 w-11 min-w-0 max-w-full touch-manipulation items-center justify-center gap-2 justify-self-start rounded-full border border-zinc-200 bg-white/85 px-0 text-sm font-semibold text-zinc-700 shadow-sm backdrop-blur-sm transition hover:border-gold-500/60 hover:bg-white hover:text-gold-600 active:scale-95 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-gold-500 sm:rounded-lg md:w-auto md:max-w-[17rem] md:px-4 lg:max-w-[17rem]">
+                    <a href="/" aria-label="Kembali ke Beranda" class="inline-flex h-11 w-11 min-w-0 max-w-full touch-manipulation items-center justify-center gap-2 justify-self-start rounded-full border border-zinc-200 bg-white/85 px-0 text-sm type-control text-zinc-700 shadow-sm backdrop-blur-sm transition hover:border-gold-500/60 hover:bg-white hover:text-gold-text focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/35 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 active:scale-95 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:focus-visible:ring-gold-400/35 dark:focus-visible:ring-offset-zinc-950 sm:rounded-lg md:w-auto md:max-w-[17rem] md:px-4 lg:max-w-[17rem]">
                         <svg class="h-4 w-4 shrink-0 md:h-[18px] md:w-[18px]" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                             <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>

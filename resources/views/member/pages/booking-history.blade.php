@@ -28,8 +28,8 @@
                 <article class="member-list-card">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
-                            <h4 class="break-words font-black text-zinc-950 dark:text-white">{{ $enrollment->schedule?->gymClass?->name ?? 'Kelas Platinum Gym' }}</h4>
-                            <p class="mt-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ $enrollment->session_date?->translatedFormat('l, d M Y') }} - {{ substr((string) $enrollment->schedule?->start_time, 0, 5) }}</p>
+                            <h4 class="break-words type-title text-zinc-950 dark:text-zinc-100">{{ $enrollment->schedule?->gymClass?->name ?? 'Kelas Platinum Gym' }}</h4>
+                            <p class="mt-2 text-sm type-compact text-zinc-500 dark:text-zinc-400">{{ $enrollment->session_date?->translatedFormat('l, d M Y') }} - {{ substr((string) $enrollment->schedule?->start_time, 0, 5) }}</p>
                         </div>
                         <span class="member-status-pill {{ $bookingMeta['class'] }}">{{ $bookingMeta['label'] }}</span>
                     </div>
@@ -43,7 +43,7 @@
                             class="mt-4"
                         >
                             <button type="submit" class="member-button-danger w-full">Batalkan Jadwal Booking</button>
-                            <p class="mt-2 text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">Booking bisa dibatalkan paling lambat 3 jam sebelum kelas dimulai.</p>
+                            <p class="mt-2 text-xs type-control leading-5 text-zinc-500 dark:text-zinc-400">Booking bisa dibatalkan paling lambat 3 jam sebelum kelas dimulai.</p>
                         </x-confirm-form>
                     @endif
                 </article>

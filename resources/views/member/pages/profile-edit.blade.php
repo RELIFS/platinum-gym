@@ -15,7 +15,7 @@
                 <h3 class="member-section-title">Data yang digunakan admin untuk layanan member</h3>
                 <p class="mt-3 member-copy max-w-3xl">Pastikan nomor WhatsApp aktif. Email yang diganti akan membutuhkan verifikasi ulang sebelum akses penuh dibuka kembali.</p>
             </div>
-            <span class="member-status-pill bg-gold-500/15 text-gold-700 dark:text-gold-300">{{ $completionPercent }}% lengkap</span>
+            <span class="member-status-pill bg-gold-500/15 text-gold-text">{{ $completionPercent }}% lengkap</span>
         </div>
 
         <form method="POST" action="{{ route('member.profile.update') }}" enctype="multipart/form-data" class="mt-6 space-y-6" x-data="{ submitting: false, avatarPreviewUrl: null, avatarPreviewActive: false, avatarObjectUrl: null, studentProofPreviewUrl: null, studentProofPreviewActive: false, studentProofObjectUrl: null, setAvatarPreview(event) { const file = event.target.files?.[0]; if (this.avatarObjectUrl) { URL.revokeObjectURL(this.avatarObjectUrl); this.avatarObjectUrl = null; } if (! file) { this.avatarPreviewUrl = null; this.avatarPreviewActive = false; return; } this.avatarObjectUrl = URL.createObjectURL(file); this.avatarPreviewUrl = this.avatarObjectUrl; this.avatarPreviewActive = true; }, setStudentProofPreview(event) { const file = event.target.files?.[0]; if (this.studentProofObjectUrl) { URL.revokeObjectURL(this.studentProofObjectUrl); this.studentProofObjectUrl = null; } if (! file) { this.studentProofPreviewUrl = null; this.studentProofPreviewActive = false; return; } this.studentProofObjectUrl = URL.createObjectURL(file); this.studentProofPreviewUrl = this.studentProofObjectUrl; this.studentProofPreviewActive = true; } }" x-on:submit="if (submitting) { $event.preventDefault() } else { submitting = true }">
@@ -23,7 +23,7 @@
             @method('patch')
 
             <div class="member-soft-panel flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
-                <div class="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-lg border border-gold-500/30 bg-gold-500 text-3xl font-black text-zinc-950" aria-hidden="true">
+                <div class="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-lg border border-gold-500/30 bg-gold-500 text-3xl type-emphasis text-zinc-950" aria-hidden="true">
                     <template x-if="avatarPreviewUrl">
                         <img x-bind:src="avatarPreviewUrl" alt="" class="h-full w-full object-cover">
                     </template>
@@ -33,10 +33,10 @@
                 </div>
                 <div class="min-w-0 flex-1">
                     <x-input-label for="member_avatar" value="Foto Profil" />
-                    <input id="member_avatar" name="avatar" type="file" accept="image/jpeg,image/png,image/webp" class="member-form-input mt-2 file:mr-3 file:rounded-md file:border-0 file:bg-gold-500 file:px-3 file:py-1.5 file:text-sm file:font-black file:text-zinc-950" x-on:change="setAvatarPreview($event)">
+                    <input id="member_avatar" name="avatar" type="file" accept="image/jpeg,image/png,image/webp" class="member-form-input mt-2 file:mr-3 file:rounded-md file:border-0 file:bg-gold-500 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-zinc-950" x-on:change="setAvatarPreview($event)">
                     <x-input-error class="mt-2" :messages="$errors->get('avatar')" />
-                    <p class="mt-2 text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">JPG, PNG, atau WebP. Maksimal 2 MB.</p>
-                    <p class="mt-2 text-xs font-black uppercase tracking-[0.12em] text-gold-700 dark:text-gold-400" x-show="avatarPreviewActive" x-cloak>Preview, belum disimpan</p>
+                    <p class="mt-2 text-xs type-control leading-5 text-zinc-500 dark:text-zinc-400">JPG, PNG, atau WebP. Maksimal 2 MB.</p>
+                    <p class="mt-2 text-xs type-control uppercase tracking-[0.12em] text-zinc-700 dark:text-gold-400" x-show="avatarPreviewActive" x-cloak>Preview, belum disimpan</p>
                 </div>
             </div>
 
@@ -56,7 +56,7 @@
                 <div class="min-w-0">
                     <x-input-label for="member_phone" value="Nomor WhatsApp" />
                     <x-text-input id="member_phone" name="phone" type="tel" class="mt-2 block min-h-12 w-full" :value="old('phone', $user->phone)" required inputmode="tel" autocomplete="tel" placeholder="081234567890" data-phone-feedback-input aria-describedby="member_phone-feedback" />
-                    <p id="member_phone-feedback" class="mt-1.5 hidden text-xs font-medium text-red-600 dark:text-red-400" data-phone-feedback>Gunakan format nomor 08xxxxxxxxxx.</p>
+                    <p id="member_phone-feedback" class="mt-1.5 hidden text-xs type-compact text-red-600 dark:text-red-400" data-phone-feedback>Gunakan format nomor 08xxxxxxxxxx.</p>
                     <x-input-error class="mt-2" :messages="$errors->get('phone')" />
                 </div>
             </div>
@@ -74,7 +74,7 @@
                 <x-birth-date-selects
                     id="member_birth_date"
                     :value="$member->birth_date"
-                    label-class="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                    label-class="mb-2 block text-sm type-compact text-zinc-700 dark:text-zinc-300"
                     select-class="member-form-input min-h-12"
                     error-class="mt-2"
                 />
@@ -94,10 +94,10 @@
 
             <div class="member-soft-panel min-w-0">
                 <label for="member_is_student" class="flex items-start gap-3">
-                    <input id="member_is_student" name="is_student" type="checkbox" value="1" class="mt-0.5 h-6 w-6 rounded border-zinc-300 text-gold-500 focus:ring-gold-500/40 dark:border-white/20 dark:bg-zinc-950" @checked(old('is_student', $member->is_student))>
+                    <input id="member_is_student" name="is_student" type="checkbox" value="1" class="mt-0.5 h-6 w-6 rounded border-zinc-300 text-gold-700 focus:ring-gold-700/40 dark:border-white/20 dark:bg-zinc-950 dark:text-gold-400 dark:focus:ring-gold-400/35" @checked(old('is_student', $member->is_student))>
                     <span class="min-w-0">
-                        <span class="block text-sm font-black text-zinc-950 dark:text-white">Member mahasiswa</span>
-                        <span class="mt-1 block break-words text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">Upload KTM atau screenshot akun portal mahasiswa untuk checkout paket mahasiswa.</span>
+                        <span class="block text-sm type-control text-zinc-950 dark:text-zinc-100">Member mahasiswa</span>
+                        <span class="mt-1 block break-words text-xs type-control leading-5 text-zinc-500 dark:text-zinc-400">Upload KTM atau screenshot akun portal mahasiswa untuk checkout paket mahasiswa.</span>
                     </span>
                 </label>
                 <div class="mt-4 grid min-w-0 gap-4 lg:grid-cols-[9rem_minmax(0,1fr)]">
@@ -111,7 +111,7 @@
                             </template>
                         @else
                             <template x-if="! studentProofPreviewUrl">
-                                <span class="px-3 text-xs font-black uppercase tracking-[0.12em] text-gold-700 dark:text-gold-300">Belum diunggah</span>
+                                <span class="px-3 text-xs type-control uppercase tracking-[0.12em] text-zinc-700 dark:text-gold-400">Belum diunggah</span>
                             </template>
                         @endif
                     </div>
@@ -120,16 +120,16 @@
                             <x-input-label for="member_student_proof" value="Bukti Mahasiswa" />
                             <span class="member-status-pill {{ $member->student_proof_path ? 'member-status-success' : 'bg-zinc-100 text-zinc-700 dark:bg-white/10 dark:text-zinc-300' }}">{{ $member->student_proof_path ? 'Sudah diunggah' : 'Belum diunggah' }}</span>
                         </div>
-                        <input id="member_student_proof" name="student_proof" type="file" accept="image/jpeg,image/png,image/webp" class="member-form-input mt-2 file:mr-3 file:rounded-md file:border-0 file:bg-gold-500 file:px-3 file:py-1.5 file:text-sm file:font-black file:text-zinc-950" x-on:change="setStudentProofPreview($event)">
+                        <input id="member_student_proof" name="student_proof" type="file" accept="image/jpeg,image/png,image/webp" class="member-form-input mt-2 file:mr-3 file:rounded-md file:border-0 file:bg-gold-500 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-zinc-950" x-on:change="setStudentProofPreview($event)">
                         <x-input-error class="mt-2" :messages="$errors->get('student_proof')" />
-                        <p class="mt-2 text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">Upload KTM atau screenshot akun portal mahasiswa. JPG, PNG, atau WebP. Maksimal 2 MB.</p>
-                        <p class="mt-2 text-xs font-black uppercase tracking-[0.12em] text-gold-700 dark:text-gold-400" x-show="studentProofPreviewActive" x-cloak>Preview, belum disimpan</p>
+                        <p class="mt-2 text-xs type-control leading-5 text-zinc-500 dark:text-zinc-400">Upload KTM atau screenshot akun portal mahasiswa. JPG, PNG, atau WebP. Maksimal 2 MB.</p>
+                        <p class="mt-2 text-xs type-control uppercase tracking-[0.12em] text-zinc-700 dark:text-gold-400" x-show="studentProofPreviewActive" x-cloak>Preview, belum disimpan</p>
                     </div>
                 </div>
             </div>
 
             <div class="flex flex-col gap-3 border-t border-zinc-200 pt-5 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
-                <p class="text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">Kode member dan status akun dikelola oleh admin Platinum Gym.</p>
+                <p class="text-xs type-control leading-5 text-zinc-500 dark:text-zinc-400">Kode member dan status akun dikelola oleh admin Platinum Gym.</p>
                 <button type="submit" class="member-button-primary w-full sm:w-auto" x-bind:disabled="submitting"><span x-show="! submitting">Simpan Profil</span><span x-show="submitting">Menyimpan...</span></button>
             </div>
         </form>
@@ -137,7 +137,7 @@
 
     <aside class="member-card h-fit min-w-0">
         <p class="member-eyebrow">Navigasi</p>
-        <h3 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Kembali ke profil</h3>
+        <h3 class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">Kembali ke profil</h3>
         <p class="mt-3 member-copy">Lihat ringkasan profil atau atur keamanan akun.</p>
         <a href="{{ route('member.profile') }}" class="member-button-secondary mt-5 w-full">Lihat Profil</a>
         <a href="{{ route('profile.edit') }}" class="member-button-secondary mt-3 w-full">Keamanan Akun</a>

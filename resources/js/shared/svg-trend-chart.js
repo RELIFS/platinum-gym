@@ -155,7 +155,7 @@ export function renderSvgTrendChart(element, trend, options = {}) {
     });
 
     const tooltip = document.createElement('div');
-    tooltip.className = 'admin-chart-tooltip pointer-events-none absolute bottom-3 left-3 right-3 z-10 rounded-xl border px-3 py-2 text-xs font-semibold shadow-lg';
+    tooltip.className = 'admin-chart-tooltip pointer-events-none absolute bottom-3 left-3 right-3 z-10 rounded-xl border px-3 py-2 text-xs type-compact shadow-lg';
     tooltip.style.background = theme.tooltipBackground;
     tooltip.style.borderColor = theme.tooltipBorder;
     tooltip.style.color = theme.tooltipText;

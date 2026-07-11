@@ -29,28 +29,28 @@
             <h3 class="member-section-title">Status transaksi</h3>
             <dl class="member-soft-panel mt-5 grid gap-4 text-sm sm:grid-cols-2">
                 <div>
-                    <dt class="font-semibold text-zinc-500">Layanan</dt>
-                    <dd class="mt-1 font-black text-zinc-950 dark:text-white">{{ $serviceName }}</dd>
+                    <dt class="type-control text-zinc-500">Layanan</dt>
+                    <dd class="mt-1 type-control text-zinc-950 dark:text-zinc-100">{{ $serviceName }}</dd>
                 </div>
                 <div>
-                    <dt class="font-semibold text-zinc-500">Status</dt>
+                    <dt class="type-control text-zinc-500">Status</dt>
                     <dd class="mt-1"><span class="member-status-pill {{ $paymentStatusClass }}">{{ $paymentStatusLabel }}</span></dd>
                 </div>
                 <div>
-                    <dt class="font-semibold text-zinc-500">Metode</dt>
-                    <dd class="mt-1 font-black text-zinc-950 dark:text-white">{{ str((string) $payment->method)->headline() }}</dd>
+                    <dt class="type-control text-zinc-500">Metode</dt>
+                    <dd class="mt-1 type-control text-zinc-950 dark:text-zinc-100">{{ str((string) $payment->method)->headline() }}</dd>
                 </div>
                 <div>
-                    <dt class="font-semibold text-zinc-500">Nominal</dt>
-                    <dd class="mt-1 font-black text-gold-600 dark:text-gold-400">Rp {{ number_format((float) $payment->amount, 0, ',', '.') }}</dd>
+                    <dt class="type-control text-zinc-500">Nominal</dt>
+                    <dd class="mt-1 type-control text-gold-text">Rp {{ number_format((float) $payment->amount, 0, ',', '.') }}</dd>
                 </div>
                 <div>
-                    <dt class="font-semibold text-zinc-500">Dibuat</dt>
-                    <dd class="mt-1 font-black text-zinc-950 dark:text-white">{{ $payment->created_at?->translatedFormat('d M Y H:i') }}</dd>
+                    <dt class="type-control text-zinc-500">Dibuat</dt>
+                    <dd class="mt-1 type-control text-zinc-950 dark:text-zinc-100">{{ $payment->created_at?->translatedFormat('d M Y H:i') }}</dd>
                 </div>
                 <div>
-                    <dt class="font-semibold text-zinc-500">Kedaluwarsa</dt>
-                    <dd class="mt-1 font-black text-zinc-950 dark:text-white">{{ $payment->expires_at?->translatedFormat('d M Y H:i') ?? '-' }}</dd>
+                    <dt class="type-control text-zinc-500">Kedaluwarsa</dt>
+                    <dd class="mt-1 type-control text-zinc-950 dark:text-zinc-100">{{ $payment->expires_at?->translatedFormat('d M Y H:i') ?? '-' }}</dd>
                 </div>
             </dl>
 
@@ -63,15 +63,15 @@
                     x-init="start()"
                     x-on:visibilitychange.window="onVisibility()"
                 >
-                    <p class="text-xs font-black uppercase tracking-[0.14em] text-amber-700 dark:text-amber-300">Sisa Waktu Pembayaran</p>
-                    <p class="mt-2 font-mono text-2xl font-black text-amber-800 dark:text-amber-200" x-text="display"></p>
-                    <p class="mt-1 text-xs font-semibold leading-5 text-amber-700/80 dark:text-amber-200/80" x-show="!expired">Selesaikan pembayaran sebelum waktu habis. Halaman akan menampilkan status terbaru saat dibuka kembali.</p>
-                    <p class="mt-1 text-xs font-bold leading-5 text-red-700 dark:text-red-300" x-show="expired" x-cloak>Waktu pembayaran sudah habis. Status transaksi akan diperbarui setelah halaman direfresh.</p>
+                    <p class="text-xs type-control uppercase tracking-[0.1em] text-amber-700 dark:text-amber-300">Sisa Waktu Pembayaran</p>
+                    <p class="mt-2 font-mono text-2xl type-emphasis text-amber-800 dark:text-amber-200" x-text="display"></p>
+                    <p class="mt-1 text-xs type-control leading-5 text-amber-700/80 dark:text-amber-200/80" x-show="!expired">Selesaikan pembayaran sebelum waktu habis. Halaman akan menampilkan status terbaru saat dibuka kembali.</p>
+                    <p class="mt-1 text-xs type-control leading-5 text-red-700 dark:text-red-300" x-show="expired" x-cloak>Waktu pembayaran sudah habis. Status transaksi akan diperbarui setelah halaman direfresh.</p>
                 </div>
             @endif
 
             @if ($payment->failure_reason || $payment->rejected_reason)
-                <div class="mt-5 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm font-semibold text-red-700 dark:text-red-200">
+                <div class="mt-5 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm type-control text-red-700 dark:text-red-200">
                     {{ $payment->failure_reason ?? $payment->rejected_reason }}
                 </div>
             @endif
@@ -85,19 +85,19 @@
                     @csrf
                     <button type="submit" class="member-button-primary w-full" x-bind:disabled="submitting"><span x-show="! submitting">Bayar via Midtrans</span><span x-show="submitting">Memproses...</span></button>
                 </form>
-                <p class="mt-3 text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400">Anda akan diarahkan ke halaman pembayaran Midtrans.</p>
+                <p class="mt-3 text-xs type-control leading-5 text-zinc-500 dark:text-zinc-400">Anda akan diarahkan ke halaman pembayaran Midtrans.</p>
             @else
                 <div class="member-soft-panel mt-5">
-                    <p class="font-black text-zinc-950 dark:text-white">Tidak ada pembayaran yang perlu dilanjutkan.</p>
+                    <p class="type-control text-zinc-950 dark:text-zinc-100">Tidak ada pembayaran yang perlu dilanjutkan.</p>
                     <p class="mt-2 member-copy">Status transaksi saat ini: {{ $paymentStatusLabel }}.</p>
                 </div>
             @endif
 
             @if ($payment->invoice)
                 <div class="member-soft-panel mt-4">
-                    <p class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Invoice</p>
-                    <p class="mt-2 font-mono text-sm font-black text-zinc-950 dark:text-white">{{ $payment->invoice->invoice_number }}</p>
-                    <p class="mt-1 text-sm font-semibold text-zinc-500 dark:text-zinc-400">{{ $invoiceStatusLabel }}</p>
+                    <p class="text-xs type-control uppercase tracking-[0.1em] text-zinc-500 dark:text-zinc-400">Invoice</p>
+                    <p class="mt-2 font-mono text-sm type-control text-zinc-950 dark:text-zinc-100">{{ $payment->invoice->invoice_number }}</p>
+                    <p class="mt-1 text-sm type-control text-zinc-500 dark:text-zinc-400">{{ $invoiceStatusLabel }}</p>
                     <a href="{{ route('member.invoices.show', $payment->invoice) }}" class="member-button-secondary mt-3 w-full">Lihat Invoice</a>
                 </div>
             @endif

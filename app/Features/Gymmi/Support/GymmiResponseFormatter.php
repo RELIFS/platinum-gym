@@ -12,7 +12,20 @@ class GymmiResponseFormatter
         $text = preg_replace('/[ \t]+/', ' ', $text) ?: $text;
         $text = preg_replace("/\n{3,}/", "\n\n", $text) ?: $text;
 
-        return Str::limit(trim($text), 1600, '');
+        $text = trim($text);
+
+        if (mb_strlen($text) > 1600) {
+            $excerpt = mb_substr($text, 0, 1600);
+            $lastSentence = max(
+                (int) mb_strrpos($excerpt, '.'),
+                (int) mb_strrpos($excerpt, '!'),
+                (int) mb_strrpos($excerpt, '?'),
+            );
+
+            $text = $lastSentence > 80 ? mb_substr($excerpt, 0, $lastSentence + 1) : $excerpt;
+        }
+
+        return $text;
     }
 
     public function userMessage(string $message): string
@@ -23,7 +36,10 @@ class GymmiResponseFormatter
     public function logMessage(string $message): string
     {
         $message = $this->userMessage($message);
-        $message = preg_replace('/((?:api[_\s-]?key|token|secret|password|kata\s*sandi)\s*[:=]\s*)\S+/i', '$1[redacted]', $message) ?: $message;
+        $message = preg_replace('/((?:api[_\s-]?key|token|secret|password|kata\s*sandi|kode\s*pembayaran|snap\s*token)\s*[:=]\s*)\S+/i', '$1[redacted]', $message) ?: $message;
+        $message = preg_replace('/\b[A-Z0-9_-]{24,}\b/', '[redacted]', $message) ?: $message;
+        $message = preg_replace('/\b[\w.%+-]+@[\w.-]+\.[A-Za-z]{2,}\b/', '[email-redacted]', $message) ?: $message;
+        $message = preg_replace('/(?<!\d)(?:\+?62|0)8\d{7,12}(?!\d)/', '[phone-redacted]', $message) ?: $message;
 
         return Str::limit($message, 300, '');
     }

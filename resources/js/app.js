@@ -3,8 +3,9 @@ import { initAuthFormFeedback } from './auth-form';
 import { registerAdminBookingForms } from './admin/booking-form';
 import { registerLocalDateInput } from './local-date-input';
 import { registerMemberBookingForms } from './member/booking-form';
+import { initAutoHideTopbars } from './auto-hide-topbar';
 import { initPublicMotion } from './public-motion';
-import { initPlatinumGymChatbots, platinumGymChatbot } from './public-chatbot';
+import { initPlatinumGymChatbots } from './public-chatbot';
 
 import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
@@ -12,13 +13,12 @@ import focus from '@alpinejs/focus';
 Alpine.plugin(focus);
 
 window.Alpine = Alpine;
-window.platinumGymChatbot = platinumGymChatbot;
-
 registerAdminBookingForms();
 registerLocalDateInput();
 registerMemberBookingForms();
 Alpine.start();
 initAuthFormFeedback();
+initAutoHideTopbars();
 initPublicMotion();
 initPlatinumGymChatbots();
 

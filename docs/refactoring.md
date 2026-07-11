@@ -1,6 +1,6 @@
 # Refactoring Documentation
 
-Status: Updated 2026-07-01. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
+Status: Updated 2026-07-11. Dokumen ini diperbarui setiap ada perubahan struktur kode yang berdampak pada maintainability.
 
 Dokumen ini mencatat perubahan struktur kode yang dilakukan untuk meningkatkan keterbacaan, maintainability, dan kesiapan evolusi sistem.
 
@@ -916,3 +916,27 @@ app/Features/Gymmi/Clients/GeminiGymmiClient.php
 - `vendor\bin\pint --test`, `npm.cmd run build`, dan `git diff --check` lulus.
 - Dry-run sync key internal masih menghasilkan 0 valid unique keys dari 500 token, sehingga `.env` tidak ditulis.
 - Full `php artisan test --no-ansi` dicoba tetapi runtime PHP lokal tidak menyediakan `imagejpeg`, `imagewebp`, dan `intl`; kegagalan berada pada test upload/payment di luar Gymmi.
+
+## 27. Gymmi Deterministic-First Conversation 2026-07-11
+
+### Perubahan
+
+Gymmi dipindahkan dari client-assisted chat menjadi kontrak percakapan server-bound:
+
+```text
+app/Features/Gymmi/Support/GymmiConversationStore.php
+app/Features/Gymmi/Support/GymmiActionResolver.php
+app/Features/Gymmi/Support/GymmiAnswerValidator.php
+app/Console/Commands/PruneGymmiConversationsCommand.php
+resources/js/public-chatbot.js
+tests/JavaScript/gymmi-chat-state.test.js
+```
+
+### Detail
+
+- Public tetap memakai `POST /gymmi/chat`; member memakai `POST /member/gymmi/chat` yang dilindungi auth, verified, role member, dan profile-complete.
+- Request hanya menerima `message`, `conversation_id`, dan UUID `client_message_id`; konteks dan history dari browser tidak dipercaya.
+- Token percakapan terikat session, user, dan surface; retry memakai idempotency key agar bubble user tidak digandakan.
+- Fakta seperti harga, jam, jadwal, stok, promo, kapasitas, status member, tanggal, kode, jumlah, dan URL dirender deterministik dari evidence resmi.
+- Composer AI nonaktif secara default; normalizer AI tetap opsional dan tidak menentukan authorization atau fakta.
+- Log percakapan dipangkas dengan `gymmi:prune-conversations`, default retention 30 hari, dan scheduler harian.

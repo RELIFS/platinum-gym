@@ -1,8 +1,7 @@
 <?php
 
-use App\Models\AiConversation;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 beforeEach(function () {
     Cache::flush();
@@ -23,12 +22,15 @@ test('public gymmi widget is hidden on first paint and exposes dialog accessibil
         ->assertSee('aria-label="Tutup Gymmi"', false)
         ->assertSee('aria-label="Kirim pesan Gymmi"', false)
         ->assertSee('data-chatbot-trigger', false)
+        ->assertSee('aria-controls="gymmi-public-panel"', false)
+        ->assertSee('aria-expanded="false"', false)
+        ->assertSee('maxlength="700"', false)
         ->assertSee('gymmi-trigger', false)
         ->assertSee('gymmi-chat-trigger-160.webp', false)
         ->assertSee('gymmi-chat-trigger-320.webp', false)
         ->assertSee('gymmi-chat-trigger-480.webp', false)
         ->assertSee('srcset=', false)
-        ->assertSee('sizes="(min-width: 768px) 156px, (min-width: 480px) 136px, 112px"', false)
+        ->assertSee('sizes="(min-width: 768px) 128px, (min-width: 480px) 112px, 92px"', false)
         ->assertSee('data-gymmi-trigger-image', false)
         ->assertSee('gymmi-trigger-fallback', false)
         ->assertDontSee('gymmi-chat-trigger-96.webp', false)
@@ -46,35 +48,20 @@ test('public gymmi widget is hidden on first paint and exposes dialog accessibil
         ->assertSee('border border-zinc-200 bg-white', false)
         ->assertSee('dark:border-zinc-800 dark:bg-zinc-950', false)
         ->assertSee('border-b border-zinc-200 bg-zinc-50', false)
-        ->assertSee('dark:border-zinc-800 dark:bg-white/[0.04] dark:text-white', false)
+        ->assertSee('dark:border-zinc-800 dark:bg-white/[0.04] dark:text-zinc-100', false)
         ->assertSee('border-t border-zinc-200 px-3 py-3 dark:border-zinc-800', false)
         ->assertDontSee('border-zinc-700 bg-zinc-900 text-base text-zinc-100', false);
 });
 
-test('public gymmi chat validates input and falls back without exposing provider keys', function () {
-    config([
-        'services.gemini.api_key' => null,
-        'services.gemini.api_keys' => null,
-        'services.gemini.enabled' => true,
-    ]);
-
-    Http::preventStrayRequests();
-
+test('public gymmi chat validates the server-owned contract', function () {
     $this->postJson(route('gymmi.chat'), [
         'message' => '',
-        'context' => 'public',
+        'client_message_id' => (string) Str::uuid(),
     ])->assertUnprocessable()->assertJsonValidationErrors('message');
 
     $this->postJson(route('gymmi.chat'), [
         'message' => 'Info membership Platinum Gym',
+        'client_message_id' => (string) Str::uuid(),
         'context' => 'public',
-    ])
-        ->assertOk()
-        ->assertJsonPath('source', 'knowledge')
-        ->assertDontSee('public-secret-api-key')
-        ->assertDontSee('gemini_system_prompt');
-
-    expect(AiConversation::query()->first())
-        ->not->toBeNull()
-        ->context->toBe('public');
+    ])->assertUnprocessable()->assertJsonValidationErrors('context');
 });

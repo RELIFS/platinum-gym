@@ -2,6 +2,7 @@
 
 namespace App\Features\PublicWebsite\ViewModels;
 
+use App\Support\OperationalHours;
 use Illuminate\Support\Str;
 
 class PublicLayoutViewModel
@@ -12,7 +13,7 @@ class PublicLayoutViewModel
         $pageTitle = Str::contains($title, $siteName) ? $title : $title.' | '.$siteName;
         $socialImageUrl = asset('images/public/og/platinum-gym-padang-social.jpg');
         $logoUrl = asset('images/brand/platinum-gym-wordmark-1200.jpg');
-        $hours = $settings['operational_hours'] ?? ['weekday' => '06:00-22:00', 'weekend' => '06:00-20:00'];
+        $hours = OperationalHours::normalize($settings['operational_hours'] ?? null);
 
         return [
             'siteName' => $siteName,
@@ -38,10 +39,7 @@ class PublicLayoutViewModel
                     'postalCode' => '25121',
                     'addressCountry' => 'ID',
                 ],
-                'openingHours' => [
-                    'Mo-Fr '.($hours['weekday'] ?? '06:00-22:00'),
-                    'Sa-Su '.($hours['weekend'] ?? '06:00-20:00'),
-                ],
+                'openingHours' => OperationalHours::schema($hours),
                 'sameAs' => array_values(array_filter([
                     $settings['instagram_url'] ?? null,
                     $settings['maps_url'] ?? null,

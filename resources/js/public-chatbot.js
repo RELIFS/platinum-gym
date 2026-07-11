@@ -1,110 +1,3 @@
-export function platinumGymChatbot(config = {}) {
-    return {
-        open: false,
-        input: '',
-        typing: false,
-        lastFocusedElement: null,
-        messages: [{ from: 'bot', ...normalizeBotReply(config.initialMessage ?? '') }],
-        quickReplies: config.quickReplies ?? [],
-        whatsappUrl: config.whatsappUrl ?? '#',
-        showEscalation: config.showEscalation ?? true,
-        focusablePanelElements() {
-            if (!this.$refs.panel) {
-                return [];
-            }
-
-            return Array.from(
-                this.$refs.panel.querySelectorAll(
-                    'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
-                ),
-            ).filter((element) => element.offsetParent !== null);
-        },
-        trapFocus(event) {
-            if (!this.open || !this.$refs.panel) {
-                return;
-            }
-
-            const focusable = this.focusablePanelElements();
-
-            if (!focusable.length) {
-                event.preventDefault();
-                this.$refs.panel.focus({ preventScroll: true });
-
-                return;
-            }
-
-            const first = focusable[0];
-            const last = focusable[focusable.length - 1];
-
-            if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault();
-                last.focus({ preventScroll: true });
-            } else if (!event.shiftKey && document.activeElement === last) {
-                event.preventDefault();
-                first.focus({ preventScroll: true });
-            }
-        },
-        close() {
-            const fallbackFocus = this.lastFocusedElement ?? this.$refs.trigger;
-
-            this.open = false;
-
-            this.$nextTick(() => fallbackFocus?.focus?.({ preventScroll: true }));
-        },
-        handleEscape(event) {
-            if (!this.open) {
-                return;
-            }
-
-            event.preventDefault();
-            this.close();
-        },
-        openChat() {
-            this.lastFocusedElement = document.activeElement;
-            this.open = true;
-
-            this.$nextTick(() => {
-                this.$refs.panel?.focus({ preventScroll: true });
-                this.scrollToEnd();
-            });
-        },
-        send() {
-            const text = this.input.trim();
-
-            if (!text || this.typing) {
-                return;
-            }
-
-            this.messages.push({ from: 'user', text, quickReply: false });
-            this.input = '';
-            this.queueReply(text);
-        },
-        quickReply(text) {
-            if (this.typing) {
-                return;
-            }
-
-            this.messages.push({ from: 'user', text, quickReply: true });
-            this.queueReply(text);
-        },
-        async queueReply(text) {
-            this.typing = true;
-            this.$nextTick(() => this.scrollToEnd());
-
-            const reply = await resolveAssistantReply(text, config, this.messages);
-            this.messages.push({ from: 'bot', ...normalizeBotReply(reply) });
-            this.typing = false;
-            this.$nextTick(() => this.scrollToEnd());
-        },
-        resolveReply(text) {
-            return resolveChatbotReply(text, config);
-        },
-        scrollToEnd() {
-            this.$refs.messagesEnd?.scrollIntoView({ block: 'end' });
-        },
-    };
-}
-
 export function initPlatinumGymChatbots() {
     document.querySelectorAll('[data-chatbot-root]').forEach((root) => initChatbotRoot(root));
 }
@@ -132,19 +25,33 @@ function initChatbotRoot(root) {
     let open = false;
     let typing = false;
     let lastFocusedElement = null;
+    let menuSuppressed = false;
+    const storageKey = gymmiStorageKey(config);
+    const storedState = readGymmiState(storageKey);
+    let conversationId = storedState?.conversationId ?? null;
 
     if (!panel || !trigger || !messages || !input || !send) {
         return;
     }
 
-    renderMessage(messages, 'bot', normalizeBotReply(config.initialMessage ?? ''), root.dataset.chatbotVariant, config);
+    const restoredMessages = Array.isArray(storedState?.messages) ? storedState.messages.slice(-12) : [];
+
+    if (restoredMessages.length > 0) {
+        restoredMessages.forEach((message) => renderMessage(messages, message.from, normalizeBotReply(message), root.dataset.chatbotVariant, config, { quickReply: message.quickReply === true }));
+    } else {
+        renderMessage(messages, 'bot', normalizeBotReply(config.initialMessage ?? ''), root.dataset.chatbotVariant, config);
+    }
+
+    const persist = () => writeGymmiState(storageKey, conversationId, collectDisplayMessages(messages));
+
     renderQuickReplies(quickReplies, config.quickReplies ?? [], root.dataset.chatbotVariant, (reply) => {
         if (typing) {
             return;
         }
 
-        addUserMessage(reply, true);
-        queueReply(reply, true);
+        const clientMessageId = createClientMessageId();
+        addUserMessage(reply, true, clientMessageId);
+        queueReply(reply, clientMessageId);
     });
 
     if (escalation) {
@@ -162,15 +69,20 @@ function initChatbotRoot(root) {
 
     const setTypingState = (nextTyping) => {
         typing = nextTyping;
+        root.setAttribute('aria-busy', typing.toString());
+        panel.setAttribute('aria-busy', typing.toString());
         setQuickRepliesDisabled(quickReplies, typing);
         syncSendState(input, send, typing);
     };
 
     const setOpen = (nextOpen, returnFocus = true) => {
         open = nextOpen;
+        document.body.classList.toggle('overflow-hidden', open && window.matchMedia('(max-width: 639px)').matches);
         panel.hidden = !open;
         panel.style.display = open ? 'flex' : 'none';
         panel.setAttribute('aria-hidden', (!open).toString());
+        trigger.setAttribute('aria-expanded', open.toString());
+        root.setAttribute('aria-busy', typing.toString());
         trigger.hidden = open;
         trigger.style.display = open ? 'none' : '';
 
@@ -201,6 +113,29 @@ function initChatbotRoot(root) {
         window.setTimeout(() => (lastFocusedElement ?? trigger).focus?.({ preventScroll: true }), 150);
     };
 
+    const syncMenuSuppression = () => {
+        menuSuppressed = document.documentElement.hasAttribute('data-mobile-menu-open');
+
+        if (menuSuppressed) {
+            root.setAttribute('data-chatbot-suppressed', 'true');
+
+            if (open) {
+                setOpen(false, false);
+            }
+
+            return;
+        }
+
+        root.removeAttribute('data-chatbot-suppressed');
+    };
+
+    new MutationObserver(syncMenuSuppression).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-mobile-menu-open'],
+    });
+
+    window.addEventListener('platinum-gym:mobile-menu-change', syncMenuSuppression);
+
     const submit = () => {
         const text = input.value.trim();
 
@@ -208,18 +143,20 @@ function initChatbotRoot(root) {
             return;
         }
 
-        addUserMessage(text, false);
+        const clientMessageId = createClientMessageId();
+        addUserMessage(text, false, clientMessageId);
         input.value = '';
         syncSendState(input, send, typing);
-        queueReply(text, false);
+        queueReply(text, clientMessageId);
     };
 
-    function addUserMessage(text, quickReply = false) {
-        renderMessage(messages, 'user', { text }, root.dataset.chatbotVariant, config, { quickReply });
+    function addUserMessage(text, quickReply = false, clientMessageId = null) {
+        renderMessage(messages, 'user', { text, clientMessageId }, root.dataset.chatbotVariant, config, { quickReply });
+        persist();
         scrollToEnd(messagesEnd);
     }
 
-    async function queueReply(text, preferLocal = false) {
+    async function queueReply(text, clientMessageId) {
         if (typing) {
             return;
         }
@@ -227,17 +164,42 @@ function initChatbotRoot(root) {
         setTypingState(true);
         const typingEl = renderTyping(messages, config, root.dataset.chatbotVariant);
         scrollToEnd(messagesEnd);
-
-        const reply = await resolveAssistantReply(text, config, collectHistory(messages), preferLocal);
+        const result = await requestAssistantReply(text, config, conversationId, clientMessageId);
 
         typingEl.remove();
-        renderMessage(messages, 'bot', normalizeBotReply(reply), root.dataset.chatbotVariant, config);
+        if (result.conversationId) {
+            conversationId = result.conversationId;
+        }
+
+        if (result.ok) {
+            renderMessage(messages, 'bot', normalizeBotReply(result.reply), root.dataset.chatbotVariant, config);
+        } else {
+            let errorItem = null;
+            const retryHandler = result.retryable ? () => {
+                errorItem?.remove();
+                persist();
+                queueReply(text, clientMessageId);
+            } : null;
+            errorItem = renderMessage(messages, 'bot', normalizeBotReply({
+                text: result.message,
+            }), root.dataset.chatbotVariant, config, {
+                onRetry: retryHandler,
+                transient: true,
+            });
+            errorItem.dataset.chatbotErrorFor = clientMessageId;
+        }
+
+        persist();
         setTypingState(false);
         scrollToEnd(messagesEnd);
         input.focus({ preventScroll: true });
     }
 
     trigger.addEventListener('click', () => {
+        if (menuSuppressed) {
+            return;
+        }
+
         lastFocusedElement = trigger;
         setOpen(true);
     });
@@ -247,7 +209,7 @@ function initChatbotRoot(root) {
     send.addEventListener('click', submit);
     input.addEventListener('input', () => syncSendState(input, send, typing));
     input.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
+        if (event.key === 'Enter' && !event.isComposing) {
             event.preventDefault();
             submit();
         }
@@ -276,21 +238,21 @@ function initChatbotRoot(root) {
     syncSendState(input, send, typing);
     setQuickRepliesDisabled(quickReplies, false);
     setOpen(false, false);
+    syncMenuSuppression();
 }
 
-async function resolveAssistantReply(text, config = {}, history = [], preferLocal = false) {
-    const localReply = normalizeBotReply(resolveChatbotReply(text, config));
-
-    if (preferLocal) {
-        return localReply;
-    }
-
-    if (!config.aiEnabled || !config.endpoint) {
-        return localReply;
+export async function requestAssistantReply(text, config = {}, conversationId = null, clientMessageId = createClientMessageId()) {
+    if (!config.chatEnabled || !config.endpoint) {
+        return {
+            ok: false,
+            message: 'Layanan Gymmi sedang tidak tersedia. Silakan coba lagi nanti.',
+            retryable: false,
+            conversationId,
+        };
     }
 
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 15000);
+    const timeout = globalThis.setTimeout(() => controller.abort(), Number(config.timeoutMs ?? 9000));
 
     try {
         const response = await fetch(config.endpoint, {
@@ -302,163 +264,72 @@ async function resolveAssistantReply(text, config = {}, history = [], preferLoca
             },
             body: JSON.stringify({
                 message: text,
-                context: config.context ?? 'public',
-                history,
+                conversation_id: conversationId,
+                client_message_id: clientMessageId,
             }),
             signal: controller.signal,
         });
+        const payload = await response.json().catch(() => ({}));
+        const nextConversationId = payload?.conversation?.id ?? conversationId;
 
-        if (!response.ok) {
-            return localReply;
+        if (!response.ok || !payload?.reply?.text) {
+            return {
+                ok: false,
+                message: payload?.message ?? failureMessage(response.status),
+                retryable: payload?.retryable ?? [429, 500, 502, 503, 504].includes(response.status),
+                conversationId: nextConversationId,
+            };
         }
-
-        const payload = await response.json();
-        const aiText = payload?.reply?.text;
-
-        if (!aiText) {
-            return localReply;
-        }
-
-        const keepLocalAction = shouldKeepLocalAction(payload?.source, localReply);
 
         return {
-            text: aiText,
-            actionLabel: keepLocalAction ? localReply.actionLabel : null,
-            actionUrl: keepLocalAction ? localReply.actionUrl : null,
+            ok: true,
+            reply: {
+                text: payload.reply.text,
+                actionLabel: payload.reply.action?.label ?? null,
+                actionUrl: safeActionUrl(payload.reply.action?.url),
+            },
+            retryable: false,
+            conversationId: nextConversationId,
         };
-    } catch (_error) {
-        return localReply;
+    } catch (error) {
+        const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+
+        return {
+            ok: false,
+            message: offline
+                ? 'Koneksi internet terputus. Sambungkan kembali lalu coba lagi.'
+                : (error?.name === 'AbortError' ? 'Respons Gymmi terlalu lama. Silakan coba lagi.' : 'Gymmi belum dapat terhubung ke server. Silakan coba lagi.'),
+            retryable: true,
+            conversationId,
+        };
     } finally {
-        window.clearTimeout(timeout);
+        globalThis.clearTimeout(timeout);
     }
 }
 
-function collectHistory(container) {
-    return Array.from(container.querySelectorAll('[data-chatbot-message]'))
-        .slice(-8)
-        .map((item) => ({
-            from: item.dataset.chatbotFrom,
-            text: item.textContent.trim(),
-        }))
-        .filter((item) => item.text.length > 0);
+function failureMessage(status) {
+    if (status === 419) return 'Sesi halaman berakhir. Muat ulang halaman lalu coba lagi.';
+    if (status === 422) return 'Pesan belum dapat diproses. Periksa isi pesan lalu coba lagi.';
+    if (status === 429) return 'Permintaan terlalu sering. Tunggu sebentar lalu coba lagi.';
+
+    return 'Gymmi sedang mengalami gangguan sementara. Silakan coba lagi.';
 }
 
-function resolveChatbotReply(text, config = {}) {
-    const normalized = text.toLowerCase();
-    const replies = config.replies ?? {};
+function safeActionUrl(url) {
+    if (!url) return null;
 
-    if (isGreeting(normalized)) {
-        return replies.greeting ?? replies.fallback;
+    try {
+        const parsed = new URL(url, window.location.origin);
+        const whatsappHost = parsed.hostname === 'wa.me' || parsed.hostname.endsWith('.whatsapp.com');
+
+        if (parsed.origin === window.location.origin || whatsappHost) {
+            return parsed.href;
+        }
+    } catch (_error) {
+        return null;
     }
 
-    if (isBotCheck(normalized)) {
-        return replies.check ?? replies.fallback;
-    }
-
-    if (isThanks(normalized)) {
-        return replies.thanks ?? replies.fallback;
-    }
-
-    if (isWellbeing(normalized)) {
-        return replies.wellbeing ?? replies.fallback;
-    }
-
-    if (isCapabilityQuestion(normalized)) {
-        return replies.capability ?? replies.fallback;
-    }
-
-    if (isGoodbye(normalized)) {
-        return replies.goodbye ?? replies.fallback;
-    }
-
-    if (text === 'QR Member' || normalized.includes('qr') || normalized.includes('check-in') || normalized.includes('check in')) {
-        return replies.qr ?? replies.fallback;
-    }
-
-    if (text === 'Status Membership') {
-        return replies.membership;
-    }
-
-    if (text === 'Lokasi & Jam Buka' || includesAny(normalized, ['lokasi', 'alamat', 'maps', 'dimana', 'di mana', 'jam', 'buka', 'kontak', 'whatsapp', 'instagram'])) {
-        return replies.location ?? replies.fallback;
-    }
-
-    if (text === 'Info Membership' || normalized.includes('member') || normalized.includes('paket') || normalized.includes('gym umum')) {
-        return replies.membership;
-    }
-
-    if (hasClassPriceIntent(normalized)) {
-        return replies.classPrice ?? replies.schedule ?? replies.fallback;
-    }
-
-    if (text === 'Jadwal Kelas' || normalized.includes('jadwal') || normalized.includes('kelas') || normalized.includes('zumba') || normalized.includes('aerobic') || normalized.includes('muaythai') || normalized.includes('pound')) {
-        return replies.schedule;
-    }
-
-    if (text === 'Transaksi' || normalized.includes('transaksi') || normalized.includes('pembayaran') || normalized.includes('invoice')) {
-        return replies.transactions ?? replies.fallback;
-    }
-
-    if (text === 'Bantuan Akun' || normalized.includes('profil') || normalized.includes('akun') || normalized.includes('password') || normalized.includes('sandi')) {
-        return replies.account ?? replies.fallback;
-    }
-
-    if (text === 'Harga Personal Trainer' || normalized.includes('personal trainer') || normalized.includes('pelatih') || normalized.includes('coach') || normalized.includes(' pt')) {
-        return replies.trainer ?? replies.fallback;
-    }
-
-    if (normalized.includes('promo') || normalized.includes('diskon')) {
-        return replies.promo ?? replies.fallback;
-    }
-
-    return replies.fallback;
-}
-
-function shouldKeepLocalAction(source, localReply) {
-    if (!localReply.actionLabel || !localReply.actionUrl) {
-        return false;
-    }
-
-    return !['guard', 'fallback'].includes(source);
-}
-
-function isGreeting(normalized) {
-    return /^(halo|hai|hi|hello|pagi|siang|sore|malam|selamat pagi|selamat siang|selamat sore|selamat malam|assalamualaikum)( gymmi| kak| admin)?$/.test(normalized.trim());
-}
-
-function isBotCheck(normalized) {
-    const clean = normalized.trim().replace(/[?!.,]+$/g, '').replace(/\s+/g, ' ');
-
-    return /^(test|tes|cek bot|cek gymmi|coba bot|coba gymmi|bot aktif|gymmi aktif)$/.test(clean);
-}
-
-function isThanks(normalized) {
-    return /\b(makasih|terima kasih|terimakasih|thanks|thank you|tengkyu)\b/.test(normalized) && !hasDomainIntent(normalized);
-}
-
-function isWellbeing(normalized) {
-    return includesAny(normalized, ['apa kabar', 'gimana kabarnya', 'bagaimana kabarnya', 'kabar gymmi', 'sehat']) && !hasDomainIntent(normalized);
-}
-
-function isGoodbye(normalized) {
-    return /^(bye|dadah|sampai jumpa|sampai nanti|see you|selamat tinggal)( gymmi)?$/.test(normalized.trim());
-}
-
-function isCapabilityQuestion(normalized) {
-    return includesAny(normalized, ['siapa kamu', 'kamu siapa', 'gymmi siapa', 'gymmi itu apa', 'apa itu gymmi', 'bisa bantu apa', 'kamu bisa apa', 'fitur gymmi', 'bantuan gymmi']);
-}
-
-function hasDomainIntent(normalized) {
-    return includesAny(normalized, ['harga', 'biaya', 'paket', 'membership', 'member', 'jadwal', 'kelas', 'lokasi', 'alamat', 'maps', 'produk', 'promo', 'trainer', 'coach', 'personal trainer', 'qr', 'transaksi', 'invoice', 'booking', 'profil', 'akun', 'jam buka', 'whatsapp', 'instagram', 'daftar', 'bayar']);
-}
-
-function hasClassPriceIntent(normalized) {
-    return includesAny(normalized, ['muaythai', 'muay thai', 'poundfit', 'pound fit'])
-        && includesAny(normalized, ['harga', 'biaya', 'tarif', 'bayar', 'berapa', 'paket']);
-}
-
-function includesAny(value, needles) {
-    return needles.some((needle) => value.includes(needle));
+    return null;
 }
 
 function renderQuickReplies(container, replies, variant = 'public', onClick) {
@@ -471,7 +342,7 @@ function renderQuickReplies(container, replies, variant = 'public', onClick) {
         const button = document.createElement('button');
         button.type = 'button';
         button.dataset.chatbotQuickReply = 'true';
-        button.className = 'inline-flex min-h-10 shrink-0 snap-start touch-manipulation items-center whitespace-nowrap rounded-full border border-zinc-200 bg-zinc-50 px-3 py-2 text-left text-xs font-bold leading-4 text-zinc-700 transition hover:border-gold-500/60 hover:text-gold-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/30 disabled:cursor-not-allowed disabled:opacity-45 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:text-gold-400';
+        button.className = 'inline-flex min-h-10 shrink-0 snap-start touch-manipulation items-center whitespace-nowrap rounded-full border border-zinc-200 bg-zinc-50 px-3 py-2 text-left text-xs type-control leading-4 text-zinc-700 transition hover:border-gold-600/60 hover:text-gold-text-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/30 disabled:cursor-not-allowed disabled:opacity-45 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:text-gold-400 dark:focus-visible:ring-gold-400/30';
         button.textContent = reply;
         button.addEventListener('click', () => {
             if (button.disabled) {
@@ -491,6 +362,10 @@ function renderMessage(container, from, reply, variant = 'public', config = {}, 
     item.setAttribute('aria-label', isUser ? 'Pesan Anda' : 'Pesan Gymmi');
     item.dataset.chatbotMessage = 'true';
     item.dataset.chatbotFrom = isUser ? 'user' : 'bot';
+    item.dataset.chatbotText = reply.text ?? '';
+    item.dataset.chatbotQuickReply = options.quickReply === true ? 'true' : 'false';
+    item.dataset.chatbotTransient = options.transient === true ? 'true' : 'false';
+    if (reply.clientMessageId) item.dataset.chatbotClientMessageId = reply.clientMessageId;
 
     const bubbleWrap = document.createElement('div');
     bubbleWrap.className = isUser
@@ -505,9 +380,20 @@ function renderMessage(container, from, reply, variant = 'public', config = {}, 
     if (reply.actionUrl && reply.actionLabel) {
         const action = document.createElement('a');
         action.href = reply.actionUrl;
-        action.className = 'mt-2 inline-flex min-h-10 max-w-full items-center justify-center whitespace-normal break-words rounded-lg border border-gold-500/35 bg-gold-500/10 px-3 py-2 text-center text-xs font-black leading-5 text-gold-700 transition hover:border-gold-500 hover:text-gold-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:text-gold-400 dark:hover:text-gold-400';
+        action.className = 'mt-2 inline-flex min-h-10 max-w-full items-center justify-center whitespace-normal break-words rounded-lg border border-gold-600/35 bg-gold-500/10 px-3 py-2 text-center text-xs type-control leading-5 text-gold-text transition hover:border-gold-600 hover:text-gold-text-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 dark:border-gold-400/30 dark:text-gold-400 dark:hover:text-gold-400 dark:focus-visible:ring-gold-400/40';
         action.textContent = reply.actionLabel;
         bubbleWrap.append(action);
+        item.dataset.chatbotActionLabel = reply.actionLabel;
+        item.dataset.chatbotActionUrl = reply.actionUrl;
+    }
+
+    if (typeof options.onRetry === 'function') {
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.className = 'mt-2 inline-flex min-h-10 items-center justify-center rounded-lg border border-zinc-300 px-3 py-2 text-xs type-control text-zinc-700 hover:border-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 dark:border-zinc-600 dark:text-zinc-200';
+        retry.textContent = 'Coba Lagi';
+        retry.addEventListener('click', options.onRetry, { once: true });
+        bubbleWrap.append(retry);
     }
 
     if (isUser) {
@@ -516,7 +402,15 @@ function renderMessage(container, from, reply, variant = 'public', config = {}, 
         item.append(renderBotAvatar(config), bubbleWrap);
     }
 
-    container.append(item);
+    const end = container.querySelector('[data-chatbot-messages-end]');
+
+    if (end) {
+        container.insertBefore(item, end);
+    } else {
+        container.append(item);
+    }
+
+    return item;
 }
 
 function renderTyping(container, config = {}, variant = 'public') {
@@ -538,7 +432,13 @@ function renderTyping(container, config = {}, variant = 'public') {
     });
 
     item.append(renderBotAvatar(config), bubble);
-    container.append(item);
+    const end = container.querySelector('[data-chatbot-messages-end]');
+
+    if (end) {
+        container.insertBefore(item, end);
+    } else {
+        container.append(item);
+    }
 
     return item;
 }
@@ -620,11 +520,11 @@ function bindPanelAvatarFallback(avatar) {
 
 function messageBubbleClass(isUser, quickReply, variant = 'public') {
     if (quickReply) {
-        return 'max-w-full break-words rounded-full bg-gold-500 px-3 py-2 text-xs font-black leading-5 text-zinc-950 shadow-sm';
+        return 'max-w-full break-words rounded-full bg-gold-500 px-3 py-2 text-xs type-control leading-5 text-zinc-950 shadow-sm';
     }
 
     if (isUser) {
-        return 'max-w-full break-words rounded-2xl rounded-tr-sm bg-gold-500 px-3.5 py-2.5 text-sm font-semibold leading-6 text-zinc-950 shadow-sm';
+        return 'max-w-full break-words rounded-2xl rounded-tr-sm bg-gold-500 px-3.5 py-2.5 text-sm type-body leading-6 text-zinc-950 shadow-sm';
     }
 
     return 'max-w-full whitespace-pre-line break-words rounded-2xl rounded-tl-sm border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm leading-6 text-zinc-700 dark:border-transparent dark:bg-zinc-800 dark:text-zinc-200';
@@ -675,6 +575,7 @@ function normalizeBotReply(reply) {
             text: reply.text ?? '',
             actionLabel: reply.actionLabel ?? null,
             actionUrl: reply.actionUrl ?? null,
+            clientMessageId: reply.clientMessageId ?? null,
         };
     }
 
@@ -682,5 +583,73 @@ function normalizeBotReply(reply) {
         text: reply ?? '',
         actionLabel: null,
         actionUrl: null,
+        clientMessageId: null,
     };
+}
+
+export function createClientMessageId() {
+    if (globalThis.crypto?.randomUUID) {
+        return globalThis.crypto.randomUUID();
+    }
+
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
+        const value = Math.floor(Math.random() * 16);
+        const digit = character === 'x' ? value : (value & 0x3) | 0x8;
+
+        return digit.toString(16);
+    });
+}
+
+export function gymmiStorageKey(config = {}) {
+    if (config.memoryEnabled === false || !config.storageNamespace) {
+        return null;
+    }
+
+    return `platinum-gym:gymmi:${config.storageScope ?? 'public'}:${config.storageNamespace}`;
+}
+
+export function readGymmiState(storageKey) {
+    if (!storageKey || typeof sessionStorage === 'undefined') {
+        return null;
+    }
+
+    try {
+        const state = JSON.parse(sessionStorage.getItem(storageKey) ?? 'null');
+
+        return state && typeof state === 'object' ? state : null;
+    } catch (_error) {
+        sessionStorage.removeItem(storageKey);
+
+        return null;
+    }
+}
+
+export function writeGymmiState(storageKey, conversationId, messages) {
+    if (!storageKey || typeof sessionStorage === 'undefined') {
+        return;
+    }
+
+    try {
+        sessionStorage.setItem(storageKey, JSON.stringify({
+            conversationId: conversationId ?? null,
+            messages: Array.isArray(messages) ? messages.slice(-12) : [],
+        }));
+    } catch (_error) {
+        // Storage can be unavailable in private browsing; chat remains usable.
+    }
+}
+
+function collectDisplayMessages(container) {
+    return Array.from(container.querySelectorAll('[data-chatbot-message]'))
+        .filter((item) => item.dataset.chatbotTransient !== 'true')
+        .slice(-12)
+        .map((item) => ({
+            from: item.dataset.chatbotFrom === 'user' ? 'user' : 'bot',
+            text: item.dataset.chatbotText ?? '',
+            quickReply: item.dataset.chatbotQuickReply === 'true',
+            clientMessageId: item.dataset.chatbotClientMessageId ?? null,
+            actionLabel: item.dataset.chatbotActionLabel ?? null,
+            actionUrl: item.dataset.chatbotActionUrl ?? null,
+        }))
+        .filter((item) => item.text.length > 0);
 }

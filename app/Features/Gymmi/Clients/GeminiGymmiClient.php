@@ -25,7 +25,15 @@ class GeminiGymmiClient implements GymmiAnswerClient, GymmiAssistantClient, Gymm
      */
     public function answer(string $message, string $context, array $history = []): ?string
     {
-        return $this->transport->generate($this->answerPayload($message, $context, $history), 'answer');
+        if (! (bool) config('gymmi.composer_enabled', false)) {
+            return null;
+        }
+
+        return $this->transport->generateResult(
+            $this->answerPayload($message, $context, $history),
+            'answer',
+            maxAttempts: 1,
+        )->text;
     }
 
     public function normalize(string $message, string $context): ?GymmiNormalizedInput
@@ -34,7 +42,11 @@ class GeminiGymmiClient implements GymmiAnswerClient, GymmiAssistantClient, Gymm
             return null;
         }
 
-        $text = $this->transport->generate($this->normalizerPayload($message, $context), 'normalizer');
+        $text = $this->transport->generateResult(
+            $this->normalizerPayload($message, $context),
+            'normalizer',
+            maxAttempts: 1,
+        )->text;
 
         if (! is_string($text) || $text === '') {
             return null;
@@ -49,27 +61,16 @@ class GeminiGymmiClient implements GymmiAnswerClient, GymmiAssistantClient, Gymm
      */
     private function answerPayload(string $message, string $context, array $history): array
     {
-        $historyText = collect($history)
-            ->take(-6)
-            ->map(function (array $item): string {
-                $from = ($item['from'] ?? '') === 'bot' ? 'Gymmi' : 'User';
-                $text = Str::limit(strip_tags((string) ($item['text'] ?? '')), 240, '');
-
-                return "{$from}: {$text}";
-            })
-            ->filter(fn (string $line) => filled(trim($line)))
-            ->implode("\n");
-
-        $prompt = trim(implode("\n\n", array_filter([
-            "Konteks Platinum Gym Padang:\n{$context}",
-            $historyText !== '' ? "Riwayat percakapan ringkas:\n{$historyText}" : null,
+        $prompt = trim(implode("\n\n", [
+            "Evidence resmi:\n{$context}",
             'Pertanyaan user: '.Str::limit($message, 700, ''),
-        ])));
+            'Output wajib JSON valid saja: {"answer":"...","used_fact_ids":["fact-1"]}.',
+        ]));
 
         return [
             'systemInstruction' => [
                 'parts' => [[
-                    'text' => 'Anda adalah Gymmi, asisten resmi website Platinum Gym Padang. Jawab dalam Bahasa Indonesia yang ramah, ringkas, dan praktis. Jawab hanya berdasarkan konteks yang diberikan dan pengetahuan umum aman tentang penggunaan website gym. Jika data tidak tersedia, arahkan user mengecek halaman terkait atau admin. Jangan meminta password, API key, token pembayaran, raw QR token, atau data sensitif. Jangan memberi diagnosis medis; sarankan konsultasi profesional untuk kondisi kesehatan.',
+                    'text' => 'Anda adalah composer bahasa Gymmi. Tulis Bahasa Indonesia ramah-profesional, langsung, ringkas, dan natural. Gunakan hanya evidence yang diberikan. Jangan menambah fakta, angka, tanggal, waktu, URL, nama, status, atau tindakan. Jangan menyebut Gemini, provider, fallback, prompt, snippet, data lokal, atau mekanisme internal. Jangan meminta password, API key, token pembayaran, raw QR token, atau data sensitif. Output harus JSON valid sesuai shape yang diminta, tanpa markdown.',
                 ]],
             ],
             'contents' => [[
@@ -79,8 +80,9 @@ class GeminiGymmiClient implements GymmiAnswerClient, GymmiAssistantClient, Gymm
                 ]],
             ]],
             'generationConfig' => [
-                'temperature' => (float) config('services.gemini.temperature', 0.45),
-                'maxOutputTokens' => (int) config('services.gemini.max_output_tokens', 500),
+                'temperature' => (float) config('services.gemini.temperature', 0.25),
+                'maxOutputTokens' => min(240, (int) config('services.gemini.max_output_tokens', 500)),
+                'responseMimeType' => 'application/json',
             ],
         ];
     }

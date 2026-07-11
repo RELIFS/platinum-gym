@@ -28,12 +28,12 @@
             <div class="public-home-visual-primary-overlay"></div>
             <div class="public-home-visual-caption">
                 <div class="public-home-visual-caption-copy">
-                    <p class="text-[0.65rem] font-black uppercase tracking-[0.18em] text-gold-600 dark:text-gold-400">Training Room</p>
-                    <p class="mt-1 text-sm font-black leading-tight text-zinc-950 break-words dark:text-white sm:text-base">Gym, Classes, Personal Trainer</p>
+                    <p class="text-[0.65rem] type-control uppercase tracking-[0.12em] text-zinc-600 dark:text-gold-400">Training Room</p>
+                    <p class="mt-1 text-sm type-control leading-tight text-zinc-950 break-words dark:text-zinc-100 sm:text-base">Gym, Classes, Personal Trainer</p>
                 </div>
                 <div class="public-home-visual-program-badge">
-                    <p class="text-xl font-black leading-none sm:text-3xl">3</p>
-                    <p class="mt-1 text-[0.6rem] font-black uppercase tracking-[0.16em]">Program</p>
+                    <p class="text-xl type-emphasis leading-none sm:text-3xl">3</p>
+                    <p class="mt-1 text-[0.6rem] type-control uppercase tracking-[0.12em]">Program</p>
                 </div>
             </div>
         </div>

@@ -1,18 +1,18 @@
 <x-guest-layout>
     <div class="w-full">
         <div class="mb-8">
-            <h1 class="mb-3 text-3xl font-extrabold leading-tight text-zinc-950 dark:text-white">
-                Selamat <span class="text-gold-500">Datang</span>
+            <h1 class="mb-3 text-3xl type-title leading-tight text-zinc-950 dark:text-zinc-100">
+                Selamat <span class="text-gold-display">Datang</span>
             </h1>
             <p class="auth-panel-copy">
                 Masuk ke akun Platinum Gym Padang untuk melanjutkan ke area Anda.
             </p>
         </div>
 
-        <x-auth-session-status class="mb-5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm font-medium text-emerald-700 dark:text-emerald-400" :status="session('status')" />
+        <x-auth-session-status class="mb-5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm type-compact text-emerald-700 dark:text-emerald-400" :status="session('status')" />
 
         @if ($errors->any())
-            <div class="mb-5 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm font-medium leading-relaxed text-red-700 dark:text-red-300" role="alert" aria-live="assertive">
+            <div class="mb-5 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm type-compact leading-relaxed text-red-700 dark:text-red-300" role="alert" aria-live="assertive">
                 Periksa kembali data yang ditandai di bawah ini.
             </div>
         @endif
@@ -56,8 +56,8 @@
                 <x-input-error id="password-error" :messages="$errors->get('password')" class="auth-error" />
             </div>
 
-            <label for="remember_me" class="flex cursor-pointer items-center gap-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                <input id="remember_me" type="checkbox" class="rounded border-zinc-300 bg-white text-gold-500 shadow-sm focus:ring-gold-500 dark:border-zinc-700 dark:bg-zinc-950" name="remember">
+            <label for="remember_me" class="flex cursor-pointer items-center gap-3 text-sm type-compact text-zinc-600 dark:text-zinc-400">
+                <input id="remember_me" type="checkbox" class="rounded border-zinc-300 bg-white text-gold-700 shadow-sm focus:ring-gold-700 dark:border-zinc-700 dark:bg-zinc-950 dark:text-gold-400 dark:focus:ring-gold-400" name="remember">
                 <span>Ingat saya</span>
             </label>
 
@@ -66,7 +66,7 @@
             </button>
         </form>
 
-        <p class="mt-8 text-center font-medium text-zinc-500 dark:text-zinc-400">
+        <p class="mt-8 text-center type-compact text-zinc-500 dark:text-zinc-400">
             Belum memiliki akun?
             <a href="{{ route('register') }}" class="auth-link">Daftar Membership</a>
         </p>

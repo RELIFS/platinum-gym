@@ -25,8 +25,8 @@
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div class="min-w-0">
             <p class="{{ $eyebrowClass }}">Invoice Transaksi</p>
-            <h2 class="mt-2 break-words font-mono text-2xl font-black text-zinc-950 dark:text-white sm:text-3xl">{{ $invoice->invoice_number }}</h2>
-            <p class="mt-2 text-sm font-semibold text-zinc-500 dark:text-zinc-400">{{ $business['site_name'] }}</p>
+            <h2 class="mt-2 break-words font-mono text-2xl type-title text-zinc-950 dark:text-zinc-100 sm:text-3xl">{{ $invoice->invoice_number }}</h2>
+            <p class="mt-2 text-sm type-control text-zinc-500 dark:text-zinc-400">{{ $business['site_name'] }}</p>
         </div>
         <div class="flex flex-col gap-2 sm:items-end">
             <span class="admin-status-pill admin-status-success">{{ $labels['invoiceStatus'] }}</span>
@@ -50,10 +50,10 @@
             <div class="min-w-0">
                 <p class="{{ $eyebrowClass }}">Ditagihkan kepada</p>
                 <div class="{{ $panelClass }} mt-3 min-w-0">
-                    <p class="font-black text-zinc-950 dark:text-white">{{ $member['name'] }}</p>
-                    <p class="mt-1 font-mono text-xs font-bold text-zinc-500 dark:text-zinc-400">{{ $member['code'] }}</p>
+                    <p class="type-control text-zinc-950 dark:text-zinc-100">{{ $member['name'] }}</p>
+                    <p class="mt-1 font-mono text-xs type-control text-zinc-500 dark:text-zinc-400">{{ $member['code'] }}</p>
                     @if ($member['email'])
-                        <p class="mt-3 break-words text-sm font-semibold text-zinc-600 dark:text-zinc-300">{{ $member['email'] }}</p>
+                        <p class="mt-3 break-words text-sm type-control text-zinc-600 dark:text-zinc-300">{{ $member['email'] }}</p>
                     @endif
                 </div>
             </div>
@@ -61,10 +61,10 @@
             <div class="min-w-0">
                 <p class="{{ $eyebrowClass }}">Informasi gym</p>
                 <div class="{{ $panelClass }} mt-3 min-w-0">
-                    <p class="font-black text-zinc-950 dark:text-white">{{ $business['site_name'] }}</p>
-                    <p class="mt-2 text-sm font-semibold leading-6 text-zinc-600 dark:text-zinc-300">{{ $business['address'] }}</p>
-                    <p class="mt-2 text-sm font-semibold text-zinc-600 dark:text-zinc-300">{{ $business['phone_display'] }}</p>
-                    <p class="mt-1 break-words text-sm font-semibold text-zinc-600 dark:text-zinc-300">{{ $business['public_email'] }}</p>
+                    <p class="type-control text-zinc-950 dark:text-zinc-100">{{ $business['site_name'] }}</p>
+                    <p class="mt-2 text-sm type-control leading-6 text-zinc-600 dark:text-zinc-300">{{ $business['address'] }}</p>
+                    <p class="mt-2 text-sm type-control text-zinc-600 dark:text-zinc-300">{{ $business['phone_display'] }}</p>
+                    <p class="mt-1 break-words text-sm type-control text-zinc-600 dark:text-zinc-300">{{ $business['public_email'] }}</p>
                 </div>
             </div>
         </div>
@@ -73,16 +73,16 @@
             <p class="{{ $eyebrowClass }}">Detail layanan</p>
             <dl class="mt-4 space-y-3 text-sm">
                 <div>
-                    <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Layanan</dt>
-                    <dd class="mt-1 break-words font-black text-zinc-950 dark:text-white">{{ $service['name'] }}</dd>
+                    <dt class="type-control text-zinc-500 dark:text-zinc-400">Layanan</dt>
+                    <dd class="mt-1 break-words type-control text-zinc-950 dark:text-zinc-100">{{ $service['name'] }}</dd>
                 </div>
                 <div>
-                    <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Jenis</dt>
-                    <dd class="mt-1 font-black text-zinc-950 dark:text-white">{{ $service['kind'] }}</dd>
+                    <dt class="type-control text-zinc-500 dark:text-zinc-400">Jenis</dt>
+                    <dd class="mt-1 type-control text-zinc-950 dark:text-zinc-100">{{ $service['kind'] }}</dd>
                 </div>
                 <div class="flex items-center justify-between gap-4 border-t border-zinc-200 pt-3 dark:border-white/10">
-                    <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Nominal</dt>
-                    <dd class="text-right font-black text-zinc-950 dark:text-white">{{ $amounts['subtotal'] }}</dd>
+                    <dt class="type-control text-zinc-500 dark:text-zinc-400">Nominal</dt>
+                    <dd class="text-right type-control text-zinc-950 dark:text-zinc-100">{{ $amounts['subtotal'] }}</dd>
                 </div>
             </dl>
         </div>
@@ -107,52 +107,52 @@
             </table>
         </div>
 
-        <p class="mt-5 text-sm font-semibold leading-7 text-zinc-500 dark:text-zinc-400">{{ $business['invoice_footer'] }}</p>
+        <p class="mt-5 text-sm type-control leading-7 text-zinc-500 dark:text-zinc-400">{{ $business['invoice_footer'] }}</p>
     </div>
 
     <aside class="{{ $cardClass }}">
         <p class="{{ $eyebrowClass }}">Ringkasan</p>
         <dl class="mt-4 space-y-3 text-sm">
             <div class="flex justify-between gap-4">
-                <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Kode pembayaran</dt>
-                <dd class="break-all text-right font-mono font-black text-zinc-950 dark:text-white">{{ $payment?->payment_code ?? '-' }}</dd>
+                <dt class="type-control text-zinc-500 dark:text-zinc-400">Kode pembayaran</dt>
+                <dd class="break-all text-right font-mono type-control text-zinc-950 dark:text-zinc-100">{{ $payment?->payment_code ?? '-' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-                <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Tanggal invoice</dt>
-                <dd class="text-right font-black text-zinc-950 dark:text-white">{{ $invoice->issued_at?->translatedFormat('d M Y') ?? '-' }}</dd>
+                <dt class="type-control text-zinc-500 dark:text-zinc-400">Tanggal invoice</dt>
+                <dd class="text-right type-control text-zinc-950 dark:text-zinc-100">{{ $invoice->issued_at?->translatedFormat('d M Y') ?? '-' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-                <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Tanggal bayar</dt>
-                <dd class="text-right font-black text-zinc-950 dark:text-white">{{ $payment?->paid_at?->translatedFormat('d M Y H:i') ?? '-' }}</dd>
+                <dt class="type-control text-zinc-500 dark:text-zinc-400">Tanggal bayar</dt>
+                <dd class="text-right type-control text-zinc-950 dark:text-zinc-100">{{ $payment?->paid_at?->translatedFormat('d M Y H:i') ?? '-' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-                <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Metode</dt>
-                <dd class="text-right font-black text-zinc-950 dark:text-white">{{ $labels['method'] }}</dd>
+                <dt class="type-control text-zinc-500 dark:text-zinc-400">Metode</dt>
+                <dd class="text-right type-control text-zinc-950 dark:text-zinc-100">{{ $labels['method'] }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-                <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Status pembayaran</dt>
-                <dd class="text-right font-black text-zinc-950 dark:text-white">{{ $labels['paymentStatus'] }}</dd>
+                <dt class="type-control text-zinc-500 dark:text-zinc-400">Status pembayaran</dt>
+                <dd class="text-right type-control text-zinc-950 dark:text-zinc-100">{{ $labels['paymentStatus'] }}</dd>
             </div>
         </dl>
 
         <div class="{{ $panelClass }} mt-5">
             <dl class="space-y-3 text-sm">
                 <div class="flex justify-between gap-4">
-                    <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Subtotal</dt>
-                    <dd class="font-black text-zinc-950 dark:text-white">{{ $amounts['subtotal'] }}</dd>
+                    <dt class="type-control text-zinc-500 dark:text-zinc-400">Subtotal</dt>
+                    <dd class="type-control text-zinc-950 dark:text-zinc-100">{{ $amounts['subtotal'] }}</dd>
                 </div>
                 <div class="flex justify-between gap-4">
-                    <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Diskon</dt>
-                    <dd class="font-black text-zinc-950 dark:text-white">{{ $amounts['discount'] }}</dd>
+                    <dt class="type-control text-zinc-500 dark:text-zinc-400">Diskon</dt>
+                    <dd class="type-control text-zinc-950 dark:text-zinc-100">{{ $amounts['discount'] }}</dd>
                 </div>
                 <div class="flex justify-between gap-4">
-                    <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Pajak</dt>
-                    <dd class="font-black text-zinc-950 dark:text-white">{{ $amounts['tax'] }}</dd>
+                    <dt class="type-control text-zinc-500 dark:text-zinc-400">Pajak</dt>
+                    <dd class="type-control text-zinc-950 dark:text-zinc-100">{{ $amounts['tax'] }}</dd>
                 </div>
                 <div class="border-t border-zinc-200 pt-3 dark:border-white/10">
                     <div class="flex justify-between gap-4">
-                        <dt class="font-black text-zinc-950 dark:text-white">Total</dt>
-                        <dd class="font-black text-gold-600 dark:text-gold-400">{{ $amounts['total'] }}</dd>
+                        <dt class="type-control text-zinc-950 dark:text-zinc-100">Total</dt>
+                        <dd class="type-control text-zinc-950 dark:text-gold-400">{{ $amounts['total'] }}</dd>
                     </div>
                 </div>
             </dl>

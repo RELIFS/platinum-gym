@@ -77,7 +77,7 @@ class GeminiApiKeyPool
 
     public function maxAttempts(): int
     {
-        return max(1, (int) config('services.gemini.max_retries', 2));
+        return max(1, min(2, (int) config('services.gemini.max_retries', 1)));
     }
 
     /**
