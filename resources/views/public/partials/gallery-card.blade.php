@@ -8,11 +8,11 @@
             <div class="absolute inset-0 opacity-[0.08]" aria-hidden="true" style="background-image: linear-gradient(rgba(24,24,27,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(24,24,27,.18) 1px, transparent 1px); background-size: 40px 40px;"></div>
         @endif
         <div class="relative p-6">
-            <p class="text-5xl font-black text-gold-500/90">{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</p>
+            <p class="text-5xl type-emphasis text-zinc-950 dark:text-gold-400">{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</p>
         </div>
     </div>
     <div class="p-6">
-        <h3 class="break-words text-lg font-black text-zinc-950 dark:text-white">{{ $item->title ?? 'Aktivitas Platinum Gym' }}</h3>
+        <h3 class="break-words text-lg type-title text-zinc-950 dark:text-zinc-100">{{ $item->title ?? 'Aktivitas Platinum Gym' }}</h3>
         <p class="mt-2 break-words text-sm leading-6 text-zinc-600 dark:text-zinc-400">{{ $item->caption ?? 'Dokumentasi aktivitas Platinum Gym Padang.' }}</p>
     </div>
 </article>

@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test:gymmi-js": "node --test tests/JavaScript/gymmi-chat-state.test.js"
     },
     "devDependencies": {
         "@alpinejs/focus": "3.14.9",

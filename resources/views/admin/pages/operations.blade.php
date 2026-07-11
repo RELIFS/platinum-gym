@@ -7,7 +7,7 @@
             <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div class="min-w-0">
                     <p class="admin-eyebrow">Pembayaran Tunai</p>
-                    <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Catat transaksi langsung</h2>
+                    <h2 class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">Catat transaksi langsung</h2>
                     <p class="mt-2 admin-copy">Gunakan saat member membayar langsung di kasir. Sistem akan mencatat pembayaran dan mengaktifkan layanan dalam satu proses.</p>
                 </div>
             </div>
@@ -62,7 +62,7 @@
 
         <section class="admin-card mt-6" x-data="{ dateFrom: @js($portal['filters']['date_from'] ?? now()->startOfMonth()->toDateString()), dateTo: @js($portal['filters']['date_to'] ?? now()->toDateString()) }">
             <p class="admin-eyebrow">Tindakan Pembayaran</p>
-            <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Verifikasi transaksi</h2>
+            <h2 class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">Verifikasi transaksi</h2>
             <div class="mt-5 grid gap-3">
                 @forelse (collect($portal['recentPayments'] ?? [])->whereNotIn('status', ['paid', 'rejected', 'failed', 'expired', 'cancelled']) as $payment)
                     @php
@@ -72,10 +72,10 @@
                         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                             <div class="min-w-0">
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <p class="font-mono text-sm font-black text-zinc-950 dark:text-white">{{ $payment->payment_code }}</p>
+                                    <p class="font-mono text-sm type-control text-zinc-950 dark:text-zinc-100">{{ $payment->payment_code }}</p>
                                     <span class="admin-status-pill {{ $paymentBadge['class'] }}">{{ $paymentBadge['label'] }}</span>
                                 </div>
-                                <p class="mt-1 text-sm font-semibold text-zinc-500 dark:text-zinc-400">{{ $payment->member?->user?->name ?? $payment->member?->member_code }} - Rp {{ number_format((float) $payment->amount, 0, ',', '.') }}</p>
+                                <p class="mt-1 text-sm type-control text-zinc-500 dark:text-zinc-400">{{ $payment->member?->user?->name ?? $payment->member?->member_code }} - Rp {{ number_format((float) $payment->amount, 0, ',', '.') }}</p>
                             </div>
                             <div class="flex flex-col gap-2 sm:flex-row">
                                 <x-confirm-form
@@ -119,7 +119,7 @@
             <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div class="min-w-0">
                     <p class="admin-eyebrow">Filter Laporan</p>
-                    <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Periode operasional</h2>
+                    <h2 class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">Periode operasional</h2>
                     <p class="mt-2 admin-copy">Ringkasan dan file CSV, Excel, serta PDF memakai periode yang sama.</p>
                 </div>
                 <div class="grid w-full gap-2 sm:w-auto sm:grid-cols-3">
@@ -154,7 +154,7 @@
     @if ($page['key'] === 'audit-log')
         <section class="admin-card mt-6">
             <p class="admin-eyebrow">Filter Audit</p>
-            <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Jejak perubahan sistem</h2>
+            <h2 class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">Jejak perubahan sistem</h2>
             <form method="GET" action="{{ route('admin.audit-log') }}" class="admin-panel mt-5 grid gap-4 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] lg:items-end">
                 <label class="admin-field">
                     <span class="admin-field-label">Dari tanggal</span>
@@ -205,7 +205,7 @@
         @endphp
         <section class="admin-card mt-6">
             <p class="admin-eyebrow">Tindakan Booking</p>
-            <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Tambah booking kelas</h2>
+            <h2 class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">Tambah booking kelas</h2>
             <form
                 method="POST"
                 action="{{ route('admin.booking.store') }}"
@@ -246,16 +246,16 @@
                             autocomplete="off"
                             @error('member_id') aria-invalid="true" aria-describedby="{{ $memberErrorId }}" @enderror
                         >
-                        <button type="button" class="absolute inset-y-1 right-1 inline-flex h-9 w-9 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white" x-on:click="clear()" aria-label="Bersihkan pilihan member">
+                        <button type="button" class="absolute inset-y-1 right-1 inline-flex h-9 w-9 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/35 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-zinc-100 dark:focus-visible:ring-gold-400/35" x-on:click="clear()" aria-label="Bersihkan pilihan member">
                             @include('admin.partials.icon', ['name' => 'x', 'class' => 'h-4 w-4'])
                         </button>
                         <span id="admin-booking-member-list" class="absolute left-0 top-full z-50 mt-2 max-h-64 w-full overflow-y-auto overscroll-contain rounded-lg border border-zinc-200 bg-white p-2 shadow-2xl dark:border-white/10 dark:bg-zinc-900" x-cloak x-show="open" role="listbox">
                             <template x-for="(option, index) in filtered" :key="option.id">
-                                <button type="button" class="block w-full rounded-md px-3 py-2 text-left text-sm font-bold transition" x-bind:id="'admin-booking-member-option-' + option.id" x-bind:class="index === highlighted ? 'bg-gold-500 text-zinc-950' : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-white/10'" x-on:mousedown.prevent="choose(option)" role="option" x-bind:aria-selected="selectedId === option.id">
+                                <button type="button" class="block w-full rounded-md px-3 py-2 text-left text-sm type-control transition" x-bind:id="'admin-booking-member-option-' + option.id" x-bind:class="index === highlighted ? 'bg-gold-500 text-zinc-950' : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-white/10'" x-on:mousedown.prevent="choose(option)" role="option" x-bind:aria-selected="selectedId === option.id">
                                     <span x-text="option.label"></span>
                                 </button>
                             </template>
-                            <span class="block px-3 py-2 text-sm font-semibold text-zinc-500 dark:text-zinc-400" x-show="filtered.length === 0">Member tidak ditemukan.</span>
+                            <span class="block px-3 py-2 text-sm type-control text-zinc-500 dark:text-zinc-400" x-show="filtered.length === 0">Member tidak ditemukan.</span>
                         </span>
                     </span>
                     <span class="admin-field-help">Pilih member dari hasil pencarian.</span>
@@ -326,10 +326,10 @@
                         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                             <div class="min-w-0">
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <p class="font-black text-zinc-950 dark:text-white">{{ $enrollment->member?->user?->name ?? $enrollment->member?->member_code }}</p>
+                                    <p class="type-control text-zinc-950 dark:text-zinc-100">{{ $enrollment->member?->user?->name ?? $enrollment->member?->member_code }}</p>
                                     <span class="admin-status-pill {{ $bookingBadge['class'] }}">{{ $bookingBadge['label'] }}</span>
                                 </div>
-                                <p class="mt-1 text-sm font-semibold text-zinc-500 dark:text-zinc-400">{{ $enrollment->schedule?->gymClass?->name }} - {{ substr((string) $enrollment->schedule?->start_time, 0, 5) }}</p>
+                                <p class="mt-1 text-sm type-control text-zinc-500 dark:text-zinc-400">{{ $enrollment->schedule?->gymClass?->name }} - {{ substr((string) $enrollment->schedule?->start_time, 0, 5) }}</p>
                             </div>
                             <div class="flex flex-col gap-2 sm:flex-row">
                                 @if ($canConfirmBooking)
@@ -350,7 +350,7 @@
                                     </x-confirm-form>
                                 @endif
                                 @if ($bookingActionNote)
-                                    <p class="max-w-xs rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-bold leading-5 text-zinc-600 dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-300">{{ $bookingActionNote }}</p>
+                                    <p class="max-w-xs rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs type-control leading-5 text-zinc-600 dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-300">{{ $bookingActionNote }}</p>
                                 @endif
                             </div>
                         </div>

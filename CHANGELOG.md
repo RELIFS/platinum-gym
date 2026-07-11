@@ -14,6 +14,7 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Menambahkan Gymmi hybrid RAG berbasis knowledge JSON terkompilasi, database live aman, key pool Gemini, dan command sync key yang tidak mencetak secret.
 - Menambahkan pipeline Gymmi dua tahap: Gemini normalizer JSON untuk bahasa typo/slang, Laravel retrieval allowlist untuk data aman, Gemini answer writer dari snippet terpilih, dan fallback lokal.
 - Menambahkan normalisasi teks Gymmi dan knowledge override agar variasi pertanyaan layanan, harga, jadwal, produk, bukti mahasiswa, dan kontak lebih stabil.
+- Menambahkan pipeline Gymmi deterministic-first dengan endpoint member terproteksi, token percakapan per tab, idempotency key, renderer fakta resmi, dan command pruning log percakapan.
 - Menambahkan Flatpickr untuk tanggal booking kelas Member/Admin agar tanggal di luar hari jadwal tidak bisa dipilih di UI.
 - Menambahkan relasi penggunaan sesi kelas ke booking terkonfirmasi agar satu booking hanya dapat dipakai satu kali pada alur check-in.
 
@@ -27,11 +28,14 @@ Format mengikuti prinsip changelog sederhana: `Added`, `Changed`, `Fixed`, `Depe
 - Menghapus NIM dari tabel/form/review admin anggota; status mahasiswa diverifikasi melalui bukti mahasiswa yang disimpan privat.
 - Memperbarui knowledge Gymmi dari workbook internal menjadi FAQ 137 dan Alias 1578 tanpa membaca Excel saat runtime.
 - Memperbarui konfigurasi Gymmi dengan `GYMMI_AI_NORMALIZER_ENABLED`, `GYMMI_AI_NORMALIZER_MIN_CONFIDENCE`, dan `GYMMI_AI_NORMALIZER_MAX_OUTPUT_TOKENS`.
+- Memperbarui konfigurasi Gymmi agar composer AI nonaktif secara default, timeout lebih ketat, memori tab aktif, dan retention log default 30 hari.
+- Menormalkan jam operasional resmi menjadi Senin-Sabtu 08:00-22:00 dan Minggu tutup.
 
 ### Testing
 
 - Menambahkan dan memperbarui coverage Auth, Member, Admin, Public Website, Booking, Gymmi, dan command key sync.
 - Menambahkan coverage Gymmi untuk normalizer berhasil, normalizer confidence rendah yang ditolak, provider quota saat normalizer, dan metadata conversation aman.
+- Menambahkan coverage Gymmi untuk kontrak percakapan, memori, retry/idempotency, pruning log, dan state client JavaScript.
 - Dry-run key source internal 2026-07-03 masih `0` valid unique keys dari `500` token, sehingga `.env` tidak ditulis dan `--write-env` tidak dijalankan.
 - Validasi fresh 2026-07-02 sebelum commit/push: `git diff --check`, `composer validate --strict --no-check-publish`, `composer audit`, `npm.cmd audit --audit-level=moderate`, `npm.cmd audit --omit=dev --audit-level=moderate`, `vendor\bin\pint --test`, `npm.cmd run build`, `php artisan test --no-ansi` (`680 passed / 5370 assertions`), `php artisan route:list --except-vendor --no-ansi` (`113 routes`), `php artisan config:cache`, `php artisan route:cache`, `php artisan view:cache`, `php artisan optimize:clear`, dan validasi skill lokal lulus.
 

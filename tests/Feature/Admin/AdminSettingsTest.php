@@ -23,8 +23,8 @@ function adminSettingsPayload(array $overrides = []): array
         'maps_search_url' => 'https://maps.example.test/search',
         'maps_shared_url' => 'https://maps.example.test/share',
         'maps_embed_url' => 'https://maps.example.test/embed',
-        'operational_hours_weekday' => '06:00-22:00',
-        'operational_hours_weekend' => '07:00-20:00',
+        'operational_hours_monday_saturday' => '08:00-22:00',
+        'operational_hours_sunday' => 'Tutup',
         'invoice_prefix' => 'PGQA',
         'invoice_footer' => 'Terima kasih sudah bertransaksi.',
     ], $overrides);
@@ -44,7 +44,7 @@ test('admin settings update only persists editable public settings', function ()
 
     expect(Setting::query()->where('key', 'site_name')->value('value'))->toBe('Platinum Gym QA')
         ->and(json_decode((string) Setting::query()->where('key', 'operational_hours')->value('value'), true))
-        ->toMatchArray(['weekday' => '06:00-22:00', 'weekend' => '07:00-20:00'])
+        ->toMatchArray(['monday_saturday' => '08:00-22:00', 'sunday' => 'Tutup'])
         ->and(Setting::query()->where('key', 'maps_url')->value('value'))->toBe('https://maps.example.test/original')
         ->and(Setting::query()->where('key', 'maps_search_url')->exists())->toBeFalse()
         ->and(Setting::query()->where('key', 'midtrans_server_key')->exists())->toBeFalse();

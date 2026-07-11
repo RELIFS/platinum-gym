@@ -151,17 +151,22 @@ MIDTRANS_CLIENT_KEY=
 MIDTRANS_IS_PRODUCTION=false
 ```
 
-Untuk Gymmi Gemini, isi minimal satu API key Gemini pada `.env`:
+Gymmi tetap berfungsi deterministik tanpa API key. Untuk mengaktifkan normalizer AI opsional, isi minimal satu API key Gemini dan atur budget berikut:
 
 ```env
 GEMINI_API_KEY=
 GEMINI_API_KEYS=
 GEMINI_MODEL=gemini-2.0-flash
-GEMINI_TIMEOUT=12
-GEMINI_MAX_RETRIES=2
+GEMINI_TIMEOUT=7
+GEMINI_MAX_RETRIES=1
+GYMMI_ENABLED=true
+GYMMI_MEMORY_ENABLED=true
 GYMMI_AI_NORMALIZER_ENABLED=true
-GYMMI_AI_NORMALIZER_MIN_CONFIDENCE=60
-GYMMI_AI_NORMALIZER_MAX_OUTPUT_TOKENS=260
+GYMMI_AI_COMPOSER_ENABLED=false
+GYMMI_CLIENT_TIMEOUT_MS=9000
+GYMMI_DEADLINE_MS=7500
+GYMMI_CONVERSATION_TTL_SECONDS=7200
+GYMMI_RETENTION_DAYS=30
 ```
 
 Nilai key tidak boleh ditulis di dokumentasi, commit, screenshot, atau output terminal yang dibagikan.
@@ -184,7 +189,7 @@ php artisan gymmi:import-knowledge
 
 Runtime membaca `resources/data/gymmi/knowledge-base.json`, bukan file Excel per request. File `Gymmi API Key.txt` tidak dipakai runtime dan tidak boleh dibaca, dicetak, atau disalin ke source code.
 
-Saat runtime, Gymmi memakai pola hybrid RAG dua tahap: Gemini normalizer hanya merapikan bahasa user menjadi JSON aman, Laravel memilih JSON knowledge base dan database live yang boleh diakses, lalu Gemini answer writer menyusun jawaban dari snippet yang sudah dipilih. JSON knowledge base dipakai untuk FAQ/Alias/Config/knowledge stabil, sedangkan database live dipakai untuk paket aktif, promo valid, jadwal kelas aktif, produk aktif/stok, setting publik whitelist, serta ringkasan data member login sendiri. Artifact workbook terbaru berisi FAQ 137 dan Alias 1578. File `resources/data/gymmi/knowledge-overrides.json` boleh dipakai untuk koreksi kecil yang sudah divalidasi setelah import workbook, tanpa membuat CSV runtime baru. Jika normalizer atau answer writer rate limit/gagal, fallback lokal tetap dipakai dan tetap menjawab natural dari data resmi.
+Saat runtime, semua pesan Gymmi melewati Laravel. Public memakai `/gymmi/chat`; member memakai endpoint terproteksi `/member/gymmi/chat`. Laravel menyelesaikan follow-up dari memori tab, memilih knowledge/database live sesuai intent, lalu merender fakta berisiko tinggi secara deterministik. Gemini normalizer opsional hanya dipakai bila normalisasi lokal tidak cukup; composer AI nonaktif secara default. Jika provider tidak tersedia, jawaban resmi tetap bekerja tanpa factual fallback dari browser. Conversation log default dipangkas setelah 30 hari melalui scheduler; operator dapat mengecek dengan `php artisan gymmi:prune-conversations --dry-run`.
 
 ## Build Asset Frontend
 

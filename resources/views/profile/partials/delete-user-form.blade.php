@@ -1,10 +1,10 @@
 <section class="space-y-6">
     <header>
-        <h2 class="text-lg font-black text-zinc-950 dark:text-white">
+        <h2 class="text-lg type-control text-zinc-950 dark:text-zinc-100">
             Hapus Akun
         </h2>
 
-        <p class="mt-1 text-sm font-medium leading-6 text-zinc-500 dark:text-zinc-400">
+        <p class="mt-1 text-sm type-compact leading-6 text-zinc-500 dark:text-zinc-400">
             Akun yang dihapus tidak dapat dipulihkan. Pastikan keputusan ini sudah benar sebelum melanjutkan.
         </p>
     </header>
@@ -19,11 +19,11 @@
             @csrf
             @method('delete')
 
-            <h2 class="text-lg font-black text-zinc-950 dark:text-white">
+            <h2 class="text-lg type-control text-zinc-950 dark:text-zinc-100">
                 Hapus akun ini?
             </h2>
 
-            <p class="mt-1 text-sm font-medium leading-6 text-zinc-500 dark:text-zinc-400">
+            <p class="mt-1 text-sm type-compact leading-6 text-zinc-500 dark:text-zinc-400">
                 Masukkan password untuk mengonfirmasi penghapusan akun permanen.
             </p>
 

@@ -71,10 +71,16 @@ class GymmiKnowledgeRepository
         }
 
         foreach (['faq', 'aliases'] as $key) {
-            $payload[$key] = collect($payload[$key] ?? [])
-                ->merge($overrides[$key] ?? [])
+            $identity = fn (array $row): string => strtolower(trim((string) ($row['question'] ?? $row['phrase'] ?? json_encode($row))));
+            $base = collect($payload[$key] ?? [])
                 ->filter(fn (mixed $row): bool => is_array($row))
-                ->unique(fn (array $row): string => strtolower((string) ($row['question'] ?? $row['phrase'] ?? json_encode($row))))
+                ->keyBy($identity);
+            $overrideRows = collect($overrides[$key] ?? [])
+                ->filter(fn (mixed $row): bool => is_array($row))
+                ->keyBy($identity);
+
+            $payload[$key] = $base
+                ->merge($overrideRows)
                 ->values()
                 ->all();
         }

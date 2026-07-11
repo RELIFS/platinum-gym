@@ -38,16 +38,16 @@
                 <article class="member-list-card">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
-                            <p class="truncate font-mono text-sm font-black text-zinc-950 dark:text-white">{{ $payment->payment_code }}</p>
-                            <p class="mt-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400">{{ $payment->created_at?->translatedFormat('d M Y H:i') }}</p>
+                            <p class="truncate font-mono text-sm type-control text-zinc-950 dark:text-zinc-100">{{ $payment->payment_code }}</p>
+                            <p class="mt-1 text-xs type-control text-zinc-500 dark:text-zinc-400">{{ $payment->created_at?->translatedFormat('d M Y H:i') }}</p>
                         </div>
                         <span class="member-status-pill {{ $paymentMeta['class'] }}">{{ $paymentMeta['label'] }}</span>
                     </div>
                     <div class="mt-3">
-                        <p class="text-[0.7rem] font-black uppercase tracking-[0.14em] text-zinc-400 dark:text-zinc-500">{{ $serviceKindLabel }}</p>
-                        <p class="mt-1 break-words text-sm font-black text-zinc-950 dark:text-white">{{ $serviceName }}</p>
+                        <p class="text-[0.7rem] type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">{{ $serviceKindLabel }}</p>
+                        <p class="mt-1 break-words text-sm type-control text-zinc-950 dark:text-zinc-100">{{ $serviceName }}</p>
                     </div>
-                    <p class="mt-4 text-xl font-black text-gold-600 dark:text-gold-400">Rp {{ number_format((float) $payment->amount, 0, ',', '.') }}</p>
+                    <p class="mt-4 text-xl type-emphasis text-zinc-950 dark:text-gold-400">Rp {{ number_format((float) $payment->amount, 0, ',', '.') }}</p>
                     <div class="mt-4 flex flex-col gap-2">
                         <a href="{{ route('member.transactions.show', $payment) }}" class="member-button-secondary w-full">Detail</a>
                         @if ($paymentMeta['can_pay'])
@@ -66,13 +66,13 @@
                 <caption class="sr-only">Riwayat pembayaran member</caption>
                 <thead class="bg-zinc-50 text-xs uppercase tracking-[0.14em] text-zinc-500 dark:bg-white/[0.04] dark:text-zinc-400">
                     <tr>
-                        <th scope="col" class="px-5 py-4 font-black">Kode</th>
-                        <th scope="col" class="px-5 py-4 font-black">Layanan</th>
-                        <th scope="col" class="px-5 py-4 font-black">Tanggal</th>
-                        <th scope="col" class="px-5 py-4 font-black">Metode</th>
-                        <th scope="col" class="px-5 py-4 font-black">Jumlah</th>
-                        <th scope="col" class="px-5 py-4 font-black">Status</th>
-                        <th scope="col" class="px-5 py-4 font-black">Aksi</th>
+                        <th scope="col" class="px-5 py-4 type-control">Kode</th>
+                        <th scope="col" class="px-5 py-4 type-control">Layanan</th>
+                        <th scope="col" class="px-5 py-4 type-control">Tanggal</th>
+                        <th scope="col" class="px-5 py-4 type-control">Metode</th>
+                        <th scope="col" class="px-5 py-4 type-control">Jumlah</th>
+                        <th scope="col" class="px-5 py-4 type-control">Status</th>
+                        <th scope="col" class="px-5 py-4 type-control">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-white/10">
@@ -89,14 +89,14 @@
                             };
                         @endphp
                         <tr class="member-table-row">
-                            <td class="px-5 py-4 font-mono font-black text-zinc-950 dark:text-white">{{ $payment->payment_code }}</td>
+                            <td class="px-5 py-4 font-mono type-control text-zinc-950 dark:text-zinc-100">{{ $payment->payment_code }}</td>
                             <td class="px-5 py-4">
-                                <p class="text-[0.7rem] font-black uppercase tracking-[0.14em] text-zinc-400 dark:text-zinc-500">{{ $serviceKindLabel }}</p>
-                                <p class="mt-1 break-words font-bold text-zinc-700 dark:text-zinc-200">{{ $serviceName }}</p>
+                                <p class="text-[0.7rem] type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">{{ $serviceKindLabel }}</p>
+                                <p class="mt-1 break-words type-control text-zinc-700 dark:text-zinc-200">{{ $serviceName }}</p>
                             </td>
-                            <td class="px-5 py-4 font-semibold text-zinc-600 dark:text-zinc-300">{{ $payment->created_at?->translatedFormat('d M Y') }}</td>
-                            <td class="px-5 py-4 font-semibold text-zinc-600 dark:text-zinc-300">{{ str((string) $payment->method)->headline() }}</td>
-                            <td class="px-5 py-4 font-black text-zinc-950 dark:text-white">Rp {{ number_format((float) $payment->amount, 0, ',', '.') }}</td>
+                            <td class="px-5 py-4 type-control text-zinc-600 dark:text-zinc-300">{{ $payment->created_at?->translatedFormat('d M Y') }}</td>
+                            <td class="px-5 py-4 type-control text-zinc-600 dark:text-zinc-300">{{ str((string) $payment->method)->headline() }}</td>
+                            <td class="px-5 py-4 type-control text-zinc-950 dark:text-zinc-100">Rp {{ number_format((float) $payment->amount, 0, ',', '.') }}</td>
                             <td class="px-5 py-4"><span class="member-status-pill {{ $paymentMeta['class'] }}">{{ $paymentMeta['label'] }}</span></td>
                             <td class="px-5 py-4">
                                 <div class="flex flex-wrap gap-2">

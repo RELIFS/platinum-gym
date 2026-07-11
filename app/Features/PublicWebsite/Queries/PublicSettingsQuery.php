@@ -3,6 +3,7 @@
 namespace App\Features\PublicWebsite\Queries;
 
 use App\Models\Setting;
+use App\Support\OperationalHours;
 
 class PublicSettingsQuery
 {
@@ -49,6 +50,7 @@ class PublicSettingsQuery
         }
 
         $defaults['whatsapp_url'] = 'https://wa.me/'.preg_replace('/\D+/', '', (string) $defaults['whatsapp_number']);
+        $defaults['operational_hours'] = OperationalHours::normalize($defaults['operational_hours'] ?? null);
 
         return $defaults;
     }
@@ -68,10 +70,7 @@ class PublicSettingsQuery
             'maps_search_url' => 'https://www.google.com/maps/search/?api=1&query=Platinum%20Gym%20Jl%20H%20Agus%20Salim%20No%203A%20Sawahan%20Padang',
             'maps_shared_url' => 'https://share.google/ieOKMbBFASpk5Syqd',
             'maps_embed_url' => $this->mapsEmbedUrl(),
-            'operational_hours' => [
-                'weekday' => '06:00-22:00',
-                'weekend' => '06:00-20:00',
-            ],
+            'operational_hours' => OperationalHours::normalize(null),
         ];
     }
 

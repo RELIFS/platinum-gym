@@ -48,7 +48,7 @@
     </div>
 
     @if ($strength)
-        <p id="{{ $feedbackId }}" class="mt-1.5 hidden text-xs font-medium text-red-600 dark:text-red-400" data-password-feedback>
+        <p id="{{ $feedbackId }}" class="mt-1.5 hidden text-xs type-compact text-red-600 dark:text-red-400" data-password-feedback>
             Kata sandi minimal 8 karakter.
         </p>
     @endif

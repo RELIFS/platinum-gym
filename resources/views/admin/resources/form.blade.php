@@ -18,7 +18,7 @@
         @endif
 
         @if ($errors->any())
-            <div class="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-bold leading-6 text-red-700 dark:text-red-200" role="alert">
+            <div class="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm type-control leading-6 text-red-700 dark:text-red-200" role="alert">
                 Periksa kembali data yang ditandai merah.
             </div>
         @endif
@@ -106,7 +106,7 @@
                         <input type="hidden" name="{{ $name }}" value="0">
                         <span class="admin-choice-field">
                             <input id="{{ $fieldId }}" type="checkbox" name="{{ $name }}" value="1" @checked((bool) $value) class="admin-choice-input" @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif>
-                            <span class="text-sm font-bold text-zinc-700 dark:text-zinc-200">{{ $field['checkbox_label'] ?? 'Aktif' }}</span>
+                            <span class="text-sm type-control text-zinc-700 dark:text-zinc-200">{{ $field['checkbox_label'] ?? 'Aktif' }}</span>
                         </span>
                     @elseif ($type === 'file')
                         @php
@@ -130,8 +130,8 @@
                             <span class="admin-upload-preview">
                                 <img src="{{ $existingFileUrl }}" alt="Pratinjau {{ $field['label'] }}" class="h-16 w-16 shrink-0 rounded-md object-cover" loading="lazy">
                                 <span class="min-w-0">
-                                    <span class="block text-xs font-black uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">File saat ini</span>
-                                    <a href="{{ $existingFileUrl }}" target="_blank" rel="noopener" class="mt-1 inline-block break-all text-xs font-bold text-gold-600 underline-offset-2 hover:underline dark:text-gold-400">Lihat file</a>
+                                    <span class="block text-xs type-control uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">File saat ini</span>
+                                    <a href="{{ $existingFileUrl }}" target="_blank" rel="noopener" class="mt-1 inline-block break-all text-xs type-control text-gold-text underline-offset-2 hover:underline">Lihat file</a>
                                 </span>
                             </span>
                         @endif

@@ -21,6 +21,8 @@ test('owner layout renders navigation drawer topbar flash and accessible control
         ->assertSee('aria-modal="true"', false)
         ->assertSee('aria-controls="owner-mobile-navigation"', false)
         ->assertSee('aria-label="Buka navigasi owner"', false)
+        ->assertSee('data-auto-hide-topbar', false)
+        ->assertSee('data-auto-hide-scope="below-lg"', false)
         ->assertSee('aria-label="Tutup navigasi owner"', false)
         ->assertDontSee('aria-label="Identitas owner"', false)
         ->assertSee('aria-label="Identitas owner mobile"', false)

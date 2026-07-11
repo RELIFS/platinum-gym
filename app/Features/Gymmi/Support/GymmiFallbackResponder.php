@@ -32,15 +32,22 @@ class GymmiFallbackResponder
      */
     public function fromMatch(array $match): string
     {
-        return $this->formatter->snippetReply(
-            $match['snippets'] ?? [],
-            $this->escalation()
-        );
-    }
+        $snippets = $match['snippets'] ?? [];
+        if ($snippets === []) {
+            return $this->formatter->reply($this->escalation());
+        }
 
-    public function providerUnavailable(): string
-    {
-        return $this->escalation('Saya belum bisa merangkai jawaban otomatis saat ini.');
+        $clean = collect($snippets)
+            ->map(fn (string $snippet): string => $this->formatter->snippetReply([$snippet], ''))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($clean->count() === 1) {
+            return $this->formatter->reply($clean->first());
+        }
+
+        return $this->formatter->reply($clean->take(5)->map(fn (string $snippet): string => '- '.$snippet)->implode("\n"));
     }
 
     private function escalation(string $prefix = 'Saya belum menemukan jawaban yang cukup akurat.'): string

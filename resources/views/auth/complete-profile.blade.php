@@ -1,8 +1,8 @@
 <x-guest-layout>
     <div class="w-full">
         <div class="mb-8">
-            <h1 class="mb-3 text-3xl font-extrabold leading-tight text-zinc-950 dark:text-white">
-                Lengkapi <span class="text-gold-500">Profil</span>
+            <h1 class="mb-3 text-3xl type-title leading-tight text-zinc-950 dark:text-zinc-100">
+                Lengkapi <span class="text-gold-display">Profil</span>
             </h1>
             <p class="auth-panel-copy">
                 Tambahkan data wajib member agar akun Google Anda bisa memakai portal Platinum Gym Padang.
@@ -29,7 +29,7 @@
             <div>
                 <label for="phone" class="auth-label">No. WhatsApp</label>
                 <input id="phone" class="auth-input" type="tel" name="phone" value="{{ old('phone', Auth::user()->phone) }}" required autocomplete="tel" placeholder="08xxxxxxxxxx" maxlength="20" inputmode="tel" data-phone-feedback-input aria-describedby="phone-feedback" @error('phone') aria-invalid="true" @enderror>
-                <p id="phone-feedback" class="mt-1.5 hidden text-xs font-medium text-red-600 dark:text-red-400" data-phone-feedback>Gunakan format nomor 08xxxxxxxxxx.</p>
+                <p id="phone-feedback" class="mt-1.5 hidden text-xs type-compact text-red-600 dark:text-red-400" data-phone-feedback>Gunakan format nomor 08xxxxxxxxxx.</p>
                 <x-input-error :messages="$errors->get('phone')" class="auth-error" />
             </div>
 
