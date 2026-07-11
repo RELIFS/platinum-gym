@@ -5,7 +5,7 @@
             <div class="min-w-0 public-motion-reveal" data-motion="reveal">
                 <p class="public-eyebrow">Premium Fitness Center Padang</p>
                 <h1 class="public-home-hero-title public-heading-balance">
-                    <span class="block text-gold-500">Platinum Gym</span>
+                    <span class="public-home-hero-brand block">Platinum Gym</span>
                     <span class="block">Your Comfort Gym</span>
                     <span class="block">In Padang</span>
                 </h1>
@@ -17,22 +17,22 @@
                     <a href="{{ route('register') }}" class="w-full public-button-primary public-motion-cta sm:w-auto" data-motion="cta">Daftar Member</a>
                     <a href="{{ route('public.services') }}" class="w-full public-button-secondary sm:w-auto">Lihat Layanan</a>
                 </div>
-                <a href="{{ route('public.location') }}" class="inline-flex min-h-11 max-w-full touch-manipulation items-center break-words rounded-full py-1 pr-2 mt-3 text-sm font-bold text-gold-600 transition hover:text-gold-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-gold-400 dark:hover:text-gold-300 dark:focus-visible:ring-offset-zinc-950">
+                <a href="{{ route('public.location') }}" class="mt-3 inline-flex min-h-11 max-w-full touch-manipulation items-center break-words rounded-full py-1 pr-2 text-sm type-control text-zinc-700 transition hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-gold-400 dark:hover:text-gold-300 dark:focus-visible:ring-gold-400/50 dark:focus-visible:ring-offset-zinc-950">
                     Cek lokasi dan jam operasional
                 </a>
 
                 <div class="hidden gap-3 mt-10 lg:grid lg:grid-cols-3">
                     <div class="public-home-stat-card min-w-0 public-motion-reveal p-5" data-motion="reveal" data-motion-delay="80">
-                        <p class="text-3xl font-black break-words text-gold-500">{{ $stats['packages'] }}</p>
-                        <p class="mt-1 text-sm font-semibold break-words text-zinc-600 dark:text-zinc-300">Paket aktif</p>
+                        <p class="break-words text-3xl type-emphasis text-zinc-950 dark:text-gold-400">{{ $stats['packages'] }}</p>
+                        <p class="mt-1 text-sm type-control break-words text-zinc-600 dark:text-zinc-300">Paket aktif</p>
                     </div>
                     <div class="public-home-stat-card min-w-0 public-motion-reveal p-5" data-motion="reveal" data-motion-delay="120">
-                        <p class="text-3xl font-black break-words text-gold-500">{{ $stats['classes'] }}</p>
-                        <p class="mt-1 text-sm font-semibold break-words text-zinc-600 dark:text-zinc-300">Jenis kelas</p>
+                        <p class="break-words text-3xl type-emphasis text-zinc-950 dark:text-gold-400">{{ $stats['classes'] }}</p>
+                        <p class="mt-1 text-sm type-control break-words text-zinc-600 dark:text-zinc-300">Jenis kelas</p>
                     </div>
                     <div class="public-home-stat-card min-w-0 public-motion-reveal p-5" data-motion="reveal" data-motion-delay="160">
-                        <p class="text-3xl font-black break-words text-gold-500">{{ $stats['products'] }}</p>
-                        <p class="mt-1 text-sm font-semibold break-words text-zinc-600 dark:text-zinc-300">Produk katalog</p>
+                        <p class="break-words text-3xl type-emphasis text-zinc-950 dark:text-gold-400">{{ $stats['products'] }}</p>
+                        <p class="mt-1 text-sm type-control break-words text-zinc-600 dark:text-zinc-300">Produk katalog</p>
                     </div>
                 </div>
             </div>
@@ -71,7 +71,7 @@
         <div class="public-container">
             <div class="public-home-section-heading">
                 <p class="public-eyebrow">Layanan Utama</p>
-                <h2 class="mt-3 text-3xl font-black public-heading-balance text-zinc-950 dark:text-white sm:text-4xl">Pilih program yang sesuai target latihan.</h2>
+                <h2 class="public-heading-balance mt-3 text-3xl type-title text-zinc-950 dark:text-zinc-100 sm:text-4xl">Pilih program yang sesuai target latihan.</h2>
             </div>
 
             <div class="grid gap-5 mt-10 md:grid-cols-2 xl:grid-cols-3">
@@ -89,7 +89,7 @@
             <div class="public-home-section-toolbar">
                 <div class="public-home-section-heading">
                     <p class="public-eyebrow">Jadwal Kelas</p>
-                    <h2 class="mt-3 text-3xl font-black public-heading-balance text-zinc-950 dark:text-white sm:text-4xl">Kelas aktif minggu ini.</h2>
+                    <h2 class="public-heading-balance mt-3 text-3xl type-title text-zinc-950 dark:text-zinc-100 sm:text-4xl">Kelas aktif minggu ini.</h2>
                 </div>
                 <a href="{{ route('public.classes') }}" class="w-full public-button-secondary sm:w-auto sm:shrink-0">Lihat Semua Jadwal</a>
             </div>
@@ -108,7 +108,7 @@
         <div class="public-container grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
             <div class="min-w-0">
                 <p class="public-eyebrow">Produk Fitness</p>
-                <h2 class="mt-3 text-3xl font-black public-heading-balance text-zinc-950 dark:text-white sm:text-4xl">Dukungan nutrisi dan perlengkapan latihan.</h2>
+                <h2 class="public-heading-balance mt-3 text-3xl type-title text-zinc-950 dark:text-zinc-100 sm:text-4xl">Dukungan nutrisi dan perlengkapan latihan.</h2>
                 <p class="mt-5 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Produk ditampilkan sebagai katalog publik dengan harga dan stok aktual. Pembelian dilakukan langsung di lokasi Platinum Gym Padang.</p>
                 <a href="{{ route('public.products') }}" class="w-full public-button-primary public-motion-cta mt-7 sm:w-auto" data-motion="cta">Lihat Produk</a>
             </div>
@@ -127,7 +127,7 @@
             <div class="public-home-section-toolbar">
                 <div class="public-home-section-heading">
                     <p class="public-eyebrow">Galeri</p>
-                    <h2 class="mt-3 text-3xl font-black public-heading-balance text-zinc-950 dark:text-white sm:text-4xl">Suasana latihan Platinum Gym.</h2>
+                    <h2 class="public-heading-balance mt-3 text-3xl type-title text-zinc-950 dark:text-zinc-100 sm:text-4xl">Suasana latihan Platinum Gym.</h2>
                 </div>
                 <a href="{{ route('public.gallery') }}" class="w-full public-button-secondary sm:w-auto sm:shrink-0">Buka Galeri</a>
             </div>
@@ -146,20 +146,20 @@
             <div class="public-container grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
                 <div class="min-w-0">
                     <p class="public-eyebrow">Testimoni</p>
-                    <h2 class="mt-3 text-3xl font-black public-heading-balance text-zinc-950 dark:text-white sm:text-4xl">Member datang untuk latihan, kembali karena progres.</h2>
+                    <h2 class="public-heading-balance mt-3 text-3xl type-title text-zinc-950 dark:text-zinc-100 sm:text-4xl">Member datang untuk latihan, kembali karena progres.</h2>
                     <p class="mt-5 text-sm leading-7 text-zinc-600 dark:text-zinc-400">Pengalaman member dari kelas, gym, dan personal trainer.</p>
                 </div>
                 <div class="grid min-w-0 gap-5 md:grid-cols-3">
                     @foreach ($testimonials as $testimonial)
                         <article class="public-motion-card public-motion-reveal min-w-0 rounded-xl border border-zinc-200 bg-white/95 p-5 shadow-[0_12px_34px_rgba(24,24,27,0.05)] dark:border-white/10 dark:bg-white/[0.05] dark:shadow-[0_14px_44px_rgba(0,0,0,0.20)] sm:rounded-2xl sm:p-6" data-motion="reveal card" data-motion-delay="{{ ($loop->index % 3) * 80 }}">
-                            <div class="flex flex-wrap items-center min-w-0 gap-2 mb-4 text-gold-400" aria-label="Rating {{ (int) $testimonial->rating }} dari 5">
+                            <div class="mb-4 flex min-w-0 flex-wrap items-center gap-2 text-gold-500" aria-label="Rating {{ (int) $testimonial->rating }} dari 5">
                                 <span aria-hidden="true" class="text-base tracking-[0.12em]">{{ str_repeat('★', max(0, min(5, (int) $testimonial->rating))) }}{{ str_repeat('☆', max(0, 5 - min(5, (int) $testimonial->rating))) }}</span>
-                                <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">{{ (int) $testimonial->rating }}/5</span>
+                                <span class="text-xs type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-400">{{ (int) $testimonial->rating }}/5</span>
                             </div>
                             <p class="text-sm leading-7 break-words text-zinc-600 dark:text-zinc-300">"{{ $testimonial->content }}"</p>
                             <div class="mt-6">
-                                <p class="font-black text-zinc-950 break-words dark:text-white">{{ $testimonial->name }}</p>
-                                <p class="mt-1 break-words text-xs font-bold uppercase tracking-[0.16em] text-gold-400">{{ $testimonial->role }}</p>
+                                <p class="break-words type-control text-zinc-950 dark:text-zinc-100">{{ $testimonial->name }}</p>
+                                <p class="mt-1 break-words text-xs type-control uppercase tracking-[0.12em] text-zinc-600 dark:text-gold-400">{{ $testimonial->role }}</p>
                             </div>
                         </article>
                     @endforeach
@@ -174,7 +174,7 @@
                     <div class="grid min-w-0 gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
                         <div class="min-w-0">
                             <p class="public-eyebrow">Mulai Hari Ini</p>
-                            <h2 class="mt-3 text-3xl font-black public-heading-balance text-zinc-950 dark:text-white sm:text-4xl">Siap mulai latihan di Platinum Gym Padang?</h2>
+                            <h2 class="public-heading-balance mt-3 text-3xl type-title text-zinc-950 dark:text-zinc-100 sm:text-4xl">Siap mulai latihan di Platinum Gym Padang?</h2>
                             <p class="max-w-2xl mt-4 text-sm leading-7 text-zinc-600 dark:text-zinc-300">Daftar akun untuk masuk ke dashboard member, melihat layanan, dan mengikuti proses membership secara lebih rapi.</p>
                         </div>
                         <div class="public-home-cta-actions">

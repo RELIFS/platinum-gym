@@ -36,7 +36,7 @@
                     <div class="mb-4 flex min-w-0 flex-wrap items-end justify-between gap-3 border-b border-zinc-200 pb-3 dark:border-white/10">
                         <div class="min-w-0">
                             <p class="member-eyebrow">Kelas</p>
-                            <h4 id="class-group-{{ $scheduleGroup['key'] }}" class="break-words text-xl font-black text-zinc-950 dark:text-white">{{ $scheduleGroup['title'] }}</h4>
+                            <h4 id="class-group-{{ $scheduleGroup['key'] }}" class="break-words text-xl type-title text-zinc-950 dark:text-zinc-100">{{ $scheduleGroup['title'] }}</h4>
                         </div>
                         <span class="member-status-pill member-status-neutral">{{ $scheduleGroup['schedules']->count() }} jadwal</span>
                     </div>

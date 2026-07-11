@@ -32,7 +32,7 @@ class SettingSeeder extends Seeder
             ['maps_search_url', 'https://www.google.com/maps/search/?api=1&query=Platinum%20Gym%20Jl%20H%20Agus%20Salim%20No%203A%20Sawahan%20Padang', 'text', 'contact'],
             ['maps_shared_url', 'https://share.google/ieOKMbBFASpk5Syqd', 'text', 'contact'],
             ['maps_embed_url', $mapsEmbedUrl, 'text', 'contact'],
-            ['operational_hours', json_encode(['weekday' => '06:00-22:00', 'weekend' => '06:00-20:00']), 'json', 'general'],
+            ['operational_hours', json_encode(['monday_saturday' => '08:00-22:00', 'sunday' => 'Tutup']), 'json', 'general'],
             ['invoice_prefix', 'PGP', 'text', 'invoice'],
             ['invoice_footer', 'Terima kasih telah bertransaksi di Platinum Gym Padang.', 'text', 'invoice'],
             ['bank_accounts', json_encode([]), 'json', 'payment'],

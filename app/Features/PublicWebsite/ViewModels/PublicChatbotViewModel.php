@@ -20,7 +20,11 @@ class PublicChatbotViewModel
             'context' => 'public',
             'endpoint' => route('gymmi.chat'),
             'csrfToken' => csrf_token(),
-            'aiEnabled' => self::hasGeminiKeys(),
+            'chatEnabled' => (bool) config('gymmi.enabled', true),
+            'memoryEnabled' => (bool) config('gymmi.memory_enabled', true),
+            'storageScope' => 'public',
+            'storageNamespace' => hash_hmac('sha256', 'public|'.session()->getId(), (string) config('app.key')),
+            'timeoutMs' => (int) config('gymmi.client_timeout_ms', 9000),
             'whatsappUrl' => $whatsappChatUrl,
             'initialMessage' => 'Halo! Saya Gymmi dari Platinum Gym Padang. Saya bisa bantu info membership, jadwal kelas, personal trainer, promo, lokasi, dan jam buka.',
             'quickReplies' => ['Info Membership', 'Jadwal Kelas', 'Harga Personal Trainer', 'Lokasi & Jam Buka'],
@@ -40,11 +44,5 @@ class PublicChatbotViewModel
                 'fallback' => 'Saya belum menangkap topiknya. Coba tulis seperti harga Gym Umum, jadwal Muaythai, lokasi gym, atau metode pembayaran.',
             ],
         ];
-    }
-
-    private static function hasGeminiKeys(): bool
-    {
-        return (bool) config('services.gemini.enabled', true)
-            && (filled(config('services.gemini.api_key')) || filled(config('services.gemini.api_keys')));
     }
 }

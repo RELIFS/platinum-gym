@@ -1,8 +1,8 @@
 <x-guest-layout>
     <div class="w-full">
         <div class="mb-8">
-            <h1 class="mb-3 text-3xl font-extrabold leading-tight text-zinc-950 dark:text-white">
-                Daftar <span class="text-gold-500">Membership</span>
+            <h1 class="mb-3 text-3xl type-title leading-tight text-zinc-950 dark:text-zinc-100">
+                Daftar <span class="text-gold-display">Membership</span>
             </h1>
             <p class="auth-panel-copy">
                 Buat akun member dan mulai perjalanan latihan Anda bersama Platinum Gym Padang.
@@ -15,7 +15,7 @@
         ])
 
         @if ($errors->any())
-            <div class="mb-5 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm font-medium leading-relaxed text-red-700 dark:text-red-300" role="alert" aria-live="assertive">
+            <div class="mb-5 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm type-compact leading-relaxed text-red-700 dark:text-red-300" role="alert" aria-live="assertive">
                 Periksa kembali data yang ditandai di bawah ini.
             </div>
         @endif
@@ -49,7 +49,7 @@
             <div>
                 <label for="phone" class="auth-label">No. WhatsApp</label>
                 <input id="phone" class="auth-input" type="tel" name="phone" value="{{ old('phone') }}" required autocomplete="tel" placeholder="08xxxxxxxxxx" maxlength="20" inputmode="tel" data-phone-feedback-input aria-describedby="{{ $phoneDescribedBy }}" @error('phone') aria-invalid="true" @enderror>
-                <p id="phone-feedback" class="mt-1.5 hidden text-xs font-medium text-red-600 dark:text-red-400" data-phone-feedback>Gunakan format No. WhatsApp 08xxxxxxxxxx.</p>
+                <p id="phone-feedback" class="mt-1.5 hidden text-xs type-compact text-red-600 dark:text-red-400" data-phone-feedback>Gunakan format No. WhatsApp 08xxxxxxxxxx.</p>
                 <x-input-error id="phone-error" :messages="$errors->get('phone')" class="auth-error" />
             </div>
 
@@ -83,7 +83,7 @@
             </button>
         </form>
 
-        <p class="mt-8 text-center font-medium text-zinc-500 dark:text-zinc-400">
+        <p class="mt-8 text-center type-compact text-zinc-500 dark:text-zinc-400">
             Sudah memiliki akun?
             <a href="{{ route('login') }}" class="auth-link">Masuk di sini</a>
         </p>

@@ -1,8 +1,8 @@
 <x-guest-layout>
     <div class="w-full">
         <div class="mb-8">
-            <h2 class="mb-3 text-3xl font-extrabold leading-tight text-zinc-950 dark:text-white">
-                Konfirmasi <span class="text-gold-500">Akses</span>
+            <h2 class="mb-3 text-3xl type-title leading-tight text-zinc-950 dark:text-zinc-100">
+                Konfirmasi <span class="text-gold-display">Akses</span>
             </h2>
             <p class="auth-panel-copy">
                 Masukkan kata sandi untuk melanjutkan ke area aman akun Anda.

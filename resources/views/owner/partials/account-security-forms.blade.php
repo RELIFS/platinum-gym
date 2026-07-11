@@ -12,7 +12,7 @@
 <section class="owner-card">
     <header>
         <p class="owner-eyebrow">Foto Profil</p>
-        <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Foto Profil Owner</h2>
+        <h2 class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">Foto Profil Owner</h2>
         <p class="mt-2 owner-copy">Gunakan foto yang jelas agar identitas owner mudah dikenali di dashboard dan sidebar.</p>
     </header>
 
@@ -35,22 +35,22 @@
             </div>
 
             <div class="min-w-0">
-                <label for="owner_avatar" class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Upload Foto</label>
+                <label for="owner_avatar" class="text-xs type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">Upload Foto</label>
                 <input id="owner_avatar" name="avatar" type="file" accept="image/jpeg,image/png,image/webp"
-                    class="owner-form-input mt-2 file:mr-3 file:rounded-md file:border-0 file:bg-gold-500 file:px-3 file:py-1.5 file:text-sm file:font-black file:text-zinc-950"
+                    class="owner-form-input mt-2 file:mr-3 file:rounded-md file:border-0 file:bg-gold-500 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-zinc-950"
                     aria-invalid="{{ $errors->get('avatar') ? 'true' : 'false' }}"
                     @if ($errors->get('avatar')) aria-describedby="owner-avatar-helper owner-avatar-error" @else aria-describedby="owner-avatar-helper" @endif
                     x-on:change="setAvatarPreview($event)">
-                <p id="owner-avatar-helper" class="mt-2 text-sm font-semibold text-zinc-500 dark:text-zinc-400">Gunakan foto JPG, PNG, atau WebP maksimal 2 MB.</p>
+                <p id="owner-avatar-helper" class="mt-2 text-sm type-control text-zinc-500 dark:text-zinc-400">Gunakan foto JPG, PNG, atau WebP maksimal 2 MB.</p>
                 @error('avatar')
-                    <span id="owner-avatar-error" class="mt-2 block text-sm font-bold text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
+                    <span id="owner-avatar-error" class="mt-2 block text-sm type-control text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
                 @enderror
-                <p class="mt-2 text-xs font-black uppercase tracking-[0.12em] text-gold-700 dark:text-gold-400" x-show="avatarPreviewActive" x-cloak>Preview, belum disimpan</p>
+                <p class="mt-2 text-xs type-control uppercase tracking-[0.12em] text-zinc-700 dark:text-gold-400" x-show="avatarPreviewActive" x-cloak>Preview, belum disimpan</p>
 
                 <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
                     <button type="submit" class="owner-button-primary" x-bind:disabled="submitting" x-bind:aria-busy="submitting.toString()">Simpan Foto</button>
                     @if (session('status') === 'owner-photo-updated')
-                        <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300">Foto profil owner berhasil diperbarui.</p>
+                        <p class="text-sm type-control text-emerald-700 dark:text-emerald-300">Foto profil owner berhasil diperbarui.</p>
                     @endif
                 </div>
             </div>
@@ -61,7 +61,7 @@
 <section class="owner-card mt-6">
     <header>
         <p class="owner-eyebrow">Identitas Login</p>
-        <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Informasi Akun</h2>
+        <h2 class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">Informasi Akun</h2>
         <p class="mt-2 owner-copy">Perbarui nama dan alamat email akun owner. Email digunakan untuk masuk dan menerima notifikasi penting.</p>
     </header>
 
@@ -70,32 +70,32 @@
         @method('patch')
 
         <label class="block">
-            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Nama <span class="text-red-500" aria-hidden="true">*</span></span>
+            <span class="text-xs type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">Nama <span class="text-red-500" aria-hidden="true">*</span></span>
             <input id="name" name="name" type="text" value="{{ old('name', $user->name) }}" required autofocus autocomplete="name"
                 class="owner-form-input mt-2"
                 aria-invalid="{{ $errors->get('name') ? 'true' : 'false' }}"
                 @if ($errors->get('name')) aria-describedby="name-error" @endif>
             @error('name')
-                <span id="name-error" class="mt-2 block text-sm font-bold text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
+                <span id="name-error" class="mt-2 block text-sm type-control text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
             @enderror
         </label>
 
         <label class="block">
-            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Email <span class="text-red-500" aria-hidden="true">*</span></span>
+            <span class="text-xs type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">Email <span class="text-red-500" aria-hidden="true">*</span></span>
             <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required autocomplete="username"
                 class="owner-form-input mt-2"
                 aria-invalid="{{ $errors->get('email') ? 'true' : 'false' }}"
                 @if ($errors->get('email')) aria-describedby="email-error" @endif>
             @error('email')
-                <span id="email-error" class="mt-2 block text-sm font-bold text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
+                <span id="email-error" class="mt-2 block text-sm type-control text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
             @enderror
 
             @if (! $emailVerified)
-                <div class="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-800 dark:text-amber-200">
+                <div class="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm type-control text-amber-800 dark:text-amber-200">
                     Email belum diverifikasi.
                     <button form="send-verification" class="ml-1 underline hover:no-underline focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40">Kirim ulang email verifikasi.</button>
                     @if (session('status') === 'verification-code-sent')
-                        <p class="mt-2 font-bold text-emerald-700 dark:text-emerald-300">Kode verifikasi baru sudah dikirim.</p>
+                        <p class="mt-2 type-control text-emerald-700 dark:text-emerald-300">Kode verifikasi baru sudah dikirim.</p>
                     @endif
                 </div>
             @endif
@@ -104,7 +104,7 @@
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
             <button type="submit" class="owner-button-primary">Simpan Profil</button>
             @if (session('status') === 'profile-updated')
-                <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300">Informasi akun tersimpan.</p>
+                <p class="text-sm type-control text-emerald-700 dark:text-emerald-300">Informasi akun tersimpan.</p>
             @endif
         </div>
     </form>
@@ -113,7 +113,7 @@
 <section class="owner-card mt-6">
     <header>
         <p class="owner-eyebrow">Kata Sandi</p>
-        <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Ubah Kata Sandi</h2>
+        <h2 class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">Ubah Kata Sandi</h2>
         <p class="mt-2 owner-copy">Gunakan kata sandi yang kuat agar akses laporan bisnis tetap aman.</p>
     </header>
 
@@ -123,57 +123,57 @@
         @method('put')
 
         <label class="block">
-            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Kata Sandi Saat Ini <span class="text-red-500" aria-hidden="true">*</span></span>
+            <span class="text-xs type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">Kata Sandi Saat Ini <span class="text-red-500" aria-hidden="true">*</span></span>
             <div class="relative mt-2">
                 <input id="update_password_current_password" name="current_password" x-bind:type="show1 ? 'text' : 'password'" autocomplete="current-password"
                     class="owner-form-input pr-12"
                     aria-invalid="{{ $errors->updatePassword->get('current_password') ? 'true' : 'false' }}">
-                <button type="button" x-on:click="show1 = !show1" class="absolute inset-y-0 right-0 inline-flex h-full w-11 items-center justify-center text-zinc-500 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:text-zinc-400" aria-label="Tampilkan/Sembunyikan kata sandi saat ini">
+                <button type="button" x-on:click="show1 = !show1" class="absolute inset-y-0 right-0 inline-flex h-full w-11 items-center justify-center text-zinc-500 hover:text-gold-text focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 dark:text-zinc-400 dark:focus-visible:ring-gold-400/40" aria-label="Tampilkan/Sembunyikan kata sandi saat ini">
                     <span x-show="!show1">@include('admin.partials.icon', ['name' => 'eye', 'class' => 'h-5 w-5'])</span>
                     <span x-show="show1" x-cloak>@include('admin.partials.icon', ['name' => 'eye-off', 'class' => 'h-5 w-5'])</span>
                 </button>
             </div>
             @error('current_password', 'updatePassword')
-                <span class="mt-2 block text-sm font-bold text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
+                <span class="mt-2 block text-sm type-control text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
             @enderror
         </label>
 
         <label class="block">
-            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Kata Sandi Baru <span class="text-red-500" aria-hidden="true">*</span></span>
+            <span class="text-xs type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">Kata Sandi Baru <span class="text-red-500" aria-hidden="true">*</span></span>
             <div class="relative mt-2">
                 <input id="update_password_password" name="password" x-bind:type="show2 ? 'text' : 'password'" autocomplete="new-password"
                     class="owner-form-input pr-12"
                     aria-invalid="{{ $errors->updatePassword->get('password') ? 'true' : 'false' }}">
-                <button type="button" x-on:click="show2 = !show2" class="absolute inset-y-0 right-0 inline-flex h-full w-11 items-center justify-center text-zinc-500 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:text-zinc-400" aria-label="Tampilkan/Sembunyikan kata sandi baru">
+                <button type="button" x-on:click="show2 = !show2" class="absolute inset-y-0 right-0 inline-flex h-full w-11 items-center justify-center text-zinc-500 hover:text-gold-text focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 dark:text-zinc-400 dark:focus-visible:ring-gold-400/40" aria-label="Tampilkan/Sembunyikan kata sandi baru">
                     <span x-show="!show2">@include('admin.partials.icon', ['name' => 'eye', 'class' => 'h-5 w-5'])</span>
                     <span x-show="show2" x-cloak>@include('admin.partials.icon', ['name' => 'eye-off', 'class' => 'h-5 w-5'])</span>
                 </button>
             </div>
             @error('password', 'updatePassword')
-                <span class="mt-2 block text-sm font-bold text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
+                <span class="mt-2 block text-sm type-control text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
             @enderror
         </label>
 
         <label class="block">
-            <span class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Konfirmasi Kata Sandi Baru <span class="text-red-500" aria-hidden="true">*</span></span>
+            <span class="text-xs type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">Konfirmasi Kata Sandi Baru <span class="text-red-500" aria-hidden="true">*</span></span>
             <div class="relative mt-2">
                 <input id="update_password_password_confirmation" name="password_confirmation" x-bind:type="show3 ? 'text' : 'password'" autocomplete="new-password"
                     class="owner-form-input pr-12"
                     aria-invalid="{{ $errors->updatePassword->get('password_confirmation') ? 'true' : 'false' }}">
-                <button type="button" x-on:click="show3 = !show3" class="absolute inset-y-0 right-0 inline-flex h-full w-11 items-center justify-center text-zinc-500 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:text-zinc-400" aria-label="Tampilkan/Sembunyikan konfirmasi kata sandi">
+                <button type="button" x-on:click="show3 = !show3" class="absolute inset-y-0 right-0 inline-flex h-full w-11 items-center justify-center text-zinc-500 hover:text-gold-text focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 dark:text-zinc-400 dark:focus-visible:ring-gold-400/40" aria-label="Tampilkan/Sembunyikan konfirmasi kata sandi">
                     <span x-show="!show3">@include('admin.partials.icon', ['name' => 'eye', 'class' => 'h-5 w-5'])</span>
                     <span x-show="show3" x-cloak>@include('admin.partials.icon', ['name' => 'eye-off', 'class' => 'h-5 w-5'])</span>
                 </button>
             </div>
             @error('password_confirmation', 'updatePassword')
-                <span class="mt-2 block text-sm font-bold text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
+                <span class="mt-2 block text-sm type-control text-red-600 dark:text-red-300" role="alert">{{ $message }}</span>
             @enderror
         </label>
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
             <button type="submit" class="owner-button-primary">Simpan Kata Sandi</button>
             @if (session('status') === 'password-updated')
-                <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300">Kata sandi berhasil diperbarui.</p>
+                <p class="text-sm type-control text-emerald-700 dark:text-emerald-300">Kata sandi berhasil diperbarui.</p>
             @endif
         </div>
     </form>

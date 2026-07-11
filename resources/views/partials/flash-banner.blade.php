@@ -31,13 +31,13 @@
 @endphp
 
 @if ($message !== '')
-    <div class="mb-5 rounded-lg border px-4 py-3 text-sm font-bold {{ $tone['classes'] }}" role="{{ $tone['role'] }}" aria-live="{{ $tone['live'] }}">
+    <div class="mb-5 rounded-lg border px-4 py-3 text-sm type-compact {{ $tone['classes'] }}" role="{{ $tone['role'] }}" aria-live="{{ $tone['live'] }}">
         {{ $message }}
     </div>
 @endif
 
 @if ($errorMessage !== '')
-    <div class="mb-5 rounded-lg border px-4 py-3 text-sm font-bold {{ $errorTone['classes'] }}" role="{{ $errorTone['role'] }}" aria-live="{{ $errorTone['live'] }}">
+    <div class="mb-5 rounded-lg border px-4 py-3 text-sm type-compact {{ $errorTone['classes'] }}" role="{{ $errorTone['role'] }}" aria-live="{{ $errorTone['live'] }}">
         {{ $errorMessage }}
     </div>
 @endif

@@ -825,8 +825,8 @@ test('admin can update whitelisted public settings without exposing secrets', fu
         'maps_search_url' => 'https://www.google.com/maps/search/?api=1&query=Platinum%20Gym',
         'maps_shared_url' => 'https://maps.app.goo.gl/test',
         'maps_embed_url' => 'https://www.google.com/maps/embed?pb=test',
-        'operational_hours_weekday' => '06:00-22:00',
-        'operational_hours_weekend' => '06:00-20:00',
+        'operational_hours_monday_saturday' => '08:00-22:00',
+        'operational_hours_sunday' => 'Tutup',
         'invoice_prefix' => 'PGP',
         'invoice_footer' => 'Terima kasih.',
     ])->assertRedirect();

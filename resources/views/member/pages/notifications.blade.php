@@ -41,16 +41,16 @@
                 @endphp
                 <article class="member-list-card">
                     <div class="flex items-start gap-3">
-                        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-gold-500/10 text-gold-600 dark:text-gold-400" aria-hidden="true">
+                        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-gold-500/10 text-gold-text" aria-hidden="true">
                             @include('member.partials.icon', ['name' => 'bell', 'class' => 'h-5 w-5'])
                         </span>
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-start justify-between gap-2">
-                                <p class="font-black text-zinc-950 dark:text-white">{{ $title }}</p>
+                                <p class="type-control text-zinc-950 dark:text-zinc-100">{{ $title }}</p>
                                 <span class="member-status-pill {{ $notificationMeta['class'] }}">{{ $notificationMeta['label'] }}</span>
                             </div>
-                            <p class="mt-1 text-sm font-medium text-zinc-600 dark:text-zinc-300">{{ data_get($notification->data, 'body', 'Notifikasi akun member.') }}</p>
-                            <p class="mt-2 text-xs font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">{{ $notification->created_at?->translatedFormat('d M Y H:i') }}</p>
+                            <p class="mt-1 text-sm type-compact text-zinc-600 dark:text-zinc-300">{{ data_get($notification->data, 'body', 'Notifikasi akun member.') }}</p>
+                            <p class="mt-2 text-xs type-control uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">{{ $notification->created_at?->translatedFormat('d M Y H:i') }}</p>
                             <div class="mt-3 flex flex-wrap gap-2">
                                 @if ($isInternalAction)
                                     <a href="{{ $actionUrl }}" class="member-button-primary">{{ $actionLabel }}</a>

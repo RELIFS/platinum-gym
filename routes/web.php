@@ -53,6 +53,7 @@ Route::middleware(['auth', 'verified', 'role:member', 'member.profile.complete']
     ->prefix('member')
     ->name('member.')
     ->group(function () {
+        Route::post('/gymmi/chat', GymmiChatController::class)->middleware('throttle:gymmi')->name('gymmi.chat');
         Route::get('/dashboard', [MemberPortalController::class, 'dashboard'])->name('dashboard');
         Route::get('/profil', [MemberPortalController::class, 'profile'])->name('profile');
         Route::get('/profil/edit', [MemberPortalController::class, 'profileEdit'])->name('profile.edit');

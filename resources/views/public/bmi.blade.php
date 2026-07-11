@@ -3,13 +3,17 @@
         'eyebrow' => 'BMI Calculator',
         'title' => 'Cek BMI sebagai referensi awal latihan.',
         'description' => 'Masukkan berat dan tinggi badan. Data tidak dikirim ke server dan tidak disimpan.',
+        'primaryUrl' => '#bmi-calculator',
+        'primaryLabel' => 'Hitung BMI',
+        'secondaryUrl' => route('public.services'),
+        'secondaryLabel' => 'Lihat Program',
     ])
 
-    <section class="public-section public-section-muted">
+    <section id="bmi-calculator" class="public-section public-section-muted scroll-mt-24">
         <div class="public-container grid gap-8 xl:grid-cols-[22rem_minmax(0,1fr)] xl:items-start 2xl:grid-cols-[24rem_minmax(0,1fr)]">
             <aside class="public-card public-motion-card public-motion-reveal xl:p-5" data-motion="reveal card">
                 <p class="public-eyebrow">Catatan</p>
-                <h2 class="mt-3 text-2xl font-black text-zinc-950 dark:text-white">BMI bukan diagnosis medis.</h2>
+                <h2 class="mt-3 text-2xl type-title text-zinc-950 dark:text-zinc-100">BMI bukan diagnosis medis.</h2>
                 <p class="mt-4 text-sm leading-7 text-zinc-600 dark:text-zinc-400">
                     BMI hanya referensi awal. Untuk program spesifik, konsultasikan dengan coach atau tenaga kesehatan bila punya kondisi medis, riwayat cedera, atau target perubahan berat badan yang agresif.
                 </p>
@@ -76,14 +80,14 @@
                     <div class="min-w-0">
                         <div class="grid gap-5 sm:grid-cols-2">
                             <div>
-                                <label for="weight" class="mb-2 block text-sm font-bold text-zinc-700 dark:text-zinc-300">Berat badan (kg)</label>
-                                <input id="weight" x-model="weight" type="number" min="20" max="300" step="0.1" inputmode="decimal" aria-describedby="weight-help" class="public-input text-lg font-black sm:text-base" placeholder="Contoh: 60">
-                                <p id="weight-help" class="mt-2 text-xs font-medium leading-5 text-zinc-500 dark:text-zinc-400">Rentang valid 20-300 kg.</p>
+                                <label for="weight" class="mb-2 block text-sm type-control text-zinc-700 dark:text-zinc-300">Berat badan (kg)</label>
+                                <input id="weight" x-model="weight" type="number" min="20" max="300" step="0.1" inputmode="decimal" aria-describedby="weight-help" class="public-input text-lg type-compact sm:text-base" placeholder="Contoh: 60">
+                                <p id="weight-help" class="mt-2 text-xs type-compact leading-5 text-zinc-500 dark:text-zinc-400">Rentang valid 20-300 kg.</p>
                             </div>
                             <div>
-                                <label for="height" class="mb-2 block text-sm font-bold text-zinc-700 dark:text-zinc-300">Tinggi badan (cm)</label>
-                                <input id="height" x-model="height" type="number" min="80" max="250" step="0.1" inputmode="decimal" aria-describedby="height-help" class="public-input text-lg font-black sm:text-base" placeholder="Contoh: 165">
-                                <p id="height-help" class="mt-2 text-xs font-medium leading-5 text-zinc-500 dark:text-zinc-400">Rentang valid 80-250 cm.</p>
+                                <label for="height" class="mb-2 block text-sm type-control text-zinc-700 dark:text-zinc-300">Tinggi badan (cm)</label>
+                                <input id="height" x-model="height" type="number" min="80" max="250" step="0.1" inputmode="decimal" aria-describedby="height-help" class="public-input text-lg type-compact sm:text-base" placeholder="Contoh: 165">
+                                <p id="height-help" class="mt-2 text-xs type-compact leading-5 text-zinc-500 dark:text-zinc-400">Rentang valid 80-250 cm.</p>
                             </div>
                         </div>
 
@@ -92,11 +96,11 @@
                     <div class="min-w-0 rounded-2xl border border-zinc-200 bg-gradient-to-br from-white via-zinc-50 to-gold-500/10 p-4 dark:border-white/10 dark:bg-none dark:bg-zinc-950/55 sm:p-5" role="status" aria-live="polite" aria-atomic="true" data-bmi-live-result data-bmi-gauge-summary>
                         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                             <div class="min-w-0">
-                                <p class="text-xs font-black uppercase tracking-[0.18em] text-gold-700 dark:text-gold-400">Hasil IMT</p>
-                                <p class="mt-2 break-words text-2xl font-black text-zinc-950 dark:text-white" x-text="category">Masukkan data valid</p>
-                                <p class="mt-1 text-sm font-semibold text-zinc-500 dark:text-zinc-400">Rentang: <span x-text="categoryRange">20-300 kg dan 80-250 cm</span></p>
+                                <p class="text-xs type-control uppercase tracking-[0.12em] text-zinc-600 dark:text-gold-400">Hasil IMT</p>
+                                <p class="mt-2 break-words text-2xl type-emphasis text-zinc-950 dark:text-zinc-100" x-text="category">Masukkan data valid</p>
+                                <p class="mt-1 text-sm type-control text-zinc-500 dark:text-zinc-400">Rentang: <span x-text="categoryRange">20-300 kg dan 80-250 cm</span></p>
                             </div>
-                            <p class="shrink-0 text-5xl font-black leading-none text-gold-500 sm:text-6xl" x-text="rounded">-</p>
+                            <p class="shrink-0 text-5xl type-emphasis leading-none text-zinc-950 dark:text-gold-400 sm:text-6xl" x-text="rounded">-</p>
                         </div>
                         <p class="mt-4 text-sm leading-7 text-zinc-600 dark:text-zinc-300" x-text="recommendation">Isi berat dan tinggi dalam rentang valid untuk melihat hasil IMT.</p>
                     </div>
@@ -106,7 +110,7 @@
                     <div class="max-w-3xl">
                         <div class="min-w-0">
                             <p class="public-eyebrow">Visual IMT</p>
-                            <h3 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Rentang BMI</h3>
+                            <h3 class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">Rentang BMI</h3>
                             <p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
                                 Bar warna memberi orientasi cepat; detail kategori tetap tertulis di bawahnya.
                             </p>
@@ -121,7 +125,7 @@
                                 <div class="bg-amber-500"></div>
                                 <div class="bg-red-500"></div>
                             </div>
-                            <div class="mt-3 grid gap-2 text-xs font-bold text-zinc-600 dark:text-zinc-300 sm:grid-cols-4">
+                            <div class="mt-3 grid gap-2 text-xs type-control text-zinc-600 dark:text-zinc-300 sm:grid-cols-4">
                                 <div class="rounded-xl bg-sky-500/10 px-3 py-2 text-sky-800 ring-1 ring-sky-500/20 dark:text-sky-200">
                                     <span class="block text-[0.62rem] uppercase tracking-[0.12em]">Kurang</span>
                                     <span class="mt-1 block tabular-nums">&lt; 18.5</span>
@@ -146,17 +150,17 @@
                         <template x-for="categoryItem in categories" x-bind:key="categoryItem.label">
                             <div
                                 class="grid min-w-0 gap-2 rounded-xl px-3 py-3 text-sm leading-5 ring-1 transition sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
-                                x-bind:class="isActive(categoryItem) ? categoryItem.tone + ' font-black shadow-sm' : 'bg-white/70 text-zinc-600 ring-zinc-200 dark:bg-zinc-950/35 dark:text-zinc-300 dark:ring-white/10'"
+                                x-bind:class="isActive(categoryItem) ? categoryItem.tone + ' type-control shadow-sm' : 'bg-white/70 text-zinc-600 ring-zinc-200 dark:bg-zinc-950/35 dark:text-zinc-300 dark:ring-white/10'"
                                 x-bind:aria-current="isActive(categoryItem) ? 'true' : null"
                             >
                                 <span class="min-w-0">
                                     <span class="block" x-text="categoryItem.label"></span>
                                     <span
                                         x-show="isActive(categoryItem)"
-                                        class="mt-1 inline-flex rounded-full bg-white/70 px-2 py-0.5 text-[0.62rem] font-black uppercase tracking-[0.12em] text-zinc-700 ring-1 ring-black/5 dark:bg-white/10 dark:text-white dark:ring-white/10"
+                                        class="mt-1 inline-flex rounded-full bg-white/70 px-2 py-0.5 text-[0.62rem] type-control uppercase tracking-[0.12em] text-zinc-700 ring-1 ring-black/5 dark:bg-white/10 dark:text-zinc-100 dark:ring-white/10"
                                     >Kategori Anda</span>
                                 </span>
-                                <span class="shrink-0 font-black tabular-nums" x-text="categoryItem.range"></span>
+                                <span class="shrink-0 type-control tabular-nums" x-text="categoryItem.range"></span>
                             </div>
                         </template>
                     </div>

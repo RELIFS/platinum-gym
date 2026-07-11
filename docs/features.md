@@ -1,6 +1,6 @@
 # Feature Documentation
 
-Status: Updated 2026-07-02. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
+Status: Updated 2026-07-11. Dokumen ini diperbarui seiring finalisasi kebutuhan dan implementasi fitur.
 
 Dokumen ini mencatat fitur yang sudah tersedia dan rencana fitur pada sistem Platinum Gym Padang.
 
@@ -328,30 +328,26 @@ Owner login melalui `/login`. User dengan role `owner` diarahkan ke `/owner` dan
 
 ### Tujuan
 
-Gymmi membantu pengunjung dan member menemukan informasi layanan dari data resmi Platinum Gym. Sistem memakai hybrid RAG dua tahap: Gemini normalizer hanya merapikan bahasa user menjadi JSON aman, Laravel memilih snippet dari dataset/database yang boleh diakses, lalu Gemini answer writer hanya merangkai jawaban natural dari snippet yang sudah dipilih.
+Gymmi membantu pengunjung dan member menemukan informasi layanan dari data resmi Platinum Gym. Sistem memakai pendekatan deterministic-first: Laravel memvalidasi request, menjaga memori percakapan per tab, memilih data resmi sesuai intent, merender fakta berisiko tinggi secara deterministik, lalu memakai normalizer AI opsional hanya saat perlu merapikan bahasa user.
 
 ### Behavior Aktif
 
-- Public dan member memakai floating chatbot melalui endpoint `POST /gymmi/chat`; kontrak response tetap `{ reply: { text }, source }`.
-- Knowledge base utama berasal dari workbook internal `data_AI_Chatbot.xlsx` dan dikompilasi menjadi `resources/data/gymmi/knowledge-base.json` lewat `php artisan gymmi:import-knowledge`.
-- Artifact knowledge base terbaru berisi FAQ 137 dan Alias 1578, termasuk tambahan variasi alias untuk gym, Muaythai, pendaftaran, bukti mahasiswa/KTM, kontak, produk, fasilitas, dan kebijakan.
-- Runtime chat membaca JSON terkompilasi dengan cache, bukan membaca Excel per request.
-- Strategi jawaban: input guard, conversational local reply, Gemini normalizer JSON untuk bahasa typo/slang, fallback normalizer lokal, FAQ direct answer, Alias untuk memahami variasi pertanyaan, intent ringan untuk jadwal kelas/harga/coach/kapasitas/private, Config/catalog snippets, knowledge override, database live snippets, Gemini answer writer, lalu jawaban lokal aman.
-- Database live hanya mengambil snippet aman dari data aktif/published: paket, promo valid, jadwal kelas aktif, trainer aktif, produk/kategori aktif, dan setting publik whitelist. Data live menang untuk harga, promo, jadwal, dan stok jika berbeda dari dataset.
-- Retrieval kelas dibuat spesifik agar pertanyaan Muaythai, termasuk typo seperti `muaytai`, tidak menarik Aerobic/Poundfit. Jika data resmi belum menyebut sesi privat, Gymmi menjawab konservatif dan mengarahkan konfirmasi ke admin.
-- `resources/data/gymmi/knowledge-overrides.json` menyimpan koreksi knowledge yang sudah divalidasi setelah import workbook, termasuk variasi alias layanan, produk, bukti mahasiswa, kontak, dan pertanyaan Muaythai; file ini digabung saat runtime tanpa membaca Excel per request.
-- Gymmi member hanya boleh memakai data user login sendiri: ringkasan membership aktif, paket sesi aktif, transaksi menunggu, booking sendiri, dan status QR tanpa token mentah. Data member lain, raw payment payload, raw QR token, dan secret tidak boleh dikirim ke Gemini atau ditampilkan.
-- Produk tetap bersifat katalog informasi; Gymmi tidak membuat klaim checkout produk online.
-- Gemini normalizer tidak membaca database dan ditolak jika JSON invalid, confidence rendah, punya unsafe flag, intent di luar allowlist, atau hasil normalisasi gagal guard. Gemini answer writer hanya dipanggil setelah Laravel memilih snippet resmi yang relevan; pertanyaan kosong, spam, prompt injection, permintaan API key/token/secret, bypass role, akses database, dan topik di luar Platinum Gym dijawab aman tanpa memakai answer writer.
-- Multi-key Gemini disimpan hanya di `.env`/environment server melalui `GEMINI_API_KEYS`; command `php artisan gymmi:sync-gemini-keys` membantu dry-run/status/sinkronisasi `.env` lokal dari file private tanpa mencetak key dan bukan dependency runtime request.
-- Jawaban yang tampil ke user memakai Bahasa Indonesia natural seperti customer service Platinum Gym, ringkas, dan tidak menyebut istilah internal seperti `Gemini`, `fallback`, `provider`, `rate limit`, `snippet`, `prompt`, atau `data lokal`.
-- Message log memakai `role="log"` dan `aria-live="polite"`.
-- Pesan user tampil di kanan tanpa avatar visual `AN`.
-- FAQ quick reply tampil sebagai rail horizontal yang bisa discroll, keyboard-focusable, dan tidak membuat halaman overflow.
-- Pesan bot tampil di kiri dengan avatar gambar Gymmi light/dark; fallback initial `GY` tetap tersedia jika asset tidak termuat.
-- Warna Gymmi public dan member mengikuti tema light/dark aktif untuk panel, input, bubble, quick reply, typing state, dan action link.
-- Saat Gymmi mengetik, send button dan quick replies dinonaktifkan agar pesan tidak dobel.
-- Prompt answer writer Gymmi memakai konteks terstruktur dari snippet knowledge base, database live, dan data member login sendiri bila ada. Jika normalizer atau answer writer tidak tersedia, jalur aman tetap merangkai jawaban natural dari data resmi, bukan menampilkan snippet mentah atau mekanisme internal. Conversation log disimpan ke `ai_conversations`/`ai_messages` dengan metadata normalizer aman, route memakai throttle `gymmi`, dan gangguan provider tidak merusak UI.
+- Public memakai `POST /gymmi/chat`; member memakai endpoint terproteksi `POST /member/gymmi/chat`. Surface ditentukan route, bukan body client.
+- Request hanya menerima `message`, token percakapan opaque opsional, dan UUID `client_message_id`; `context` serta `history` dari browser ditolak.
+- Semua pesan typed dan quick reply melewati pipeline Laravel. Ketiadaan key AI tidak mematikan knowledge, database live, guardrail, atau jawaban deterministik.
+- Memori percakapan bertahan pada tab yang sama melalui token server-bound dan `sessionStorage`; maksimum enam turn server serta dua belas bubble display. Token terikat session, user, dan surface; retry memakai idempotency key yang sama.
+- Laravel menyelesaikan follow-up eliptis sebelum retrieval, misalnya `kalau yang 3 bulan?`, serta memakai intent-scoped live data. Pertanyaan member hanya mengambil domain own-data yang relevan.
+- Harga, jam, jadwal, stok, promo, kapasitas, trainer, kontak, status membership/sesi/payment/booking/QR, tanggal, kode, jumlah, dan URL dirender deterministik dari evidence resmi.
+- AI normalizer opsional hanya merapikan bahasa; satu request maksimal satu provider stage. Composer AI nonaktif secara default dan tidak menentukan fakta, authorization, atau URL.
+- Knowledge base berasal dari workbook internal yang dikompilasi ke `resources/data/gymmi/knowledge-base.json`; override tervalidasi menang atas collision base.
+- Database live hanya membaca data aktif/published dan trainer aktif. QR memakai eligibility yang sama dengan portal; token mentah serta raw payment payload tidak pernah ditampilkan.
+- CTA dibuat server dari named-route allowlist. Browser hanya menerima action resmi dan memvalidasi same-origin atau host WhatsApp resmi.
+- Response memakai status `answered`, `clarify`, `blocked`, `degraded`, atau `error`; mode semantik tidak mengekspos nama provider.
+- Error/offline/timeout tidak berubah menjadi jawaban faktual palsu. UI menampilkan pesan nonfaktual dan `Coba Lagi` tanpa menggandakan bubble user.
+- Conversation log operasional memakai satu thread database per tab, redaction aman, default retention 30 hari, dan command `gymmi:prune-conversations` terjadwal harian.
+- UI visual panel, avatar, trigger, palette, bubble, dark/light, dan sizing tetap. Aksesibilitas mencakup dialog controls, focus trap/restore, Escape, `aria-busy`, live log, IME guard, serta batas 700 karakter.
+- Jam resmi: Senin-Sabtu 08:00-22:00; Minggu tutup. Runtime source of truth: `settings.operational_hours`.
+- Produk tetap katalog informasi; Gymmi tidak membuat checkout produk online.
 
 ## Auth UI Platinum Gym
 

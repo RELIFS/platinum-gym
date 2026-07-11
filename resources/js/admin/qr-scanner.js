@@ -11,7 +11,7 @@ function showToast(message, kind = 'success') {
     const palette = kind === 'error'
         ? 'border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-200'
         : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200';
-    toast.className = `pointer-events-none fixed inset-x-0 top-4 z-[60] mx-auto w-fit max-w-[min(90vw,28rem)] rounded-lg border ${palette} px-4 py-2 text-sm font-bold shadow-lg`;
+    toast.className = `pointer-events-none fixed inset-x-0 top-4 z-[60] mx-auto w-fit max-w-[min(90vw,28rem)] rounded-lg border ${palette} px-4 py-2 text-sm type-compact shadow-lg`;
     toast.setAttribute('role', kind === 'error' ? 'alert' : 'status');
     toast.setAttribute('aria-live', kind === 'error' ? 'assertive' : 'polite');
     toast.textContent = message;

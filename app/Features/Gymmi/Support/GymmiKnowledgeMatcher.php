@@ -330,7 +330,15 @@ class GymmiKnowledgeMatcher
         foreach ($needles as $needle) {
             $needle = $this->normalize((string) $needle);
 
-            if ($needle !== '' && str_contains($message, $needle)) {
+            if ($needle === '') {
+                continue;
+            }
+
+            $matches = mb_strlen($needle) <= 2
+                ? $this->containsPhrase($message, $needle)
+                : str_contains($message, $needle);
+
+            if ($matches) {
                 return true;
             }
         }

@@ -3,10 +3,14 @@
         'eyebrow' => 'Lokasi & Kontak',
         'title' => 'Datang langsung ke Platinum Gym Padang.',
         'description' => 'Temukan alamat, jam operasional, kontak resmi, Instagram, dan rute Google Maps Platinum Gym Padang.',
+        'primaryUrl' => '#lokasi-kontak',
+        'primaryLabel' => 'Lihat Kontak',
+        'secondaryUrl' => route('public.services'),
+        'secondaryLabel' => 'Lihat Layanan',
     ])
 
     @php
-        $hours = $settings['operational_hours'] ?? ['weekday' => '06:00-22:00', 'weekend' => '06:00-20:00'];
+        $hours = \App\Support\OperationalHours::normalize($settings['operational_hours'] ?? null);
         $phoneNumber = preg_replace('/\D+/', '', (string) ($settings['whatsapp_number'] ?? '6282174777761'));
         $whatsappUrl = $settings['whatsapp_url'] ?? 'https://wa.me/6282174777761';
         $mapsEmbedUrl = $settings['maps_embed_url'] ?? null;
@@ -15,26 +19,24 @@
         ]);
     @endphp
 
-    <section class="public-section public-section-muted">
+    <section id="lokasi-kontak" class="public-section public-section-muted scroll-mt-24">
         <div class="public-container grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
             <div class="space-y-5">
                 <article class="public-card public-motion-card public-motion-reveal" data-motion="reveal card">
                     <p class="public-eyebrow">Alamat</p>
-                    <h2 class="mt-3 break-words text-2xl font-black text-zinc-950 dark:text-white">Platinum Gym Padang</h2>
+                    <h2 class="mt-3 break-words text-2xl type-title text-zinc-950 dark:text-zinc-100">Platinum Gym Padang</h2>
                     <p class="mt-4 break-words text-sm leading-7 text-zinc-600 dark:text-zinc-400">{{ $settings['address'] }}</p>
                 </article>
 
                 <article class="public-card public-motion-card public-motion-reveal" data-motion="reveal card" data-motion-delay="80">
                     <p class="public-eyebrow">Jam Operasional</p>
                     <dl class="mt-4 space-y-3 text-sm">
-                        <div class="flex justify-between gap-4">
-                            <dt class="font-semibold text-zinc-500 dark:text-zinc-500">Senin-Jumat</dt>
-                            <dd class="font-black text-zinc-950 dark:text-white">{{ $hours['weekday'] ?? '06:00-22:00' }}</dd>
-                        </div>
-                        <div class="flex justify-between gap-4">
-                            <dt class="font-semibold text-zinc-500 dark:text-zinc-500">Sabtu-Minggu</dt>
-                            <dd class="font-black text-zinc-950 dark:text-white">{{ $hours['weekend'] ?? '06:00-20:00' }}</dd>
-                        </div>
+                        @foreach (\App\Support\OperationalHours::rows($hours) as $row)
+                            <div class="flex justify-between gap-4">
+                                <dt class="type-control text-zinc-500 dark:text-zinc-500">{{ $row['label'] }}</dt>
+                                <dd class="type-control text-zinc-950 dark:text-zinc-100">{{ $row['value'] }}</dd>
+                            </div>
+                        @endforeach
                     </dl>
                 </article>
 
@@ -71,12 +73,12 @@
                         <div class="absolute inset-0 bg-gradient-to-br from-white/85 via-white/70 to-gold-500/25 dark:from-zinc-950 dark:via-zinc-950/85 dark:to-gold-600/50"></div>
                         <div class="absolute inset-0 opacity-[0.10] dark:opacity-[0.10]" aria-hidden="true" style="background-image: linear-gradient(rgba(24,24,27,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(24,24,27,.18) 1px, transparent 1px); background-size: 48px 48px;"></div>
                         <div class="absolute right-6 top-6 rounded-2xl border border-zinc-200 bg-white/85 px-4 py-3 text-right shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/10">
-                            <p class="text-xs font-black uppercase tracking-[0.18em] text-gold-700 dark:text-gold-400">Padang Timur</p>
-                            <p class="mt-1 text-sm font-bold text-zinc-950 dark:text-white">Sawahan</p>
+                            <p class="text-xs type-control uppercase tracking-[0.12em] text-zinc-600 dark:text-gold-400">Padang Timur</p>
+                            <p class="mt-1 text-sm type-control text-zinc-950 dark:text-zinc-100">Sawahan</p>
                         </div>
                         <div class="relative max-w-xl">
                             <p class="public-eyebrow">Google Maps</p>
-                            <h2 class="public-heading-balance mt-3 break-words text-4xl font-black text-zinc-950 dark:text-white">Jl. H. Agus Salim No.3A</h2>
+                            <h2 class="public-heading-balance mt-3 break-words text-4xl type-title text-zinc-950 dark:text-zinc-100">Jl. H. Agus Salim No.3A</h2>
                             <p class="mt-4 break-words text-sm leading-7 text-zinc-700 dark:text-zinc-300">Buka Google Maps untuk rute langsung ke lokasi resmi Platinum Gym Padang.</p>
                         </div>
                     </div>
