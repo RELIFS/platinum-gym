@@ -34,7 +34,7 @@
 <section class="admin-card" aria-labelledby="{{ $tableId }}-title">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div class="min-w-0">
-            <h2 id="{{ $tableId }}-title" class="mt-2 text-xl font-black text-zinc-950 dark:text-white">{{ $module['title'] ?? 'Data Admin' }}</h2>
+            <h2 id="{{ $tableId }}-title" class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">{{ $module['title'] ?? 'Data Admin' }}</h2>
             <p class="mt-2 admin-copy">{{ $module['description'] ?? 'Ringkasan data Platinum Gym.' }}</p>
         </div>
         <span class="admin-status-pill admin-status-neutral shrink-0">{{ $countText }}</span>
@@ -177,7 +177,7 @@
                 $endPage = min($lastPage, $currentPage + 2);
             @endphp
             <nav class="mt-5 flex flex-col gap-3 border-t border-zinc-200 pt-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between" aria-label="Navigasi halaman {{ $module['title'] ?? 'data admin' }}">
-                <p class="text-sm font-semibold text-zinc-500 dark:text-zinc-400">Halaman {{ $currentPage }} dari {{ $lastPage }}</p>
+                <p class="text-sm type-control text-zinc-500 dark:text-zinc-400">Halaman {{ $currentPage }} dari {{ $lastPage }}</p>
                 <div class="flex flex-wrap gap-2">
                     @if ($paginator->onFirstPage())
                         <span class="admin-pagination-disabled" aria-disabled="true">Sebelumnya</span>
@@ -204,9 +204,9 @@
     @else
         <div class="admin-soft-panel mt-5 text-center">
             @include('admin.partials.icon', ['name' => 'empty', 'class' => 'mx-auto h-10 w-10 text-zinc-400'])
-            <p class="mt-3 font-black text-zinc-950 dark:text-white">{{ $hasActiveFilter ? 'Tidak ada data yang cocok dengan filter ini.' : ($module['empty'] ?? 'Belum ada data.') }}</p>
+            <p class="mt-3 type-control text-zinc-950 dark:text-zinc-100">{{ $hasActiveFilter ? 'Tidak ada data yang cocok dengan filter ini.' : ($module['empty'] ?? 'Belum ada data.') }}</p>
             @if ($hasActiveFilter)
-                <p class="mt-1 text-sm font-semibold text-zinc-500 dark:text-zinc-400">Ubah kata kunci atau filter.</p>
+                <p class="mt-1 text-sm type-control text-zinc-500 dark:text-zinc-400">Ubah kata kunci atau filter.</p>
             @endif
         </div>
     @endif

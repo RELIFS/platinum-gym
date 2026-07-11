@@ -97,11 +97,11 @@
 <body class="min-h-dvh bg-zinc-100 px-3 py-5 text-zinc-950 dark:bg-zinc-950">
     <main class="mx-auto max-w-sm">
         <div class="receipt-actions mb-4 grid gap-2 sm:grid-cols-3">
-            <a href="{{ $backUrl }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-sm font-black text-zinc-800 shadow-sm transition hover:border-gold-500/50 hover:bg-gold-500/10 hover:text-gold-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-white/[0.06] dark:text-white">Kembali ke Invoice</a>
+            <a href="{{ $backUrl }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-sm type-control text-zinc-800 shadow-sm transition hover:border-gold-500/50 hover:bg-gold-500/10 hover:text-gold-text focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-200 dark:focus-visible:ring-gold-400/40">Kembali ke Invoice</a>
             @if ($actions['receipt_download'] ?? null)
-                <a href="{{ $actions['receipt_download'] }}" class="inline-flex min-h-11 items-center justify-center rounded-lg bg-gold-500 px-3 text-sm font-black text-zinc-950 shadow-sm transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40">Unduh PDF</a>
+                <a href="{{ $actions['receipt_download'] }}" class="inline-flex min-h-11 items-center justify-center rounded-lg bg-gold-500 px-3 text-sm type-emphasis text-zinc-950 shadow-sm transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40">Unduh PDF</a>
             @endif
-            <button type="button" onclick="window.print()" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-sm font-black text-zinc-800 shadow-sm transition hover:border-gold-500/50 hover:bg-gold-500/10 hover:text-gold-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-white/[0.06] dark:text-white">Cetak</button>
+            <button type="button" onclick="window.print()" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-sm type-control text-zinc-800 shadow-sm transition hover:border-gold-500/50 hover:bg-gold-500/10 hover:text-gold-text focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-200 dark:focus-visible:ring-gold-400/40">Cetak</button>
         </div>
 
         @include('invoices.partials.receipt-paper', ['document' => $document])

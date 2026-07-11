@@ -9,7 +9,7 @@
     <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div class="min-w-0">
             <p class="admin-eyebrow">Pengaturan Website</p>
-            <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">Informasi publik website</h2>
+            <h2 class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">Informasi publik website</h2>
             <p class="mt-2 admin-copy">Perbarui informasi operasional yang tampil di website publik dan dokumen transaksi.</p>
         </div>
     </div>
@@ -83,7 +83,7 @@
         @endforeach
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p class="text-sm font-semibold leading-6 text-zinc-500 dark:text-zinc-400">Periksa kembali kontak publik, Instagram, dan invoice sebelum menyimpan.</p>
+            <p class="text-sm type-control leading-6 text-zinc-500 dark:text-zinc-400">Periksa kembali kontak publik, Instagram, dan invoice sebelum menyimpan.</p>
             <button type="submit" class="admin-button-primary">Simpan Pengaturan</button>
         </div>
     </x-confirm-form>

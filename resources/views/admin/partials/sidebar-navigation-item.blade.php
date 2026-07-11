@@ -30,6 +30,6 @@
     </span>
     <span class="min-w-0 flex-1 truncate">{{ $linkLabel }}</span>
     @if ($count > 0)
-        <span class="rounded-full bg-gold-500 px-2 py-0.5 text-[0.65rem] font-black text-zinc-950" aria-label="{{ $count }} persetujuan menunggu review">{{ $badgeText }}</span>
+        <span class="rounded-full bg-gold-500 px-2 py-0.5 text-[0.65rem] type-control text-zinc-950" aria-label="{{ $count }} persetujuan menunggu review">{{ $badgeText }}</span>
     @endif
 </a>

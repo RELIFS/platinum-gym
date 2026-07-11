@@ -183,7 +183,7 @@ test('member light theme uses balanced soft surfaces without dominant dark cards
     $this->actingAs($user)->get('/member/profil')
         ->assertOk()
         ->assertSee('member-card-strong relative isolate overflow-hidden', false)
-        ->assertSee('text-zinc-950 dark:text-white', false)
+        ->assertSee('text-zinc-950 dark:text-zinc-100', false)
         ->assertDontSee('text-xs font-black uppercase tracking-[0.2em] text-gold-400', false)
         ->assertDontSee('rounded-lg border border-white/10 bg-white/[0.06] p-4', false);
 
@@ -204,7 +204,7 @@ test('member light theme uses balanced soft surfaces without dominant dark cards
         ->assertSee('data-qr-member-visual', false)
         ->assertSee('lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]', false)
         ->assertSee('member-card-pass mx-auto w-full max-w-sm min-w-0 text-center lg:max-w-none', false)
-        ->assertSee('text-zinc-950 dark:text-white', false)
+        ->assertSee('text-zinc-950 dark:text-zinc-100', false)
         ->assertDontSee('text-2xl font-black text-white', false)
         ->assertDontSee('shadow-[0_24px_70px_rgba(0,0,0,0.32)]', false);
 
