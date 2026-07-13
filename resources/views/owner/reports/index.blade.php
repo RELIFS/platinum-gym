@@ -37,7 +37,7 @@
         <form method="GET" action="{{ route($currentReportRoute) }}" class="owner-panel mt-5">
             <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                 <div>
-                    <label for="report_type" class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Jenis laporan</label>
+                    <label for="report_type" class="text-xs type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">Jenis laporan</label>
                     <select id="report_type" name="report_type" class="owner-form-input mt-2">
                         @foreach ($options['reportTypes'] as $value => $label)
                             <option value="{{ $value }}" @selected($filters->reportType === $value)>{{ $label }}</option>
@@ -45,15 +45,15 @@
                     </select>
                 </div>
                 <div>
-                    <label for="date_from" class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Dari tanggal</label>
+                    <label for="date_from" class="text-xs type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">Dari tanggal</label>
                     <x-local-date-input id="date_from" name="date_from" :value="$filters->from->toDateString()" class="owner-form-input mt-2" />
                 </div>
                 <div>
-                    <label for="date_to" class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Sampai tanggal</label>
+                    <label for="date_to" class="text-xs type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">Sampai tanggal</label>
                     <x-local-date-input id="date_to" name="date_to" :value="$filters->to->toDateString()" class="owner-form-input mt-2" />
                 </div>
                 <div>
-                    <label for="method" class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Metode</label>
+                    <label for="method" class="text-xs type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">Metode</label>
                     <select id="method" name="method" class="owner-form-input mt-2">
                         <option value="">Semua metode</option>
                         @foreach ($options['paymentMethods'] as $value => $label)
@@ -62,7 +62,7 @@
                     </select>
                 </div>
                 <div>
-                    <label for="q" class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Cari</label>
+                    <label for="q" class="text-xs type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">Cari</label>
                     <input id="q" name="q" type="search" value="{{ $filters->search }}" placeholder="Cari kode, member, invoice..." class="owner-form-input mt-2">
                 </div>
             </div>
@@ -76,9 +76,9 @@
     <section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="Ringkasan laporan owner">
         @foreach ($report['summary'] as $item)
             <article class="owner-card p-4 sm:p-5">
-                <p class="text-xs font-black uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400">{{ $item['label'] }}</p>
-                <p class="mt-3 break-words text-2xl font-black tabular-nums text-zinc-950 dark:text-white">{{ $item['value'] }}</p>
-                <p class="mt-2 text-sm font-medium leading-6 text-zinc-500 dark:text-zinc-400">{{ $item['description'] }}</p>
+                <p class="text-xs type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">{{ $item['label'] }}</p>
+                <p class="mt-3 break-words text-2xl type-emphasis tabular-nums text-zinc-950 dark:text-zinc-100">{{ $item['value'] }}</p>
+                <p class="mt-2 text-sm type-compact leading-6 text-zinc-500 dark:text-zinc-400">{{ $item['description'] }}</p>
             </article>
         @endforeach
     </section>
@@ -87,7 +87,7 @@
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <p class="owner-eyebrow">Preview</p>
-                <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">{{ $report['title'] }}</h2>
+                <h2 class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">{{ $report['title'] }}</h2>
                 <p class="mt-2 owner-copy">Periode {{ $filters->periodLabel() }}. File CSV, Excel, dan PDF memakai filter yang sama.</p>
             </div>
         </div>
@@ -98,8 +98,8 @@
                     <article class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
                         @foreach ($headings as $index => $heading)
                             <div class="flex flex-col gap-1 border-b border-zinc-200 py-2 last:border-b-0 dark:border-white/10">
-                                <span class="text-[0.68rem] font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">{{ $heading }}</span>
-                                <span class="break-words text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $row[$index] ?? '-' }}</span>
+                                <span class="text-[0.68rem] type-control uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300">{{ $heading }}</span>
+                                <span class="break-words text-sm type-control text-zinc-900 dark:text-zinc-100">{{ $row[$index] ?? '-' }}</span>
                             </div>
                         @endforeach
                         @if (($row['invoice_url'] ?? null) && $filters->reportType === 'finance')
@@ -110,7 +110,7 @@
             </div>
 
             @if ($showTabletScrollHint)
-                <p class="owner-report-scroll-hint mt-5 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-bold text-zinc-500 dark:border-white/10 dark:bg-white/[0.035] dark:text-zinc-400">
+                <p class="owner-report-scroll-hint mt-5 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs type-control text-zinc-500 dark:border-white/10 dark:bg-white/[0.035] dark:text-zinc-400">
                     Geser tabel untuk melihat kolom lainnya.
                 </p>
             @endif
@@ -154,7 +154,7 @@
 
         @if ($rows->hasPages())
             <nav class="mt-5 flex flex-wrap items-center justify-between gap-3" aria-label="Pagination laporan owner">
-                <p class="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+                <p class="text-sm type-control text-zinc-500 dark:text-zinc-400">
                     Menampilkan {{ $rows->firstItem() }}-{{ $rows->lastItem() }} dari {{ $rows->total() }} data
                 </p>
                 <div class="flex flex-wrap gap-2">

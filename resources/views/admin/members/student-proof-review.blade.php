@@ -27,43 +27,43 @@
         <section class="admin-card">
             <p class="admin-eyebrow">Data Member</p>
             <div class="mt-4 flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
-                <span class="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-gold-500 text-xl font-black text-zinc-950" aria-hidden="true">
+                <span class="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-gold-500 text-xl type-control text-zinc-950" aria-hidden="true">
                     {{ str($user?->name ?? 'M')->substr(0, 1)->upper() }}
                 </span>
                 <div class="min-w-0">
-                    <h2 class="break-words text-xl font-black text-zinc-950 dark:text-white">{{ $user?->name ?? '-' }}</h2>
-                    <p class="mt-1 break-words text-sm font-semibold text-zinc-500 dark:text-zinc-400">{{ $user?->email ?? '-' }}</p>
-                    <p class="mt-2 font-mono text-xs font-black uppercase tracking-[0.12em] text-gold-700 dark:text-gold-400">{{ $member->member_code }}</p>
+                    <h2 class="break-words text-xl type-title text-zinc-950 dark:text-zinc-100">{{ $user?->name ?? '-' }}</h2>
+                    <p class="mt-1 break-words text-sm type-control text-zinc-500 dark:text-zinc-400">{{ $user?->email ?? '-' }}</p>
+                    <p class="mt-2 font-mono text-xs type-control uppercase tracking-[0.12em] text-zinc-700 dark:text-gold-400">{{ $member->member_code }}</p>
                 </div>
             </div>
 
             <dl class="mt-6 grid gap-3 text-sm">
                 <div class="flex flex-wrap items-start justify-between gap-3">
-                    <dt class="font-semibold text-zinc-500 dark:text-zinc-400">WhatsApp</dt>
-                    <dd class="break-words text-right font-black text-zinc-950 dark:text-white">{{ $user?->phone ?: '-' }}</dd>
+                    <dt class="type-control text-zinc-500 dark:text-zinc-400">WhatsApp</dt>
+                    <dd class="break-words text-right type-control text-zinc-950 dark:text-zinc-100">{{ $user?->phone ?: '-' }}</dd>
                 </div>
                 <div class="flex flex-wrap items-start justify-between gap-3">
-                    <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Kategori</dt>
+                    <dt class="type-control text-zinc-500 dark:text-zinc-400">Kategori</dt>
                     <dd><span class="admin-status-pill admin-status-neutral">{{ $member->is_student ? 'Mahasiswa' : 'Umum' }}</span></dd>
                 </div>
                 <div class="flex flex-wrap items-start justify-between gap-3">
-                    <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Status verifikasi</dt>
+                    <dt class="type-control text-zinc-500 dark:text-zinc-400">Status verifikasi</dt>
                     <dd><span class="admin-status-pill {{ $verificationClass }}">{{ $verificationLabel }}</span></dd>
                 </div>
                 <div class="flex flex-wrap items-start justify-between gap-3">
-                    <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Waktu upload</dt>
-                    <dd class="text-right font-black text-zinc-950 dark:text-white">{{ $member->student_proof_uploaded_at?->translatedFormat('d M Y H:i') ?? '-' }}</dd>
+                    <dt class="type-control text-zinc-500 dark:text-zinc-400">Waktu upload</dt>
+                    <dd class="text-right type-control text-zinc-950 dark:text-zinc-100">{{ $member->student_proof_uploaded_at?->translatedFormat('d M Y H:i') ?? '-' }}</dd>
                 </div>
                 <div class="min-w-0">
-                    <dt class="font-semibold text-zinc-500 dark:text-zinc-400">Catatan terakhir</dt>
-                    <dd class="mt-1 break-words font-semibold text-zinc-700 dark:text-zinc-200">{{ $member->student_verification_note ?: '-' }}</dd>
+                    <dt class="type-control text-zinc-500 dark:text-zinc-400">Catatan terakhir</dt>
+                    <dd class="mt-1 break-words type-control text-zinc-700 dark:text-zinc-200">{{ $member->student_verification_note ?: '-' }}</dd>
                 </div>
             </dl>
         </section>
 
         <section class="admin-card">
             <p class="admin-eyebrow">Bukti Mahasiswa</p>
-            <h2 class="mt-2 text-xl font-black text-zinc-950 dark:text-white">KTM atau akun portal mahasiswa</h2>
+            <h2 class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">KTM atau akun portal mahasiswa</h2>
             <p class="mt-2 admin-copy">Pastikan bukti sesuai dengan identitas member sebelum memilih setujui atau tolak.</p>
 
             @if ($hasProof)
@@ -73,7 +73,7 @@
             @else
                 <div class="admin-soft-panel mt-5 text-center">
                     @include('admin.partials.icon', ['name' => 'empty', 'class' => 'mx-auto h-10 w-10 text-zinc-400'])
-                    <p class="mt-3 font-black text-zinc-950 dark:text-white">Bukti mahasiswa belum tersedia.</p>
+                    <p class="mt-3 type-control text-zinc-950 dark:text-zinc-100">Bukti mahasiswa belum tersedia.</p>
                 </div>
             @endif
         </section>

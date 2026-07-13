@@ -56,6 +56,7 @@ on:
 composer install --no-interaction --prefer-dist --optimize-autoloader
 npm ci
 npm run build
+npm run test:gymmi-js
 php artisan key:generate
 vendor/bin/pint --test
 php artisan test --no-ansi
@@ -104,3 +105,5 @@ Hasil workflow final akan didokumentasikan dengan:
 ## Catatan Saat Ini
 
 Workflow sudah tersedia di repository lokal. Bukti sukses final tetap perlu diambil dari tab Actions GitHub setelah branch dipush, karena status CI baru muncul di GitHub setelah event `push` atau `pull_request` berjalan.
+
+Sebelum push produksi lokal, jalankan juga `php artisan route:list --except-vendor --no-ansi`, cache check Laravel, dan `php artisan gymmi:prune-conversations --dry-run` agar route, cache, dan job pruning Gymmi ikut tervalidasi.

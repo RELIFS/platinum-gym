@@ -31,9 +31,9 @@
                 </div>
             @endif
         </div>
-        <p class="mt-5 break-words text-xs font-black uppercase tracking-[0.2em] text-gold-600 dark:text-gold-400">{{ $member->member_code }}</p>
-        <h3 class="mt-2 break-words text-2xl font-black text-zinc-950 dark:text-white">{{ $user->name }}</h3>
-        <p class="mt-3 text-sm font-semibold leading-6 text-zinc-600 dark:text-zinc-300">{{ $qrTokenIsActive ? ($qrActiveForSession ? 'QR ini bisa digunakan admin untuk penggunaan sesi paket aktif Anda.' : 'QR ini tetap sama selama akun member aktif. Tunjukkan ke admin saat check-in atau penggunaan sesi.') : $inactiveBody }}</p>
+        <p class="mt-5 break-words text-xs type-control uppercase tracking-[0.14em] text-zinc-700 dark:text-gold-400">{{ $member->member_code }}</p>
+        <h3 class="mt-2 break-words text-2xl type-title text-zinc-950 dark:text-zinc-100">{{ $user->name }}</h3>
+        <p class="mt-3 text-sm type-control leading-6 text-zinc-600 dark:text-zinc-300">{{ $qrTokenIsActive ? ($qrActiveForSession ? 'QR ini bisa digunakan admin untuk penggunaan sesi paket aktif Anda.' : 'QR ini tetap sama selama akun member aktif. Tunjukkan ke admin saat check-in atau penggunaan sesi.') : $inactiveBody }}</p>
         @if ($qrTokenIsActive)
             <a href="{{ route('member.qr.download') }}" class="member-button-primary mx-auto mt-5 w-full sm:max-w-xs">Download QR</a>
         @else
@@ -46,9 +46,9 @@
         <h3 class="member-section-title">{{ $qrTokenIsActive ? 'Kartu digital check-in' : $inactiveTitle }}</h3>
         <div class="member-soft-panel mt-5 flex-1">
             <dl class="grid gap-3 text-sm">
-                <div class="member-data-row"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Status</dt><dd><span class="member-status-pill {{ $qrStatusClass }}">{{ $qrStatusLabel }}</span></dd></div>
-                <div class="member-data-row"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Berlaku Selama</dt><dd class="max-w-full break-words font-black text-zinc-950 dark:text-white">{{ $qrTokenIsActive ? ($qrActiveForSession ? 'Paket sesi aktif' : 'Membership aktif') : '-' }}</dd></div>
-                <div class="member-data-row"><dt class="font-semibold text-zinc-500 dark:text-zinc-400">Terakhir Dipakai</dt><dd class="max-w-full break-words font-black text-zinc-950 dark:text-white">{{ $qrToken?->last_used_at?->translatedFormat('d M Y H:i') ?? '-' }}</dd></div>
+                <div class="member-data-row"><dt class="type-control text-zinc-500 dark:text-zinc-400">Status</dt><dd><span class="member-status-pill {{ $qrStatusClass }}">{{ $qrStatusLabel }}</span></dd></div>
+                <div class="member-data-row"><dt class="type-control text-zinc-500 dark:text-zinc-400">Berlaku Selama</dt><dd class="max-w-full break-words type-control text-zinc-950 dark:text-zinc-100">{{ $qrTokenIsActive ? ($qrActiveForSession ? 'Paket sesi aktif' : 'Membership aktif') : '-' }}</dd></div>
+                <div class="member-data-row"><dt class="type-control text-zinc-500 dark:text-zinc-400">Terakhir Dipakai</dt><dd class="max-w-full break-words type-control text-zinc-950 dark:text-zinc-100">{{ $qrToken?->last_used_at?->translatedFormat('d M Y H:i') ?? '-' }}</dd></div>
             </dl>
         </div>
         <p class="member-unavailable-note mt-5">{{ $qrTokenIsActive ? 'Tunjukkan QR ini ke petugas saat check-in membership atau penggunaan sesi. Token mentah tidak ditampilkan pada halaman member.' : 'Token mentah tidak ditampilkan. Admin hanya dapat scan QR setelah membership atau paket sesi aktif.' }}</p>
@@ -68,21 +68,21 @@
                 <caption class="sr-only">Riwayat check-in member</caption>
                 <thead class="bg-zinc-50 text-xs uppercase tracking-[0.14em] text-zinc-500 dark:bg-white/[0.04] dark:text-zinc-400">
                     <tr>
-                        <th scope="col" class="px-5 py-4 font-black">Tanggal</th>
-                        <th scope="col" class="px-5 py-4 font-black">Jam</th>
-                        <th scope="col" class="px-5 py-4 font-black">Paket</th>
-                        <th scope="col" class="px-5 py-4 font-black">Status</th>
-                        <th scope="col" class="px-5 py-4 text-right font-black">Sisa</th>
+                        <th scope="col" class="px-5 py-4 type-control">Tanggal</th>
+                        <th scope="col" class="px-5 py-4 type-control">Jam</th>
+                        <th scope="col" class="px-5 py-4 type-control">Paket</th>
+                        <th scope="col" class="px-5 py-4 type-control">Status</th>
+                        <th scope="col" class="px-5 py-4 text-right type-control">Sisa</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-white/10">
                     @foreach ($recentCheckInRows as $row)
                         <tr class="member-table-row">
-                            <td class="px-5 py-4 font-black text-zinc-950 dark:text-white">{{ $row['date_label'] }}</td>
-                            <td class="px-5 py-4 font-semibold text-zinc-600 dark:text-zinc-300">{{ $row['time_label'] }}</td>
-                            <td class="max-w-xs px-5 py-4 font-bold text-zinc-700 dark:text-zinc-200"><span class="break-words">{{ $row['package_label'] }}</span></td>
+                            <td class="px-5 py-4 type-control text-zinc-950 dark:text-zinc-100">{{ $row['date_label'] }}</td>
+                            <td class="px-5 py-4 type-control text-zinc-600 dark:text-zinc-300">{{ $row['time_label'] }}</td>
+                            <td class="max-w-xs px-5 py-4 type-control text-zinc-700 dark:text-zinc-200"><span class="break-words">{{ $row['package_label'] }}</span></td>
                             <td class="px-5 py-4"><span class="member-status-pill {{ $row['status_class'] }}">{{ $row['status_label'] }}</span></td>
-                            <td class="px-5 py-4 text-right font-black text-zinc-950 dark:text-white">{{ $row['remaining_label'] }}</td>
+                            <td class="px-5 py-4 text-right type-control text-zinc-950 dark:text-zinc-100">{{ $row['remaining_label'] }}</td>
                         </tr>
                     @endforeach
                 </tbody>

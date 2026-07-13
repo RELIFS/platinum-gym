@@ -4,6 +4,15 @@ return [
     'knowledge_base_path' => env('GYMMI_KNOWLEDGE_BASE_PATH') ?: resource_path('data/gymmi/knowledge-base.json'),
     'knowledge_overrides_path' => env('GYMMI_KNOWLEDGE_OVERRIDES_PATH') ?: resource_path('data/gymmi/knowledge-overrides.json'),
     'knowledge_source_path' => env('GYMMI_KNOWLEDGE_SOURCE_PATH') ?: base_path('platinumgym-figma/docs/source-data/data_AI_Chatbot.xlsx'),
+    'enabled' => env('GYMMI_ENABLED', true),
+    'memory_enabled' => env('GYMMI_MEMORY_ENABLED', true),
+    'composer_enabled' => env('GYMMI_AI_COMPOSER_ENABLED', false),
+    'client_timeout_ms' => env('GYMMI_CLIENT_TIMEOUT_MS', 9000),
+    'deadline_ms' => env('GYMMI_DEADLINE_MS', 7500),
+    'retention_days' => env('GYMMI_RETENTION_DAYS', 30),
+    'conversation' => [
+        'ttl_seconds' => env('GYMMI_CONVERSATION_TTL_SECONDS', 7200),
+    ],
     'normalizer' => [
         'phrases' => [
             'muay thai' => 'muaythai',

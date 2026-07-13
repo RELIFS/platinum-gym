@@ -1,10 +1,10 @@
 <section>
     <header>
-        <h2 class="text-lg font-black text-zinc-950 dark:text-white">
+        <h2 class="text-lg type-control text-zinc-950 dark:text-zinc-100">
             Informasi Profil
         </h2>
 
-        <p class="mt-1 text-sm font-medium leading-6 text-zinc-500 dark:text-zinc-400">
+        <p class="mt-1 text-sm type-compact leading-6 text-zinc-500 dark:text-zinc-400">
             Perbarui nama dan email akun Anda.
         </p>
     </header>
@@ -30,16 +30,16 @@
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
                 <div>
-                    <p class="mt-2 text-sm font-medium text-zinc-600 dark:text-zinc-300">
+                    <p class="mt-2 text-sm type-compact text-zinc-600 dark:text-zinc-300">
                         Email Anda belum diverifikasi.
 
-                        <button form="send-verification" class="rounded-md text-sm font-bold text-gold-600 underline hover:text-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/40 dark:text-gold-400">
+                        <button form="send-verification" class="rounded-md text-sm type-control text-gold-text underline hover:text-gold-text-strong focus:outline-none focus:ring-2 focus:ring-gold-700/40 dark:focus:ring-gold-400/40">
                             Kirim ulang email verifikasi.
                         </button>
                     </p>
 
                     @if (session('status') === 'verification-code-sent')
-                        <p class="mt-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                        <p class="mt-2 text-sm type-control text-emerald-600 dark:text-emerald-400">
                             Kode verifikasi baru sudah dikirim ke email Anda.
                         </p>
                     @endif
@@ -56,7 +56,7 @@
                     x-show="show"
                     x-transition
                     x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm font-bold text-emerald-600 dark:text-emerald-400"
+                    class="text-sm type-control text-emerald-600 dark:text-emerald-400"
                 >Tersimpan.</p>
             @endif
         </div>

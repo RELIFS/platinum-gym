@@ -12,17 +12,17 @@
     ];
 @endphp
 
-<header class="sticky top-0 z-50 border-b border-zinc-200/80 bg-zinc-50/88 shadow-[0_10px_32px_rgba(24,24,27,0.06)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/88 dark:shadow-[0_10px_32px_rgba(0,0,0,0.28)]" x-data="{ open: false }" x-on:keydown.escape.window="open = false">
+<header data-auto-hide-topbar data-auto-hide-scope="all" class="sticky top-0 z-50 border-b border-zinc-200/80 bg-zinc-50/88 shadow-[0_10px_32px_rgba(24,24,27,0.06)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/88 dark:shadow-[0_10px_32px_rgba(0,0,0,0.28)]" x-data="{ open: false, syncMobileMenuState() { window.platinumGymUi?.setMobileMenuOpen('public-navigation', this.open); } }" x-init="$watch('open', () => syncMobileMenuState()); syncMobileMenuState()" x-on:keydown.escape.window="open = false" x-on:resize.window="if (window.innerWidth >= 1280) open = false">
     <div class="public-container">
         <div class="flex min-h-20 items-center justify-between gap-4">
-            <a href="{{ route('public.home') }}" class="inline-flex min-h-11 touch-manipulation items-center rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-offset-zinc-950" aria-label="{{ $siteName }}">
+            <a href="{{ route('public.home') }}" class="inline-flex min-h-11 touch-manipulation items-center rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-gold-400/40 dark:focus-visible:ring-offset-zinc-950" aria-label="{{ $siteName }}">
                 <img src="{{ asset('images/brand/platinum-gym-wordmark-480.webp') }}" alt="{{ $siteName }}" class="brand-logo h-10 w-auto sm:h-11" draggable="false" width="480" height="112">
             </a>
 
             <nav class="hidden items-center gap-1 rounded-full border border-zinc-200/80 bg-white/55 p-1 shadow-sm backdrop-blur xl:flex dark:border-white/10 dark:bg-white/[0.035]" aria-label="Navigasi utama">
                 @foreach ($navItems as $item)
                     @php($isActive = request()->routeIs($item['route']))
-                    <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="inline-flex min-h-11 touch-manipulation items-center rounded-full px-3 py-2 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-offset-zinc-950 {{ $isActive ? 'bg-gold-500 text-zinc-950 shadow-[0_10px_24px_rgba(254,172,24,0.22)]' : 'text-zinc-600 hover:bg-zinc-200/70 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white' }}">
+                    <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="inline-flex min-h-11 touch-manipulation items-center rounded-full px-3 py-2 text-sm type-control transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-gold-400/40 dark:focus-visible:ring-offset-zinc-950 {{ $isActive ? 'bg-gold-500 text-zinc-950 shadow-[0_8px_20px_rgba(254,172,24,0.18)]' : 'text-zinc-600 hover:bg-zinc-200/70 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-zinc-100' }}">
                         {{ $item['label'] }}
                     </a>
                 @endforeach
@@ -60,7 +60,7 @@
             <nav class="grid gap-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-2xl dark:border-white/10 dark:bg-zinc-900" aria-label="Navigasi mobile">
                 @foreach ($navItems as $item)
                     @php($isActive = request()->routeIs($item['route']))
-                    <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="touch-manipulation rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-900 {{ $isActive ? 'bg-gold-500 text-zinc-950' : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-white/10' }}">
+                    <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="touch-manipulation rounded-xl px-4 py-3 text-sm type-control focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-gold-400/40 dark:focus-visible:ring-offset-zinc-900 {{ $isActive ? 'bg-gold-500 text-zinc-950' : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-white/10' }}">
                         {{ $item['label'] }}
                     </a>
                 @endforeach

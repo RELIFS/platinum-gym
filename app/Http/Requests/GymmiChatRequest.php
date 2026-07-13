@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class GymmiChatRequest extends FormRequest
 {
@@ -16,7 +15,6 @@ class GymmiChatRequest extends FormRequest
     {
         $this->merge([
             'message' => trim((string) $this->input('message')),
-            'context' => $this->input('context', 'public'),
         ]);
     }
 
@@ -27,10 +25,10 @@ class GymmiChatRequest extends FormRequest
     {
         return [
             'message' => ['required', 'string', 'min:2', 'max:700'],
-            'context' => ['nullable', Rule::in(['public', 'member'])],
-            'history' => ['nullable', 'array', 'max:8'],
-            'history.*.from' => ['nullable', Rule::in(['user', 'bot'])],
-            'history.*.text' => ['nullable', 'string', 'max:700'],
+            'conversation_id' => ['nullable', 'string', 'size:64', 'regex:/^[A-Za-z0-9]+$/'],
+            'client_message_id' => ['required', 'uuid'],
+            'context' => ['prohibited'],
+            'history' => ['prohibited'],
         ];
     }
 }

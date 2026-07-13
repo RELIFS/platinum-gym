@@ -36,10 +36,11 @@
 
     $minDate = '1940-01-01';
     $maxDate = now()->subDay()->format('Y-m-d');
+    $legendId = $id.'-legend';
 @endphp
 
 <fieldset {{ $attributes->class('min-w-0') }}>
-    <legend class="{{ $labelClass }}">{{ $label }}</legend>
+    <legend id="{{ $legendId }}" class="{{ $labelClass }}">{{ $label }}</legend>
     <x-local-date-input
         :id="$id"
         :name="$name"
@@ -48,6 +49,7 @@
         :max="$maxDate"
         :class="$selectClass.' min-h-12'"
         :required="$required"
+        :labelled-by="$legendId"
         autocomplete="bday"
         button-label="Pilih tanggal lahir"
     />

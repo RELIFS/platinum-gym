@@ -8,6 +8,7 @@
     'min' => null,
     'max' => null,
     'describedBy' => null,
+    'labelledBy' => null,
     'disabled' => false,
     'autocomplete' => 'off',
     'buttonLabel' => 'Pilih tanggal',
@@ -106,6 +107,7 @@
             x-bind:disabled="isDisabled"
             @required($required)
             @disabled($disabled)
+            @if ($labelledBy) aria-labelledby="{{ $labelledBy }}" @endif
             @if ($ariaDescribedBy !== '') aria-describedby="{{ $ariaDescribedBy }}" @endif
             @error($name) aria-invalid="true" @enderror
         >
@@ -124,7 +126,7 @@
         >
         <button
             type="button"
-            class="absolute inset-y-1 right-1 inline-flex w-10 touch-manipulation items-center justify-center rounded-md text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 disabled:cursor-not-allowed disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white"
+            class="absolute inset-y-1 right-1 inline-flex w-10 touch-manipulation items-center justify-center rounded-md text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 disabled:cursor-not-allowed disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-zinc-100 dark:focus-visible:ring-gold-400/40"
             aria-label="{{ $buttonLabel }}"
             x-on:click="openPicker"
             x-bind:disabled="isDisabled"

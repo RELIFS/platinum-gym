@@ -1,8 +1,8 @@
 # Screenshot Fitur Platinum Gym
 
-Status: Updated 2026-07-02.
+Status: Updated 2026-07-11.
 
-Folder ini menyimpan dokumentasi visual fitur Platinum Gym Padang. Screenshot dibuat pada viewport desktop 1440px, mode light, dan memakai data lokal aman. Email pada area login-protected dimasking di DOM browser saat capture untuk menghindari penyebaran data akun pada dokumentasi. Screenshot publik dan member memakai state motion yang sudah selesai, menunggu image tampil, dan menampilkan trigger Gymmi di bagian bawah dokumen agar konten utama tidak tertutup.
+Folder ini menyimpan dokumentasi visual fitur Platinum Gym Padang. Screenshot dibuat pada viewport desktop 1440px, mode light, dan memakai data lokal aman. Email pada area login-protected dimasking di DOM browser saat capture untuk menghindari penyebaran data akun pada dokumentasi. Screenshot publik dan member memakai state motion yang sudah selesai, menunggu image tampil, dan menampilkan trigger Gymmi di bagian bawah dokumen agar konten utama tidak tertutup. Batch terbaru tetap memakai folder dan nama file lama; perubahan 2026-07-11 hanya memperbarui konteks UI/Gymmi tanpa menambah screenshot baru.
 
 ## Ringkasan
 

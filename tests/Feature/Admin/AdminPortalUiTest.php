@@ -21,6 +21,8 @@ test('admin layout exposes accessible navigation controls and identity regions',
         ->assertSee('Lewati navigasi admin')
         ->assertSee('aria-controls="admin-mobile-navigation"', false)
         ->assertSee('aria-label="Buka navigasi admin"', false)
+        ->assertSee('data-auto-hide-topbar', false)
+        ->assertSee('data-auto-hide-scope="below-lg"', false)
         ->assertSee('role="dialog"', false)
         ->assertSee('aria-modal="true"', false)
         ->assertSee('Menu admin mobile')

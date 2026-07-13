@@ -25,7 +25,7 @@
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div class="min-w-0">
             <p class="admin-eyebrow">Persetujuan Admin</p>
-            <h2 id="{{ $tableId }}-title" class="mt-2 text-xl font-black text-zinc-950 dark:text-white">{{ $title }}</h2>
+            <h2 id="{{ $tableId }}-title" class="mt-2 text-xl type-title text-zinc-950 dark:text-zinc-100">{{ $title }}</h2>
             <p class="mt-2 admin-copy">{{ $description }}</p>
         </div>
         <span class="admin-status-pill admin-status-neutral shrink-0">{{ $totalRows }} persetujuan</span>
@@ -77,10 +77,10 @@
                     @foreach ($rows as $row)
                         @php($statusClass = $kindMap[$row['kind'] ?? 'neutral'] ?? $kindMap['neutral'])
                         <tr class="admin-table-row">
-                            <td class="admin-table-cell font-black text-zinc-950 dark:text-white">{{ $row['title'] ?? '-' }}</td>
+                            <td class="admin-table-cell type-control text-zinc-950 dark:text-zinc-100">{{ $row['title'] ?? '-' }}</td>
                             <td class="admin-table-cell">
-                                <span class="block font-black text-zinc-950 dark:text-white">{{ $row['member'] ?? '-' }}</span>
-                                <span class="mt-1 block font-mono text-xs font-bold text-zinc-500 dark:text-zinc-400">{{ $row['member_code'] ?? '-' }}</span>
+                                <span class="block type-control text-zinc-950 dark:text-zinc-100">{{ $row['member'] ?? '-' }}</span>
+                                <span class="mt-1 block font-mono text-xs type-control text-zinc-500 dark:text-zinc-400">{{ $row['member_code'] ?? '-' }}</span>
                             </td>
                             <td class="admin-table-cell">
                                 <span class="admin-status-pill {{ $statusClass }}">{{ $row['status'] ?? '-' }}</span>
@@ -91,7 +91,7 @@
                                 @if (filled($row['url'] ?? null))
                                     <a href="{{ $row['url'] }}" class="admin-button-secondary min-h-10 px-3">Review Bukti</a>
                                 @else
-                                    <span class="text-xs font-bold text-zinc-400">-</span>
+                                    <span class="text-xs type-control text-zinc-400">-</span>
                                 @endif
                             </td>
                         </tr>
@@ -106,8 +106,8 @@
                 <article class="admin-table-mobile-card">
                     <div class="flex min-w-0 flex-wrap items-start justify-between gap-3">
                         <div class="min-w-0">
-                            <p class="break-words font-black text-zinc-950 dark:text-white">{{ $row['title'] ?? '-' }}</p>
-                            <p class="mt-1 break-words text-sm font-semibold text-zinc-500 dark:text-zinc-400">{{ $row['member'] ?? '-' }} - {{ $row['member_code'] ?? '-' }}</p>
+                            <p class="break-words type-control text-zinc-950 dark:text-zinc-100">{{ $row['title'] ?? '-' }}</p>
+                            <p class="mt-1 break-words text-sm type-control text-zinc-500 dark:text-zinc-400">{{ $row['member'] ?? '-' }} - {{ $row['member_code'] ?? '-' }}</p>
                         </div>
                         <span class="admin-status-pill {{ $statusClass }}">{{ $row['status'] ?? '-' }}</span>
                     </div>
@@ -136,7 +136,7 @@
     @else
         <div class="admin-soft-panel mt-5 text-center">
             @include('admin.partials.icon', ['name' => 'empty', 'class' => 'mx-auto h-10 w-10 text-zinc-400'])
-            <p class="mt-3 font-black text-zinc-950 dark:text-white">{{ $empty }}</p>
+            <p class="mt-3 type-control text-zinc-950 dark:text-zinc-100">{{ $empty }}</p>
         </div>
     @endif
 </section>

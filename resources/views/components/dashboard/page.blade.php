@@ -9,15 +9,15 @@
         @if ($title || $description || $eyebrow)
             <div class="mb-8 max-w-3xl">
                 @if ($eyebrow)
-                    <p class="mb-2 text-xs font-black uppercase tracking-[0.22em] text-gold-600 dark:text-gold-400">{{ $eyebrow }}</p>
+                    <p class="mb-2 text-xs type-control uppercase tracking-[0.12em] text-gold-text">{{ $eyebrow }}</p>
                 @endif
 
                 @if ($title)
-                    <h1 class="text-3xl font-black text-zinc-950 dark:text-white sm:text-4xl">{{ $title }}</h1>
+                    <h1 class="text-3xl type-title text-zinc-950 dark:text-zinc-100 sm:text-4xl">{{ $title }}</h1>
                 @endif
 
                 @if ($description)
-                    <p class="mt-3 text-sm font-medium leading-7 text-zinc-600 dark:text-zinc-400 sm:text-base">{{ $description }}</p>
+                    <p class="mt-3 text-sm type-compact leading-7 text-zinc-600 dark:text-zinc-400 sm:text-base">{{ $description }}</p>
                 @endif
             </div>
         @endif

@@ -7,11 +7,11 @@
     @if ($title || $description)
         <div class="mb-5">
             @if ($title)
-                <h2 class="text-lg font-black text-zinc-950 dark:text-white">{{ $title }}</h2>
+                <h2 class="text-lg type-title text-zinc-950 dark:text-zinc-100">{{ $title }}</h2>
             @endif
 
             @if ($description)
-                <p class="mt-1 text-sm font-medium leading-6 text-zinc-500 dark:text-zinc-400">{{ $description }}</p>
+                <p class="mt-1 text-sm type-compact leading-6 text-zinc-500 dark:text-zinc-400">{{ $description }}</p>
             @endif
         </div>
     @endif

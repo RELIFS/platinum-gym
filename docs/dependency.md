@@ -83,7 +83,7 @@ Scan `resources/js/**/*.js` diperlukan karena renderer Gymmi membuat sebagian cl
 
 | Integrasi | Fungsi | Modul | Alasan | Status |
 |---|---|---|---|---|
-| Google Gemini API REST | AI assistant Gymmi | Public/member chatbot | Laravel HTTP client cukup untuk hybrid RAG, timeout, retry, fallback, dan test tanpa menambah package Composer | Sudah digunakan |
+| Google Gemini API REST | AI assistant Gymmi | Public/member chatbot | Laravel HTTP client cukup untuk normalizer AI opsional, timeout, retry, dan fallback; fakta utama tetap dirender Laravel tanpa menambah package Composer | Sudah digunakan |
 | Native streamed CSV | Export laporan ringan | Admin/owner reports | Response streaming Laravel tetap dipakai untuk backward compatibility dan export CSV cepat | Sudah digunakan |
 | Local SVG chart renderer | Grafik dashboard ringan | Admin/owner dashboard | Mengganti dependency chart berat dengan renderer kecil di bundle lokal | Sudah digunakan |
 
@@ -231,7 +231,7 @@ Referensi:
 | Who | Digunakan oleh pengunjung dan member saat bertanya lewat Gymmi. Admin automation belum dibuat. |
 | When | Digunakan saat user mengirim pesan dari widget Gymmi public atau member. |
 | Where | Endpoint `POST /gymmi/chat`, frontend `resources/js/public-chatbot.js`, dan partial public/member chatbot. |
-| How | Sistem menjalankan input guard, memilih FAQ/Alias/Config/catalog snippets dari `resources/data/gymmi/knowledge-base.json` plus override kecil tervalidasi, menambahkan snippet database live yang aman untuk paket/promo/jadwal/produk/settings publik dan data member login sendiri, lalu memanggil Gemini hanya untuk merangkai jawaban dari snippet valid. Intent ringan membatasi retrieval agar pertanyaan spesifik seperti Muaythai/privat tidak menarik kelas lain. Key pool dibaca dari `.env` (`GEMINI_API_KEY`/`GEMINI_API_KEYS`), 429 membuka cooldown, 401/403 menandai key invalid sementara, 404 membuka cooldown model, timeout/5xx retry terbatas, dan fallback knowledge dipakai jika provider gagal dengan jawaban natural, bukan snippet mentah. Command `php artisan gymmi:sync-gemini-keys` tersedia untuk dry-run/status/sinkronisasi `.env` lokal dari file private tanpa mencetak nilai key; production tetap memakai environment/secret manager hosting. Log tidak memuat key, raw prompt, payload sensitif, raw QR token, atau secret. |
+| How | Sistem menjalankan input guard, menolak `context/history` browser, menjaga token percakapan per tab, lalu memilih FAQ/Alias/Config/catalog snippets dari `resources/data/gymmi/knowledge-base.json` plus override tervalidasi dan database live yang aman untuk paket/promo/jadwal/produk/settings publik atau data member login sendiri. Harga, jam, jadwal, stok, promo, kapasitas, status member, tanggal, kode, jumlah, dan URL dirender Laravel dari evidence resmi. Gemini normalizer hanya opsional untuk merapikan bahasa typo/slang menjadi JSON tervalidasi; composer AI nonaktif secara default. Key pool dibaca dari `.env` (`GEMINI_API_KEY`/`GEMINI_API_KEYS`) dengan retry/cooldown terbatas. Command `php artisan gymmi:sync-gemini-keys` tersedia untuk dry-run/status/sinkronisasi `.env` lokal tanpa mencetak nilai key. Log tidak memuat key, raw prompt, payload sensitif, raw QR token, atau secret, dan dipangkas melalui `gymmi:prune-conversations`. |
 
 Referensi:
 

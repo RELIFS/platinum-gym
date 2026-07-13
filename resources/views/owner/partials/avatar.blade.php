@@ -3,7 +3,7 @@
     $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
     $avatar = (string) ($owner?->avatar ?? '');
     $avatarUrl = asset('images/owner/owner-avatar-default.webp');
-    $avatarClass = trim('grid shrink-0 place-items-center overflow-hidden rounded-full border border-gold-500/40 bg-gold-500 font-black text-zinc-950 '.($class ?? 'h-10 w-10 text-sm'));
+    $avatarClass = trim('grid shrink-0 place-items-center overflow-hidden rounded-full border border-gold-500/40 bg-gold-500 type-emphasis text-zinc-950 '.($class ?? 'h-10 w-10 text-sm'));
 
     if (filled($avatar)) {
         $avatarUrl = str_starts_with($avatar, 'storage/')

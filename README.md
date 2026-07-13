@@ -18,7 +18,7 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 | Member portal | Operasional: profil editable dengan bukti mahasiswa, checkout membership/paket sesi, booking/cancel dengan guard akses sesuai membership, transaksi, QR, notifikasi, sidebar minimal, server-side pagination/filter, dan Gymmi global |
 | Admin portal | Production custom Blade dengan route `/admin`, CRUD master data, approval inbox bukti mahasiswa, payment cash/approve/reject, booking create/confirm/cancel, QR-camera preview-confirm check-in, settings whitelist, audit filter, report CSV/Excel/PDF, dan profil admin ringkas |
 | Owner portal | Operasional read-only untuk dashboard bisnis, laporan web, export CSV, dan invoice transaksi berbasis data pembayaran terkonfirmasi |
-| Payment, email, QR, Gymmi AI | Operasional memakai Midtrans Sandbox, Resend, QR visual/check-in, dan Gymmi hybrid RAG Gemini dengan normalizer teks, knowledge override, serta jawaban lokal natural |
+| Payment, email, QR, Gymmi AI | Operasional memakai Midtrans Sandbox, Resend, QR visual/check-in, dan Gymmi deterministic-first dengan endpoint public/member terpisah, memori tab, retrieval Laravel, normalizer AI opsional, dan jawaban resmi berbasis data |
 | Invoice PDF/Excel, struk, upload bukti bayar, refund/correction workflow | Invoice PDF/Excel dan struk sudah tersedia; upload bukti bayar dan refund/correction workflow menjadi rencana berikutnya |
 
 ## Tujuan Proyek
@@ -61,7 +61,7 @@ Dokumentasi proyek disusun agar aplikasi mudah dipasang, diuji, dipelihara, dike
 - Website public Blade untuk Beranda, Tentang Kami, Layanan, Kelas, Produk, Galeri, Lokasi, dan BMI.
 - Filter jadwal kelas berbasis query string.
 - Katalog produk dengan foto/fallback, harga, stok aktual dari database, filter, pencarian, dan arahan pembelian langsung di lokasi.
-- Gymmi public/member hybrid RAG dengan endpoint Gemini, dataset terkompilasi, database live aman, fallback lokal natural, quick replies, dan guardrail data.
+- Gymmi public/member deterministic-first dengan endpoint public/member terpisah, request tervalidasi, memori tab, retry idempotent, retrieval Laravel dari dataset/database aman, normalizer AI opsional, quick replies, dan guardrail data.
 - Google Maps iframe embed tanpa API key pada halaman Lokasi.
 - Seeder kontak public, promo, testimoni, galeri, produk, dan foto produk optimized.
 - Tampilan autentikasi bertema Platinum Gym dengan panel visual foto gym pada desktop dan form panel responsive.

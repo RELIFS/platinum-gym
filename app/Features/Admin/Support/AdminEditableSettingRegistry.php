@@ -3,6 +3,7 @@
 namespace App\Features\Admin\Support;
 
 use App\Models\Setting;
+use App\Support\OperationalHours;
 
 class AdminEditableSettingRegistry
 {
@@ -10,8 +11,8 @@ class AdminEditableSettingRegistry
     {
         return [
             ['name' => 'site_name', 'label' => 'Nama Website', 'group' => 'general', 'type' => 'text', 'placeholder' => 'Platinum Gym Padang', 'help' => 'Nama ini tampil di website publik, meta SEO, dan beberapa dokumen operasional.'],
-            ['name' => 'operational_hours_weekday', 'label' => 'Jam operasional hari kerja', 'group' => 'general', 'type' => 'text', 'placeholder' => '06:00-22:00', 'help' => 'Gunakan format singkat, misalnya 06:00-22:00.'],
-            ['name' => 'operational_hours_weekend', 'label' => 'Jam operasional akhir pekan', 'group' => 'general', 'type' => 'text', 'placeholder' => '06:00-20:00', 'help' => 'Tampil di halaman lokasi dan informasi kontak publik.'],
+            ['name' => 'operational_hours_monday_saturday', 'label' => 'Jam Senin-Sabtu', 'group' => 'general', 'type' => 'text', 'placeholder' => '08:00-22:00', 'help' => 'Gunakan format singkat, misalnya 08:00-22:00.'],
+            ['name' => 'operational_hours_sunday', 'label' => 'Jam Minggu', 'group' => 'general', 'type' => 'text', 'placeholder' => 'Tutup', 'help' => 'Tulis Tutup bila gym tidak beroperasi pada hari Minggu.'],
             ['name' => 'address', 'label' => 'Alamat Gym', 'group' => 'contact', 'type' => 'textarea', 'placeholder' => 'Jl. ... Padang', 'help' => 'Alamat utama yang tampil pada halaman lokasi.', 'fullWidth' => true],
             ['name' => 'phone_number', 'label' => 'Nomor Telepon', 'group' => 'contact', 'type' => 'text', 'placeholder' => '081234567890', 'help' => 'Nomor utama untuk link telepon. Gunakan angka yang bisa dihubungi.'],
             ['name' => 'phone_display', 'label' => 'Nomor telepon yang ditampilkan', 'group' => 'contact', 'type' => 'text', 'placeholder' => '0812-3456-7890', 'help' => 'Versi yang lebih mudah dibaca oleh pengunjung website.'],
@@ -57,8 +58,8 @@ class AdminEditableSettingRegistry
             'public_email' => ['required', 'email:rfc', 'max:150'],
             'instagram_handle' => ['nullable', 'string', 'max:80'],
             'instagram_url' => ['nullable', 'url', 'max:255'],
-            'operational_hours_weekday' => ['required', 'string', 'max:40'],
-            'operational_hours_weekend' => ['required', 'string', 'max:40'],
+            'operational_hours_monday_saturday' => ['required', 'string', 'max:40'],
+            'operational_hours_sunday' => ['required', 'string', 'max:40'],
             'invoice_prefix' => ['required', 'string', 'max:12'],
             'invoice_footer' => ['nullable', 'string', 'max:300'],
         ];
@@ -70,7 +71,7 @@ class AdminEditableSettingRegistry
             ->whereIn('key', $this->storageKeys())
             ->pluck('value', 'key');
 
-        $hours = json_decode((string) $settings->get('operational_hours', ''), true) ?: [];
+        $hours = OperationalHours::normalize($settings->get('operational_hours'));
 
         return [
             'site_name' => $settings->get('site_name', 'Platinum Gym Padang'),
@@ -81,8 +82,8 @@ class AdminEditableSettingRegistry
             'public_email' => $settings->get('public_email', ''),
             'instagram_handle' => $settings->get('instagram_handle', ''),
             'instagram_url' => $settings->get('instagram_url', ''),
-            'operational_hours_weekday' => $hours['weekday'] ?? '06:00-22:00',
-            'operational_hours_weekend' => $hours['weekend'] ?? '06:00-20:00',
+            'operational_hours_monday_saturday' => $hours['monday_saturday'],
+            'operational_hours_sunday' => $hours['sunday'],
             'invoice_prefix' => $settings->get('invoice_prefix', 'PGP'),
             'invoice_footer' => $settings->get('invoice_footer', 'Terima kasih telah bertransaksi di Platinum Gym Padang.'),
         ];
@@ -93,8 +94,8 @@ class AdminEditableSettingRegistry
         $payload = collect($data)->only($this->plainKeys())->map(fn ($value): ?string => filled($value) ? (string) $value : null)->all();
 
         $payload['operational_hours'] = json_encode([
-            'weekday' => $data['operational_hours_weekday'],
-            'weekend' => $data['operational_hours_weekend'],
+            'monday_saturday' => $data['operational_hours_monday_saturday'],
+            'sunday' => $data['operational_hours_sunday'],
         ]);
 
         return $payload;

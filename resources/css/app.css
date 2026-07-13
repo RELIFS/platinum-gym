@@ -9,11 +9,35 @@
         color-scheme: light;
         --public-grid-line: rgba(24, 24, 27, 0.045);
         --public-grid-size: 56px;
+        --color-gold-brand: #feac18;
+        --color-gold-text: #3f3f46;
+        --color-gold-text-strong: #27272a;
+        --color-gold-display: #27272a;
+        --color-gold-readable: #3f3f46;
+        --color-gold-readable-strong: #27272a;
+        --focus-ring-gold: rgba(254, 172, 24, 0.36);
+        --shadow-soft-public: 0 10px 28px rgba(24, 24, 27, 0.055);
+        --shadow-soft-portal: 0 8px 22px rgba(15, 23, 42, 0.045);
+        --font-weight-display: 800;
+        --font-weight-title: 700;
+        --font-weight-emphasis: 700;
+        --font-weight-control: 600;
+        --font-weight-compact: 500;
+        --font-weight-body: 400;
     }
 
     .dark {
         color-scheme: dark;
         --public-grid-line: rgba(255, 255, 255, 0.075);
+        --color-gold-brand: #feac18;
+        --color-gold-text: #ffd978;
+        --color-gold-text-strong: #ffd978;
+        --color-gold-display: #feac18;
+        --color-gold-readable: #ffd978;
+        --color-gold-readable-strong: #ffd978;
+        --focus-ring-gold: rgba(255, 217, 120, 0.34);
+        --shadow-soft-public: 0 14px 38px rgba(0, 0, 0, 0.24);
+        --shadow-soft-portal: 0 12px 34px rgba(0, 0, 0, 0.22);
     }
 
     html.theme-switching *,
@@ -27,6 +51,11 @@
 
     [x-cloak] {
         display: none !important;
+    }
+
+    body {
+        font-kerning: normal;
+        font-weight: var(--font-weight-body);
     }
 
     :target,
@@ -47,13 +76,117 @@
     }
 }
 
+@layer utilities {
+    .type-display {
+        font-weight: var(--font-weight-display);
+    }
+
+    .type-title {
+        font-weight: var(--font-weight-title);
+    }
+
+    .type-emphasis {
+        font-weight: var(--font-weight-emphasis);
+    }
+
+    .type-control {
+        font-weight: var(--font-weight-control);
+    }
+
+    .type-compact {
+        font-weight: var(--font-weight-compact);
+    }
+
+    .type-body {
+        font-weight: var(--font-weight-body);
+    }
+
+    :disabled,
+    [aria-disabled='true'] {
+        font-weight: var(--font-weight-compact);
+    }
+
+    .text-gold-brand {
+        color: var(--color-gold-brand);
+    }
+
+    .text-gold-text {
+        color: var(--color-gold-text);
+    }
+
+    .text-gold-text-strong {
+        color: var(--color-gold-text-strong);
+    }
+
+    .text-gold-display {
+        color: var(--color-gold-display);
+    }
+
+    .hover\:text-gold-text:hover {
+        color: var(--color-gold-text);
+    }
+
+    .hover\:text-gold-text-strong:hover {
+        color: var(--color-gold-text-strong);
+    }
+
+    .group:hover .group-hover\:text-gold-text {
+        color: var(--color-gold-text);
+    }
+
+    .group:hover .group-hover\:text-gold-display {
+        color: var(--color-gold-display);
+    }
+}
+
 @layer components {
+    [data-auto-hide-topbar] {
+        transform: translateY(0);
+        transition:
+            transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+            box-shadow 180ms ease-out,
+            border-color 180ms ease-out;
+        will-change: transform;
+    }
+
+    [data-auto-hide-topbar][data-topbar-hidden='true'] {
+        pointer-events: none;
+        transform: translateY(calc(-100% - 1px));
+    }
+
+    html[data-mobile-menu-open] [data-auto-hide-topbar],
+    [data-auto-hide-topbar]:focus-within {
+        pointer-events: auto;
+        transform: translateY(0);
+    }
+
+    [data-chatbot-root][data-chatbot-suppressed='true'] {
+        opacity: 0;
+        pointer-events: none;
+        visibility: hidden;
+    }
+
+    @media (min-width: 1024px) {
+        [data-auto-hide-topbar][data-auto-hide-scope='below-lg'] {
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-auto-hide-topbar],
+        [data-chatbot-root] {
+            transition: none !important;
+        }
+    }
+
     .auth-panel {
         @apply rounded-2xl border border-zinc-200/85 bg-white/90 p-5 shadow-[0_22px_70px_rgba(24,24,27,0.10)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/80 dark:shadow-[0_24px_80px_rgba(0,0,0,0.34)] sm:p-6;
     }
 
     .auth-input {
-        @apply block w-full rounded-lg border border-zinc-300 bg-white px-4 py-3.5 text-base text-zinc-950 shadow-sm transition placeholder:text-zinc-400 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:placeholder:text-zinc-500;
+        @apply block w-full rounded-lg border border-zinc-300 bg-white px-4 py-3.5 text-base text-zinc-950 shadow-sm transition placeholder:text-zinc-500 focus:border-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-700/30 disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:focus:border-gold-400 dark:focus:ring-gold-400/30;
+        font-weight: var(--font-weight-compact);
     }
 
     .auth-input[aria-invalid='true'] {
@@ -61,43 +194,54 @@
     }
 
     .auth-label {
-        @apply mb-2 block text-sm font-semibold text-zinc-700 dark:text-zinc-300;
+        @apply mb-2 block text-sm text-zinc-700 dark:text-zinc-300;
+        font-weight: var(--font-weight-control);
     }
 
     .auth-error {
-        @apply mt-1.5 text-xs font-medium text-red-600 dark:text-red-400;
+        @apply mt-1.5 text-xs text-red-600 dark:text-red-400;
+        font-weight: var(--font-weight-compact);
     }
 
     .auth-helper {
         @apply mt-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400;
+        font-weight: var(--font-weight-compact);
     }
 
     .auth-button-primary {
-        @apply inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-gold-500 px-5 py-3 text-base font-bold text-zinc-950 shadow-[0_4px_20px_rgba(254,180,37,0.30)] transition hover:bg-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:ring-offset-2 focus:ring-offset-zinc-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 dark:focus:ring-offset-zinc-950;
+        @apply inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-gold-500 px-5 py-3 text-base text-zinc-950 shadow-[0_4px_18px_rgba(254,172,24,0.22)] transition hover:bg-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-700/50 focus:ring-offset-2 focus:ring-offset-zinc-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 dark:focus:ring-gold-400/45 dark:focus:ring-offset-zinc-950;
+        font-weight: var(--font-weight-emphasis);
     }
 
     .auth-button-secondary {
-        @apply inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-zinc-200 bg-white px-5 py-3 text-base font-bold text-zinc-700 shadow-sm transition hover:border-gold-500/60 hover:bg-zinc-50 hover:text-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:border-gold-500/50 dark:hover:bg-zinc-900 dark:hover:text-gold-400;
+        @apply inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-zinc-200 bg-white px-5 py-3 text-base text-zinc-700 shadow-sm transition hover:border-gold-600/60 hover:bg-zinc-50 hover:text-gold-text-strong focus:outline-none focus:ring-2 focus:ring-gold-700/30 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:border-gold-400/50 dark:hover:bg-zinc-900 dark:hover:text-gold-400 dark:focus:ring-gold-400/30;
+        font-weight: var(--font-weight-control);
     }
 
     .auth-button-google {
-        @apply inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-zinc-200 bg-white px-5 py-3 text-base font-semibold text-zinc-800 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-gold-500/30 active:scale-[0.99] dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-zinc-600 dark:hover:bg-zinc-900;
+        @apply inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-zinc-200 bg-white px-5 py-3 text-base text-zinc-800 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-gold-700/30 active:scale-[0.99] dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-zinc-600 dark:hover:bg-zinc-900 dark:focus:ring-gold-400/30;
+        font-weight: var(--font-weight-control);
     }
 
     .auth-link {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center rounded-md py-1 align-middle font-semibold text-gold-600 transition hover:text-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:text-gold-500 dark:hover:text-gold-400;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center rounded-md py-1 align-middle transition hover:text-gold-text-strong focus:outline-none focus:ring-2 focus:ring-gold-700/30 dark:focus:ring-gold-400/30;
+        font-weight: var(--font-weight-control);
+        color: var(--color-gold-text);
     }
 
     .auth-inline-link {
-        @apply inline break-words rounded-sm font-bold text-gold-600 underline-offset-4 transition hover:text-gold-500 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:text-gold-500 dark:hover:text-gold-400;
+        @apply inline break-words rounded-sm underline-offset-4 transition hover:text-gold-text-strong hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 dark:focus-visible:ring-gold-400/40;
+        font-weight: var(--font-weight-control);
+        color: var(--color-gold-text);
     }
 
     .auth-terms-row {
-        @apply grid cursor-pointer grid-cols-[1.5rem_minmax(0,1fr)] items-start gap-3 text-xs font-medium leading-6 text-zinc-500 dark:text-zinc-400;
+        @apply grid cursor-pointer grid-cols-[1.5rem_minmax(0,1fr)] items-start gap-3 text-xs leading-6 text-zinc-500 dark:text-zinc-400;
+        font-weight: var(--font-weight-compact);
     }
 
     .auth-terms-checkbox {
-        @apply mt-0.5 h-6 w-6 shrink-0 rounded border-zinc-300 bg-white text-gold-500 shadow-sm focus:ring-2 focus:ring-gold-500/35 dark:border-zinc-700 dark:bg-zinc-950;
+        @apply mt-0.5 h-6 w-6 shrink-0 rounded border-zinc-300 bg-white text-gold-700 shadow-sm focus:ring-2 focus:ring-gold-700/35 dark:border-zinc-700 dark:bg-zinc-950 dark:text-gold-400 dark:focus:ring-gold-400/35;
     }
 
     .auth-terms-copy {
@@ -109,7 +253,8 @@
     }
 
     .auth-divider {
-        @apply relative my-6 flex items-center justify-center text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400 dark:text-zinc-500;
+        @apply relative my-6 flex items-center justify-center text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400;
+        font-weight: var(--font-weight-control);
     }
 
     .auth-divider::before {
@@ -121,11 +266,12 @@
     }
 
     .auth-panel-copy {
-        @apply font-medium leading-relaxed text-zinc-500 dark:text-zinc-400;
+        @apply leading-relaxed text-zinc-500 dark:text-zinc-400;
+        font-weight: var(--font-weight-body);
     }
 
     .auth-password-toggle {
-        @apply absolute right-2 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 touch-manipulation items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white;
+        @apply absolute right-2 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 touch-manipulation items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-gold-700/30 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus:ring-gold-400/30;
     }
 
     .public-container {
@@ -146,11 +292,12 @@
     }
 
     .public-skip-link {
-        @apply fixed left-4 top-4 z-[60] -translate-y-24 rounded-full bg-gold-500 px-5 py-3 text-sm font-black text-zinc-950 shadow-xl transition focus:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-offset-zinc-950;
+        @apply fixed left-4 top-4 z-[60] -translate-y-24 rounded-full bg-gold-500 px-5 py-3 text-sm text-zinc-950 shadow-xl transition focus:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-gold-400 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-emphasis);
     }
 
     .public-page-hero {
-        @apply relative isolate overflow-hidden bg-[linear-gradient(180deg,#ffffff,#f4f4f5)] text-zinc-950 dark:bg-[linear-gradient(180deg,#09090b,#18181b)] dark:text-white;
+        @apply relative isolate overflow-hidden bg-[linear-gradient(180deg,#ffffff,#f4f4f5)] text-zinc-950 dark:bg-[linear-gradient(180deg,#09090b,#18181b)] dark:text-zinc-100;
     }
 
     .public-page-hero-content {
@@ -274,11 +421,12 @@
     }
 
     .public-text-link {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center break-words rounded-md py-1 font-semibold transition hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center break-words rounded-md py-1 text-zinc-700 transition hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-zinc-300 dark:hover:text-gold-400 dark:focus-visible:ring-gold-400/40 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-control);
     }
 
     .theme-toggle {
-        @apply inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-500/60 hover:bg-white hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-95 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300 dark:hover:border-gold-400/50 dark:hover:bg-white/[0.07] dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-600/60 hover:bg-white hover:text-gold-text-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-95 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300 dark:hover:border-gold-400/50 dark:hover:bg-white/[0.07] dark:hover:text-gold-400 dark:focus-visible:ring-gold-400/40 dark:focus-visible:ring-offset-zinc-950;
     }
 
     .portal-account-menu {
@@ -286,11 +434,12 @@
     }
 
     .portal-account-trigger {
-        @apply inline-flex min-h-11 w-48 touch-manipulation items-center gap-2 px-0 py-1 text-left text-zinc-950 transition hover:text-gold-600 focus:outline-none dark:text-white dark:hover:text-gold-400 xl:w-56 2xl:w-64;
+        @apply inline-flex min-h-11 w-48 touch-manipulation items-center gap-2 px-0 py-1 text-left text-zinc-950 transition hover:text-zinc-950 focus:outline-none dark:text-zinc-100 dark:hover:text-gold-400 xl:w-56 2xl:w-64;
     }
 
     .portal-account-avatar {
-        @apply grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-gold-500 text-sm font-black text-zinc-950 ring-1 ring-gold-500/20 dark:ring-white/10;
+        @apply grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-gold-500 text-sm text-zinc-950 ring-1 ring-gold-500/20 dark:ring-white/10;
+        font-weight: var(--font-weight-emphasis);
     }
 
     .portal-account-trigger:focus-visible .portal-account-avatar {
@@ -306,15 +455,17 @@
     }
 
     .portal-account-name {
-        @apply block truncate text-xs font-black leading-tight text-zinc-950 dark:text-white;
+        @apply block truncate text-xs leading-tight text-zinc-950 dark:text-zinc-100;
+        font-weight: var(--font-weight-control);
     }
 
     .portal-account-email {
-        @apply mt-0.5 block truncate text-[0.68rem] font-semibold leading-tight text-zinc-500 dark:text-zinc-400;
+        @apply mt-0.5 block truncate text-[0.68rem] leading-tight text-zinc-500 dark:text-zinc-400;
+        font-weight: var(--font-weight-compact);
     }
 
     .portal-account-dropdown {
-        @apply absolute right-0 top-full z-[70] mt-3 w-80 max-w-[calc(100vw-2rem)] origin-top-right overflow-hidden rounded-lg border border-zinc-200 bg-white text-zinc-950 shadow-[0_22px_70px_rgba(15,23,42,0.16)] ring-1 ring-zinc-950/5 dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.38)] dark:ring-white/10;
+        @apply absolute right-0 top-full z-[70] mt-3 w-80 max-w-[calc(100vw-2rem)] origin-top-right overflow-hidden rounded-lg border border-zinc-200 bg-white text-zinc-950 shadow-[0_22px_70px_rgba(15,23,42,0.16)] ring-1 ring-zinc-950/5 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100 dark:shadow-[0_24px_80px_rgba(0,0,0,0.38)] dark:ring-white/10;
     }
 
     .portal-account-summary {
@@ -322,23 +473,26 @@
     }
 
     .portal-account-item {
-        @apply flex min-h-11 w-full touch-manipulation items-center gap-3 px-4 py-2.5 text-sm font-bold text-zinc-700 transition hover:bg-zinc-100 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-500/45 dark:text-zinc-200 dark:hover:bg-white/[0.07] dark:hover:text-gold-400;
+        @apply flex min-h-11 w-full touch-manipulation items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 transition hover:bg-zinc-100 hover:text-gold-text-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-700/45 dark:text-zinc-200 dark:hover:bg-white/[0.07] dark:hover:text-gold-400 dark:focus-visible:ring-gold-400/45;
+        font-weight: var(--font-weight-control);
     }
 
     .portal-account-logout {
-        @apply flex min-h-11 w-full touch-manipulation items-center gap-3 px-4 py-2.5 text-left text-sm font-black text-red-700 transition hover:bg-red-50 hover:text-red-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-500/45 dark:text-red-300 dark:hover:bg-red-500/10 dark:hover:text-red-200;
+        @apply flex min-h-11 w-full touch-manipulation items-center gap-3 px-4 py-2.5 text-left text-sm text-red-700 transition hover:bg-red-50 hover:text-red-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-500/45 dark:text-red-300 dark:hover:bg-red-500/10 dark:hover:text-red-200;
+        font-weight: var(--font-weight-control);
     }
 
     .public-mobile-menu-button {
-        @apply inline-flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-800 shadow-sm transition hover:-translate-y-0.5 hover:border-gold-500/60 hover:bg-gold-500/10 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 active:scale-[0.98] dark:border-transparent dark:bg-gold-500 dark:text-zinc-950 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-800 shadow-sm transition hover:-translate-y-0.5 hover:border-gold-600/60 hover:bg-gold-500/10 hover:text-gold-text-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 active:scale-[0.98] dark:border-transparent dark:bg-gold-500 dark:text-zinc-950 dark:focus-visible:ring-gold-400/50 dark:focus-visible:ring-offset-zinc-950;
     }
 
     .member-mobile-menu-button {
-        @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-500/45 hover:bg-gold-500/10 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:border-transparent dark:bg-gold-500 dark:text-zinc-950;
+        @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-600/45 hover:bg-gold-500/10 hover:text-gold-text-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:border-transparent dark:bg-gold-500 dark:text-zinc-950 dark:focus-visible:ring-gold-400/50;
     }
 
     .member-sidebar-nav-link {
-        @apply relative flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-bold text-zinc-600 transition hover:border-zinc-200 hover:bg-zinc-100/80 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/45 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/[0.065] dark:hover:text-white dark:focus-visible:ring-offset-zinc-950;
+        @apply relative flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm text-zinc-700 transition hover:border-zinc-200 hover:bg-zinc-100/80 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/45 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/[0.065] dark:hover:text-zinc-100 dark:focus-visible:ring-gold-400/45 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-control);
     }
 
     .member-sidebar-nav-link-active {
@@ -346,11 +500,12 @@
     }
 
     .member-sidebar-icon-frame {
-        @apply grid h-8 w-8 shrink-0 place-items-center rounded-md border border-zinc-200/70 bg-zinc-100 text-zinc-500 transition group-hover:border-gold-500/30 group-hover:bg-gold-500/10 group-hover:text-gold-600 dark:border-white/[0.08] dark:bg-white/[0.06] dark:text-zinc-400 dark:group-hover:border-gold-400/25 dark:group-hover:bg-gold-400/10 dark:group-hover:text-gold-400;
+        @apply grid h-8 w-8 shrink-0 place-items-center rounded-md border border-zinc-200/70 bg-zinc-100 text-zinc-500 transition group-hover:border-gold-600/30 group-hover:bg-gold-500/10 group-hover:text-gold-display dark:border-white/[0.08] dark:bg-white/[0.06] dark:text-zinc-400 dark:group-hover:border-gold-400/25 dark:group-hover:bg-gold-400/10 dark:group-hover:text-gold-400;
     }
 
     .member-sidebar-icon-frame-active {
-        @apply border-gold-500/25 bg-gold-500/15 text-gold-600 shadow-[0_8px_18px_rgba(254,172,24,0.12)] dark:border-gold-400/20 dark:bg-gold-500/15 dark:text-gold-400;
+        @apply border-gold-600/25 bg-gold-500/15 shadow-[0_8px_18px_rgba(254,172,24,0.10)] dark:border-gold-400/20 dark:bg-gold-500/15;
+        color: var(--color-gold-text);
     }
 
     .member-sidebar-icon-svg {
@@ -358,15 +513,17 @@
     }
 
     .admin-mobile-menu-button {
-        @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-500/45 hover:bg-gold-500/10 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:border-transparent dark:bg-gold-500 dark:text-zinc-950;
+        @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-600/45 hover:bg-gold-500/10 hover:text-gold-text-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:border-transparent dark:bg-gold-500 dark:text-zinc-950 dark:focus-visible:ring-gold-400/50;
     }
 
     .public-header-link {
-        @apply inline-flex h-11 touch-manipulation items-center justify-center rounded-full border border-zinc-300 bg-white/85 px-4 text-sm font-semibold text-zinc-900 shadow-sm transition hover:-translate-y-0.5 hover:border-gold-500/70 hover:bg-white hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:hover:border-gold-400/60 dark:hover:bg-white/[0.08] dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex h-11 touch-manipulation items-center justify-center rounded-full border border-zinc-300 bg-white/85 px-4 text-sm text-zinc-900 shadow-sm transition hover:-translate-y-0.5 hover:border-gold-600/70 hover:bg-white hover:text-gold-text-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.05] dark:text-zinc-200 dark:hover:border-gold-400/60 dark:hover:bg-white/[0.08] dark:hover:text-gold-400 dark:focus-visible:ring-gold-400/40 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-control);
     }
 
     .public-header-cta {
-        @apply inline-flex h-11 touch-manipulation items-center justify-center gap-2 rounded-full bg-gold-500 px-4 text-sm font-bold text-zinc-950 shadow-[0_14px_34px_rgba(254,172,24,0.30)] transition hover:-translate-y-0.5 hover:bg-gold-400 hover:shadow-[0_18px_42px_rgba(254,172,24,0.36)] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex h-11 touch-manipulation items-center justify-center gap-2 rounded-full bg-gold-500 px-4 text-sm text-zinc-950 shadow-[0_8px_20px_rgba(254,172,24,0.22)] transition hover:-translate-y-0.5 hover:bg-gold-400 hover:shadow-[0_12px_28px_rgba(254,172,24,0.24)] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:focus-visible:ring-gold-400/50 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-emphasis);
     }
 
     .public-section {
@@ -374,7 +531,7 @@
     }
 
     .public-home-hero {
-        @apply relative overflow-hidden bg-[linear-gradient(180deg,#ffffff,#f4f4f5)] text-zinc-950 dark:bg-[linear-gradient(180deg,#09090b,#18181b)] dark:text-white;
+        @apply relative overflow-hidden bg-[linear-gradient(180deg,#ffffff,#f4f4f5)] text-zinc-950 dark:bg-[linear-gradient(180deg,#09090b,#18181b)] dark:text-zinc-100;
     }
 
     .public-home-hero-grid {
@@ -382,7 +539,19 @@
     }
 
     .public-home-hero-title {
-        @apply mt-4 max-w-5xl break-words text-[2rem] font-black leading-[1.02] text-zinc-950 min-[360px]:text-4xl dark:text-white sm:mt-5 sm:text-5xl sm:leading-[0.98] lg:text-5xl;
+        @apply mt-4 max-w-5xl break-words text-[2rem] leading-[1.05] text-zinc-950 min-[360px]:text-4xl dark:text-zinc-100 sm:mt-5 sm:text-5xl sm:leading-[1.02] lg:text-5xl;
+        font-weight: var(--font-weight-display);
+    }
+
+    .public-home-hero-brand {
+        color: #feac18;
+        text-shadow:
+            0 1px 0 rgba(24, 24, 27, 0.12),
+            0 14px 32px rgba(254, 172, 24, 0.16);
+    }
+
+    .dark .public-home-hero-brand {
+        text-shadow: 0 16px 34px rgba(254, 172, 24, 0.18);
     }
 
     .public-home-hero-actions {
@@ -410,7 +579,7 @@
     }
 
     .public-home-visual-caption-copy {
-        @apply min-w-0 max-w-full rounded-xl bg-white/90 px-3 py-2.5 text-zinc-950 shadow-[0_12px_32px_rgba(24,24,27,0.10)] ring-1 ring-zinc-200/80 backdrop-blur dark:bg-zinc-950/75 dark:text-white dark:shadow-none dark:ring-white/10 sm:rounded-2xl sm:px-4 sm:py-3;
+        @apply min-w-0 max-w-full rounded-xl bg-white/90 px-3 py-2.5 text-zinc-950 shadow-[0_12px_32px_rgba(24,24,27,0.10)] ring-1 ring-zinc-200/80 backdrop-blur dark:bg-zinc-950/75 dark:text-zinc-100 dark:shadow-none dark:ring-white/10 sm:rounded-2xl sm:px-4 sm:py-3;
     }
 
     .public-home-visual-program-badge {
@@ -434,7 +603,9 @@
     }
 
     .public-home-visual-chip {
-        @apply absolute bottom-4 left-4 max-w-[calc(100%-2rem)] rounded-full bg-white/90 px-3 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.16em] text-gold-600 shadow-[0_10px_24px_rgba(24,24,27,0.10)] ring-1 ring-zinc-200/90 backdrop-blur dark:bg-zinc-950/80 dark:text-gold-400 dark:shadow-none dark:ring-white/10;
+        @apply absolute bottom-4 left-4 max-w-[calc(100%-2rem)] rounded-full bg-white/90 px-3 py-1.5 text-[0.65rem] uppercase tracking-[0.12em] shadow-[0_8px_18px_rgba(24,24,27,0.09)] ring-1 ring-zinc-200/90 backdrop-blur dark:bg-zinc-950/80 dark:shadow-none dark:ring-white/10;
+        font-weight: var(--font-weight-control);
+        @apply text-zinc-700 dark:text-gold-400;
     }
 
     .public-home-stat-grid {
@@ -447,11 +618,14 @@
     }
 
     .public-home-stat-value {
-        @apply break-words text-xl font-black leading-none text-gold-500 sm:text-2xl;
+        @apply break-words text-xl leading-none sm:text-2xl;
+        font-weight: var(--font-weight-emphasis);
+        @apply text-zinc-950 dark:text-gold-400;
     }
 
     .public-home-stat-label {
-        @apply mt-2 break-words text-[11px] font-semibold leading-4 text-zinc-600 dark:text-zinc-300;
+        @apply mt-2 break-words text-[11px] leading-4 text-zinc-600 dark:text-zinc-300;
+        font-weight: var(--font-weight-compact);
     }
 
     .public-home-section-heading {
@@ -475,11 +649,11 @@
     }
 
     .public-card {
-        @apply min-w-0 rounded-xl border border-zinc-200/85 bg-white/95 p-5 shadow-[0_12px_34px_rgba(24,24,27,0.05)] backdrop-blur-sm transition duration-300 dark:border-white/10 dark:bg-white/[0.045] dark:shadow-[0_14px_44px_rgba(0,0,0,0.20)] sm:rounded-2xl sm:p-6 sm:shadow-[0_18px_50px_rgba(24,24,27,0.06)] sm:dark:shadow-[0_18px_60px_rgba(0,0,0,0.24)];
+        @apply min-w-0 rounded-xl border border-zinc-200/85 bg-white/95 p-5 shadow-[0_10px_28px_rgba(24,24,27,0.055)] backdrop-blur-sm transition duration-300 dark:border-white/10 dark:bg-white/[0.045] dark:shadow-[0_14px_38px_rgba(0,0,0,0.24)] sm:p-6;
     }
 
     .public-card-hover {
-        @apply hover:-translate-y-1 hover:border-gold-500/60 hover:shadow-[0_24px_70px_rgba(254,172,24,0.16)] dark:hover:shadow-[0_24px_70px_rgba(254,172,24,0.10)];
+        @apply hover:-translate-y-0.5 hover:border-gold-600/55 hover:shadow-[0_14px_34px_rgba(254,172,24,0.12)] dark:hover:border-gold-400/45 dark:hover:shadow-[0_18px_44px_rgba(254,172,24,0.10)];
     }
 
     .public-motion-card.public-motion-reveal {
@@ -517,23 +691,28 @@
     }
 
     .public-product-stat dt {
-        @apply break-words text-[0.65rem] font-black uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400;
+        @apply break-words text-[0.68rem] uppercase tracking-[0.12em] text-zinc-600 dark:text-zinc-300;
+        font-weight: var(--font-weight-control);
     }
 
     .public-product-stat dd {
-        @apply mt-1 break-words text-sm font-black text-zinc-950 dark:text-white;
+        @apply mt-1 break-words text-sm text-zinc-950 dark:text-zinc-100;
+        font-weight: var(--font-weight-control);
     }
 
     .public-eyebrow {
-        @apply text-xs font-bold uppercase tracking-[0.28em] text-gold-600 dark:text-gold-400;
+        @apply text-xs uppercase tracking-[0.12em] text-zinc-500 dark:text-gold-400;
+        font-weight: var(--font-weight-control);
     }
 
     .public-button-primary {
-        @apply inline-flex min-h-12 max-w-full touch-manipulation items-center justify-center whitespace-normal break-words rounded-full bg-gold-500 px-6 py-3 text-center text-sm font-bold text-zinc-950 shadow-[0_14px_38px_rgba(254,172,24,0.30)] transition hover:-translate-y-0.5 hover:bg-gold-400 hover:shadow-[0_20px_50px_rgba(254,172,24,0.38)] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-12 max-w-full touch-manipulation items-center justify-center whitespace-normal break-words rounded-full bg-gold-500 px-6 py-3 text-center text-sm text-zinc-950 shadow-[0_8px_20px_rgba(254,172,24,0.20)] transition hover:-translate-y-0.5 hover:bg-gold-400 hover:shadow-[0_12px_28px_rgba(254,172,24,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:focus-visible:ring-gold-400/50 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-emphasis);
     }
 
     .public-button-secondary {
-        @apply inline-flex min-h-12 max-w-full touch-manipulation items-center justify-center whitespace-normal break-words rounded-full border border-zinc-300 bg-white/85 px-6 py-3 text-center text-sm font-semibold text-zinc-900 shadow-sm transition hover:-translate-y-0.5 hover:border-gold-500/70 hover:bg-white hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.045] dark:text-white dark:hover:border-gold-400/60 dark:hover:bg-white/[0.075] dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-12 max-w-full touch-manipulation items-center justify-center whitespace-normal break-words rounded-full border border-zinc-300 bg-white/85 px-6 py-3 text-center text-sm text-zinc-900 shadow-sm transition hover:-translate-y-0.5 hover:border-gold-600/70 hover:bg-white hover:text-gold-text-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-200 dark:hover:border-gold-400/60 dark:hover:bg-white/[0.075] dark:hover:text-gold-400 dark:focus-visible:ring-gold-400/40 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-control);
     }
 
     .public-button-primary.public-motion-cta,
@@ -547,11 +726,13 @@
     }
 
     .public-input {
-        @apply min-h-12 w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-base font-medium text-zinc-950 shadow-sm transition placeholder:text-zinc-400 hover:border-zinc-400 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:placeholder:text-zinc-500 dark:hover:border-white/20 sm:text-sm;
+        @apply min-h-12 w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-base text-zinc-950 shadow-sm transition placeholder:text-zinc-500 hover:border-zinc-400 focus:border-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-700/30 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:hover:border-white/20 dark:focus:border-gold-400 dark:focus:ring-gold-400/30 sm:text-sm;
+        font-weight: var(--font-weight-compact);
     }
 
     .public-filter-chip {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center whitespace-normal break-words rounded-full px-4 py-2 text-center text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center whitespace-normal break-words rounded-full px-4 py-2 text-center text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-gold-400/40 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-control);
     }
 
     .public-product-card {
@@ -573,27 +754,30 @@
     }
 
     .member-card {
-        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_10px_30px_rgba(24,24,27,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-zinc-950/75 dark:shadow-[0_18px_58px_rgba(0,0,0,0.22)] sm:p-6;
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_8px_22px_rgba(15,23,42,0.045)] backdrop-blur-sm dark:border-white/10 dark:bg-zinc-950/75 dark:shadow-[0_12px_34px_rgba(0,0,0,0.22)] sm:p-6;
     }
 
     .member-card-strong {
-        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_12px_34px_rgba(24,24,27,0.045)] backdrop-blur-sm dark:border-white/10 dark:bg-zinc-950/80 dark:shadow-[0_20px_64px_rgba(0,0,0,0.24)] sm:p-6;
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.05)] backdrop-blur-sm dark:border-white/10 dark:bg-zinc-950/80 dark:shadow-[0_14px_38px_rgba(0,0,0,0.24)] sm:p-6;
     }
 
     .member-card-pass {
-        @apply min-w-0 rounded-lg border border-gold-500/25 bg-white p-5 text-zinc-950 shadow-[0_12px_36px_rgba(254,172,24,0.08)] dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-6;
+        @apply min-w-0 rounded-lg border border-gold-500/25 bg-white p-5 text-zinc-950 shadow-[0_12px_36px_rgba(254,172,24,0.08)] dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100 dark:shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-6;
     }
 
     .member-eyebrow {
-        @apply text-xs font-black uppercase tracking-[0.18em] text-gold-600 dark:text-gold-400;
+        @apply text-xs uppercase tracking-[0.12em] text-zinc-700 dark:text-gold-400;
+        font-weight: var(--font-weight-control);
     }
 
     .member-title {
-        @apply text-2xl font-black leading-tight text-zinc-950 dark:text-white sm:text-3xl;
+        @apply text-2xl leading-tight text-zinc-950 dark:text-zinc-100 sm:text-3xl;
+        font-weight: var(--font-weight-title);
     }
 
     .member-copy {
-        @apply text-sm font-medium leading-7 text-zinc-600 dark:text-zinc-400;
+        @apply text-sm leading-7 text-zinc-600 dark:text-zinc-400;
+        font-weight: var(--font-weight-body);
     }
 
     .member-section-header {
@@ -601,23 +785,28 @@
     }
 
     .member-section-title {
-        @apply mt-2 text-xl font-black leading-tight text-zinc-950 dark:text-white;
+        @apply mt-2 text-xl leading-tight text-zinc-950 dark:text-zinc-100;
+        font-weight: var(--font-weight-title);
     }
 
     .member-button-primary {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg bg-gold-500 px-4 py-2.5 text-center text-sm font-black text-zinc-950 shadow-[0_8px_22px_rgba(254,172,24,0.20)] transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg bg-gold-500 px-4 py-2.5 text-center text-sm text-zinc-950 shadow-[0_6px_16px_rgba(254,172,24,0.16)] transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/55 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-gold-400/50 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-emphasis);
     }
 
     .member-button-secondary {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-bold text-zinc-700 shadow-sm transition hover:border-gold-500/55 hover:bg-zinc-50 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-200 dark:hover:bg-white/[0.075] dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm text-zinc-700 shadow-sm transition hover:border-gold-600/55 hover:bg-zinc-50 hover:text-gold-text-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-200 dark:hover:bg-white/[0.075] dark:hover:text-gold-400 dark:focus-visible:ring-gold-400/40 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-control);
     }
 
     .member-button-danger {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-red-500/35 bg-red-500/10 px-4 py-2.5 text-center text-sm font-black text-red-700 shadow-sm transition hover:border-red-500/55 hover:bg-red-500/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-red-500/35 bg-red-500/10 px-4 py-2.5 text-center text-sm text-red-700 shadow-sm transition hover:border-red-500/55 hover:bg-red-500/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-control);
     }
 
     .member-button-disabled {
-        @apply inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-zinc-100 px-4 py-2.5 text-center text-sm font-bold text-zinc-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-500;
+        @apply inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-zinc-100 px-4 py-2.5 text-center text-sm text-zinc-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-500;
+        font-weight: var(--font-weight-control);
     }
 
     .member-stat {
@@ -629,7 +818,7 @@
     }
 
     .member-list-card {
-        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_8px_24px_rgba(24,24,27,0.035)] transition hover:border-gold-500/45 hover:shadow-[0_14px_38px_rgba(254,172,24,0.08)] dark:border-white/10 dark:bg-zinc-950/70;
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_6px_18px_rgba(15,23,42,0.04)] transition hover:border-gold-600/45 hover:shadow-[0_10px_28px_rgba(254,172,24,0.08)] dark:border-white/10 dark:bg-zinc-950/70 dark:hover:border-gold-400/35;
     }
 
     .member-horizontal-rail {
@@ -655,11 +844,13 @@
     }
 
     .gymmi-avatar {
-        @apply inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gold-500/30 bg-gold-500/10 text-xs font-black text-zinc-950 ring-1 ring-zinc-950/5 dark:border-white/10 dark:bg-zinc-800 dark:text-zinc-200;
+        @apply inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gold-500/30 bg-gold-500/10 text-xs text-zinc-950 ring-1 ring-zinc-950/5 dark:border-white/10 dark:bg-zinc-800 dark:text-zinc-200;
+        font-weight: var(--font-weight-emphasis);
     }
 
     .gymmi-panel-avatar {
-        @apply relative inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gold-500/45 bg-white text-xs font-black text-zinc-950 shadow-[0_10px_24px_rgba(24,24,27,0.10)] ring-1 ring-gold-500/20 dark:border-gold-500/35 dark:bg-zinc-900 dark:text-zinc-100 dark:shadow-[0_12px_28px_rgba(0,0,0,0.34)] dark:ring-white/10;
+        @apply relative inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gold-500/45 bg-white text-xs text-zinc-950 shadow-[0_10px_24px_rgba(24,24,27,0.10)] ring-1 ring-gold-500/20 dark:border-gold-500/35 dark:bg-zinc-900 dark:text-zinc-100 dark:shadow-[0_12px_28px_rgba(0,0,0,0.34)] dark:ring-white/10;
+        font-weight: var(--font-weight-emphasis);
     }
 
     .gymmi-panel-avatar-image {
@@ -667,7 +858,8 @@
     }
 
     .gymmi-panel-avatar-fallback {
-        @apply absolute inset-0 items-center justify-center bg-gold-500 text-xs font-black text-zinc-950;
+        @apply absolute inset-0 items-center justify-center bg-gold-500 text-xs text-zinc-950;
+        font-weight: var(--font-weight-emphasis);
     }
 
     .gymmi-panel-avatar-fallback:not([hidden]) {
@@ -676,13 +868,13 @@
 
     .gymmi-trigger {
         @apply relative inline-flex shrink-0 touch-manipulation items-center justify-center bg-transparent p-0 text-zinc-950 outline-none transition duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98];
-        width: clamp(7rem, 28vw, 9.75rem);
-        height: clamp(7rem, 28vw, 9.75rem);
+        width: clamp(5.75rem, 20vw, 8rem);
+        height: clamp(5.75rem, 20vw, 8rem);
     }
 
     .gymmi-trigger-image {
         @apply block h-full w-full object-contain transition duration-300 ease-out;
-        filter: drop-shadow(0 12px 28px rgba(24, 24, 27, 0.24));
+        filter: drop-shadow(0 10px 20px rgba(24, 24, 27, 0.20));
     }
 
     .gymmi-trigger:focus,
@@ -699,7 +891,8 @@
     }
 
     .gymmi-trigger-fallback {
-        @apply absolute inset-4 items-center justify-center rounded-full bg-gold-500 text-base font-black text-zinc-950 shadow-[0_12px_28px_rgba(24,24,27,0.22)];
+        @apply absolute inset-3 items-center justify-center rounded-full bg-gold-500 text-sm text-zinc-950 shadow-[0_10px_20px_rgba(24,24,27,0.18)];
+        font-weight: var(--font-weight-emphasis);
     }
 
     .gymmi-trigger-fallback:not([hidden]) {
@@ -730,7 +923,8 @@
     }
 
     .member-form-input {
-        @apply min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-900 shadow-sm transition placeholder:text-zinc-400 hover:border-zinc-300 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/25 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:placeholder:text-zinc-500 dark:hover:border-white/20 dark:disabled:bg-white/[0.04];
+        @apply min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm transition placeholder:text-zinc-500 hover:border-zinc-300 focus:border-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-700/25 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:hover:border-white/20 dark:focus:border-gold-400 dark:focus:ring-gold-400/25 dark:disabled:bg-white/[0.04];
+        font-weight: var(--font-weight-compact);
     }
 
     .member-table-wrap {
@@ -746,43 +940,45 @@
     }
 
     .member-status-pill {
-        @apply inline-flex min-h-7 items-center rounded-full px-3 py-1 text-xs font-black;
+        @apply inline-flex min-h-7 items-center rounded-full border px-3 py-1 text-xs;
+        font-weight: var(--font-weight-control);
     }
 
     .member-status-success {
-        @apply bg-emerald-500/15 text-emerald-700 dark:text-emerald-300;
+        @apply border-emerald-500/25 bg-emerald-500/15 text-emerald-800 dark:border-emerald-400/25 dark:text-emerald-300;
     }
 
     .member-status-warning {
-        @apply bg-amber-500/15 text-amber-800 dark:text-amber-300;
+        @apply border-amber-500/25 bg-amber-500/15 text-amber-900 dark:border-amber-400/25 dark:text-amber-300;
     }
 
     .member-status-danger {
-        @apply bg-red-500/15 text-red-700 dark:text-red-300;
+        @apply border-red-500/25 bg-red-500/15 text-red-800 dark:border-red-400/25 dark:text-red-300;
     }
 
     .member-status-info {
-        @apply bg-sky-500/15 text-sky-700 dark:text-sky-300;
+        @apply border-sky-500/25 bg-sky-500/15 text-sky-800 dark:border-sky-400/25 dark:text-sky-300;
     }
 
     .member-status-neutral {
-        @apply bg-zinc-100 text-zinc-700 dark:bg-white/[0.07] dark:text-zinc-300;
+        @apply border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-white/10 dark:bg-white/[0.07] dark:text-zinc-300;
     }
 
     .member-unavailable-note {
-        @apply rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-sm font-bold leading-6 text-amber-800 dark:text-amber-300;
+        @apply rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-sm leading-6 text-amber-800 dark:text-amber-300;
+        font-weight: var(--font-weight-compact);
     }
 
     .admin-card {
-        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.045)] backdrop-blur-sm dark:border-white/10 dark:bg-[#18181b]/90 dark:shadow-[0_18px_54px_rgba(0,0,0,0.22)] sm:p-6;
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_8px_22px_rgba(15,23,42,0.045)] backdrop-blur-sm dark:border-white/10 dark:bg-[#18181b]/90 dark:shadow-[0_12px_34px_rgba(0,0,0,0.22)] sm:p-6;
     }
 
     .admin-card-strong {
-        @apply min-w-0 rounded-lg border border-zinc-800 bg-zinc-950 p-5 text-white shadow-[0_24px_80px_rgba(0,0,0,0.28)] dark:border-white/10 sm:p-6;
+        @apply min-w-0 rounded-lg border border-zinc-800 bg-zinc-950 p-5 text-zinc-100 shadow-[0_24px_80px_rgba(0,0,0,0.28)] dark:border-white/10 sm:p-6;
     }
 
     .admin-page-header {
-        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_16px_44px_rgba(15,23,42,0.055)] backdrop-blur-sm dark:border-white/10 dark:bg-[#1f1f23]/90 dark:shadow-[0_20px_58px_rgba(0,0,0,0.26)] sm:p-6;
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_10px_26px_rgba(15,23,42,0.055)] backdrop-blur-sm dark:border-white/10 dark:bg-[#1f1f23]/90 dark:shadow-[0_14px_38px_rgba(0,0,0,0.24)] sm:p-6;
     }
 
     .admin-panel {
@@ -794,23 +990,28 @@
     }
 
     .admin-eyebrow {
-        @apply text-xs font-black uppercase tracking-[0.18em] text-gold-600 dark:text-gold-400;
+        @apply text-xs uppercase tracking-[0.12em] text-zinc-700 dark:text-gold-400;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-title {
-        @apply text-2xl font-black leading-tight text-zinc-950 dark:text-white sm:text-3xl;
+        @apply text-2xl leading-tight text-zinc-950 dark:text-zinc-100 sm:text-3xl;
+        font-weight: var(--font-weight-title);
     }
 
     .admin-copy {
-        @apply text-sm font-medium leading-7 text-zinc-600 dark:text-zinc-400;
+        @apply text-sm leading-7 text-zinc-600 dark:text-zinc-400;
+        font-weight: var(--font-weight-body);
     }
 
     .admin-button-primary {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg bg-gold-500 px-4 py-2.5 text-center text-sm font-black text-zinc-950 shadow-[0_8px_22px_rgba(254,172,24,0.20)] transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500 disabled:shadow-none dark:disabled:bg-white/[0.07] dark:disabled:text-zinc-500 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg bg-gold-500 px-4 py-2.5 text-center text-sm text-zinc-950 shadow-[0_6px_16px_rgba(254,172,24,0.16)] transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/55 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500 disabled:shadow-none dark:disabled:bg-white/[0.07] dark:disabled:text-zinc-500 dark:focus-visible:ring-gold-400/50 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-emphasis);
     }
 
     .admin-button-secondary {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-bold text-zinc-700 shadow-sm transition hover:border-gold-500/50 hover:bg-zinc-50 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-500 disabled:shadow-none dark:border-white/10 dark:bg-white/[0.055] dark:text-zinc-200 dark:hover:border-white/15 dark:hover:bg-white/[0.075] dark:hover:text-gold-400 dark:disabled:border-white/10 dark:disabled:bg-white/[0.035] dark:disabled:text-zinc-500 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm text-zinc-700 shadow-sm transition hover:border-gold-600/50 hover:bg-zinc-50 hover:text-gold-text-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-500 disabled:shadow-none dark:border-white/10 dark:bg-white/[0.055] dark:text-zinc-200 dark:hover:border-white/15 dark:hover:bg-white/[0.075] dark:hover:text-gold-400 dark:disabled:border-white/10 dark:disabled:bg-white/[0.035] dark:disabled:text-zinc-500 dark:focus-visible:ring-gold-400/40 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-stat {
@@ -818,11 +1019,11 @@
     }
 
     .admin-metric-card {
-        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.035)] transition hover:border-gold-500/40 hover:shadow-[0_14px_34px_rgba(254,172,24,0.10)] dark:border-white/10 dark:bg-white/[0.055];
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.035)] transition hover:border-gold-600/40 hover:shadow-[0_10px_28px_rgba(254,172,24,0.08)] dark:border-white/10 dark:bg-white/[0.055] dark:hover:border-gold-400/35;
     }
 
     .admin-action-card {
-        @apply min-w-0 rounded-lg border border-zinc-200 bg-zinc-50/90 p-4 transition hover:border-gold-500/55 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-white/[0.035] dark:hover:border-white/15 dark:hover:bg-white/[0.065];
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-zinc-50/90 p-4 transition hover:border-gold-600/55 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 dark:border-white/10 dark:bg-white/[0.035] dark:hover:border-white/15 dark:hover:bg-white/[0.065] dark:focus-visible:ring-gold-400/40;
     }
 
     .admin-soft-panel {
@@ -838,7 +1039,8 @@
     }
 
     .admin-chart-tooltip-title {
-        @apply mb-2 text-xs font-black;
+        @apply mb-2 text-xs;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-chart-tooltip-row {
@@ -850,15 +1052,17 @@
     }
 
     .admin-chart-tooltip-name {
-        @apply min-w-0 flex-1 truncate font-bold;
+        @apply min-w-0 flex-1 truncate;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-chart-tooltip-value {
-        @apply font-black;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-status-pill {
-        @apply inline-flex min-h-7 items-center rounded-full px-3 py-1 text-xs font-black;
+        @apply inline-flex min-h-7 items-center rounded-full px-3 py-1 text-xs;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-status-success {
@@ -882,15 +1086,18 @@
     }
 
     .admin-button-danger {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-center text-sm font-black text-red-700 shadow-sm transition hover:border-red-500/60 hover:bg-red-500/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-center text-sm text-red-700 shadow-sm transition hover:border-red-500/60 hover:bg-red-500/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-mode-pill {
-        @apply inline-flex min-h-8 items-center rounded-full border border-gold-500/35 bg-gold-500/10 px-3 py-1 text-xs font-black text-gold-600 dark:text-gold-400;
+        @apply inline-flex min-h-8 items-center rounded-full border border-gold-600/35 bg-gold-500/10 px-3 py-1 text-xs text-zinc-700 dark:border-gold-400/25 dark:text-gold-400;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-form-input {
-        @apply min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-950 shadow-sm transition placeholder:font-semibold placeholder:text-zinc-400 hover:border-zinc-300 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-500 aria-[invalid=true]:border-red-500/70 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500/20 dark:border-white/10 dark:bg-white/[0.045] dark:text-white dark:placeholder:text-zinc-500 dark:hover:border-white/20 dark:focus:border-gold-400 dark:disabled:bg-white/[0.035] dark:disabled:text-zinc-500 dark:aria-[invalid=true]:border-red-400/70 dark:aria-[invalid=true]:focus:border-red-400;
+        @apply min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 shadow-sm transition placeholder:font-medium placeholder:text-zinc-500 hover:border-zinc-300 focus:border-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-700/30 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-500 aria-[invalid=true]:border-red-500/70 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500/20 dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:hover:border-white/20 dark:focus:border-gold-400 dark:focus:ring-gold-400/30 dark:disabled:bg-white/[0.035] dark:disabled:text-zinc-500 dark:aria-[invalid=true]:border-red-400/70 dark:aria-[invalid=true]:focus:border-red-400;
+        font-weight: var(--font-weight-compact);
     }
 
     select.admin-form-input option,
@@ -903,7 +1110,8 @@
     }
 
     .admin-field-label {
-        @apply block text-xs font-black uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400;
+        @apply block text-xs uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-required {
@@ -911,11 +1119,13 @@
     }
 
     .admin-field-help {
-        @apply block text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400;
+        @apply block text-xs leading-5 text-zinc-500 dark:text-zinc-400;
+        font-weight: var(--font-weight-compact);
     }
 
     .admin-field-error {
-        @apply block text-sm font-bold leading-5 text-red-600 dark:text-red-300;
+        @apply block text-sm leading-5 text-red-600 dark:text-red-300;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-form-section {
@@ -931,7 +1141,7 @@
     }
 
     .admin-choice-input {
-        @apply h-5 w-5 shrink-0 rounded border-zinc-300 text-gold-500 focus:ring-2 focus:ring-gold-500/40 dark:border-white/20 dark:bg-zinc-950;
+        @apply h-5 w-5 shrink-0 rounded border-zinc-300 text-gold-700 focus:ring-2 focus:ring-gold-700/40 dark:border-white/20 dark:bg-zinc-950 dark:text-gold-400 dark:focus:ring-gold-400/35;
     }
 
     .admin-star-rating {
@@ -947,20 +1157,21 @@
     }
 
     .admin-star-rating-star {
-        @apply grid min-h-11 min-w-11 cursor-pointer place-items-center rounded-lg border border-transparent text-[2rem] font-black leading-none text-zinc-300 transition hover:-translate-y-0.5 hover:bg-gold-500/10 hover:text-gold-500 focus:outline-none dark:text-zinc-600 dark:hover:text-gold-400;
+        @apply grid min-h-11 min-w-11 cursor-pointer place-items-center rounded-lg border border-transparent text-[2rem] leading-none text-zinc-400 transition hover:-translate-y-0.5 hover:bg-gold-500/10 hover:text-gold-text-strong focus:outline-none dark:text-zinc-600 dark:hover:text-gold-400;
+        font-weight: var(--font-weight-emphasis);
     }
 
     .admin-star-rating-star:hover ~ .admin-star-rating-star {
-        @apply bg-gold-500/10 text-gold-500 dark:text-gold-400;
+        @apply bg-gold-500/10 text-gold-text-strong dark:text-gold-400;
     }
 
     .admin-star-rating-input:checked + .admin-star-rating-star,
     .admin-star-rating-input:checked + .admin-star-rating-star ~ .admin-star-rating-star {
-        @apply text-gold-500 drop-shadow-[0_8px_14px_rgba(254,172,24,0.22)] dark:text-gold-400;
+        @apply text-gold-text-strong drop-shadow-[0_8px_14px_rgba(254,172,24,0.16)] dark:text-gold-400;
     }
 
     .admin-star-rating-input:focus-visible + .admin-star-rating-star {
-        @apply border-gold-500 bg-gold-500/10 outline-none ring-2 ring-gold-500/40 ring-offset-2 ring-offset-white dark:border-gold-400 dark:ring-gold-400/35 dark:ring-offset-zinc-950;
+        @apply border-gold-600 bg-gold-500/10 outline-none ring-2 ring-gold-700/40 ring-offset-2 ring-offset-white dark:border-gold-400 dark:ring-gold-400/35 dark:ring-offset-zinc-950;
     }
 
     .admin-star-rating-input[aria-invalid='true'] + .admin-star-rating-star {
@@ -968,11 +1179,12 @@
     }
 
     .admin-star-rating-caption {
-        @apply text-xs font-semibold leading-5 text-zinc-500 dark:text-zinc-400;
+        @apply text-xs leading-5 text-zinc-500 dark:text-zinc-400;
+        font-weight: var(--font-weight-compact);
     }
 
     .admin-upload-field {
-        @apply max-w-full overflow-hidden file:mr-3 file:rounded-md file:border-0 file:bg-gold-500 file:px-3 file:py-2 file:text-sm file:font-black file:text-zinc-950;
+        @apply max-w-full overflow-hidden file:mr-3 file:rounded-md file:border-0 file:bg-gold-500 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-zinc-950;
     }
 
     .admin-upload-preview {
@@ -988,7 +1200,8 @@
     }
 
     .admin-table-search {
-        @apply min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-950 shadow-sm transition placeholder:font-semibold placeholder:text-zinc-400 hover:border-zinc-300 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-500 dark:border-white/10 dark:bg-white/[0.045] dark:text-white dark:placeholder:text-zinc-500 dark:hover:border-white/20 dark:focus:border-gold-400 dark:disabled:bg-white/[0.035] dark:disabled:text-zinc-500;
+        @apply min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 shadow-sm transition placeholder:font-medium placeholder:text-zinc-500 hover:border-zinc-300 focus:border-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-700/30 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-500 dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:hover:border-white/20 dark:focus:border-gold-400 dark:focus:ring-gold-400/30 dark:disabled:bg-white/[0.035] dark:disabled:text-zinc-500;
+        font-weight: var(--font-weight-compact);
     }
 
     .admin-table-mobile-card {
@@ -1014,7 +1227,8 @@
     }
 
     .admin-table-head {
-        @apply bg-zinc-100/80 text-[0.72rem] font-black uppercase tracking-[0.14em] text-zinc-600 dark:bg-white/[0.055] dark:text-zinc-300;
+        @apply bg-zinc-100/80 text-[0.72rem] uppercase tracking-[0.11em] text-zinc-700 dark:bg-white/[0.055] dark:text-zinc-300;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-table-body {
@@ -1026,31 +1240,38 @@
     }
 
     .admin-table-cell {
-        @apply max-w-[18rem] break-words px-4 py-3 font-semibold text-zinc-700 dark:text-zinc-200;
+        @apply max-w-[18rem] break-words px-4 py-3 text-zinc-700 dark:text-zinc-200;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-table-label {
-        @apply text-[0.68rem] font-black uppercase tracking-[0.14em] text-zinc-600 dark:text-zinc-400;
+        @apply text-[0.68rem] uppercase tracking-[0.11em] text-zinc-600 dark:text-zinc-300;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-table-value {
-        @apply mt-1 break-words text-sm font-bold text-zinc-800 dark:text-zinc-100;
+        @apply mt-1 break-words text-sm text-zinc-800 dark:text-zinc-100;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-pagination-link {
-        @apply grid min-h-11 min-w-11 place-items-center rounded-lg border border-zinc-200 bg-white px-3 text-sm font-black text-zinc-700 transition hover:border-gold-500/50 hover:bg-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-200 dark:hover:border-white/15 dark:hover:bg-white/[0.075];
+        @apply grid min-h-11 min-w-11 place-items-center rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-700 transition hover:border-gold-600/50 hover:bg-zinc-50 hover:text-gold-text-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-200 dark:hover:border-white/15 dark:hover:bg-white/[0.075] dark:hover:text-gold-400 dark:focus-visible:ring-gold-400/40;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-pagination-active {
-        @apply grid min-h-11 min-w-11 place-items-center rounded-lg border border-gold-500/35 bg-gold-500 px-3 text-sm font-black text-zinc-950 shadow-[0_8px_20px_rgba(254,172,24,0.18)];
+        @apply grid min-h-11 min-w-11 place-items-center rounded-lg border border-gold-600/35 bg-gold-500 px-3 text-sm text-zinc-950 shadow-[0_8px_20px_rgba(254,172,24,0.18)];
+        font-weight: var(--font-weight-control);
     }
 
     .admin-pagination-disabled {
-        @apply inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-zinc-100 px-4 py-2.5 text-center text-sm font-bold text-zinc-500 dark:border-white/10 dark:bg-white/[0.035] dark:text-zinc-500;
+        @apply inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-zinc-100 px-4 py-2.5 text-center text-sm text-zinc-500 dark:border-white/10 dark:bg-white/[0.035] dark:text-zinc-500;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-sidebar-nav-link {
-        @apply relative flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-bold text-zinc-600 transition hover:border-zinc-200 hover:bg-zinc-100/80 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/45 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/[0.065] dark:hover:text-white dark:focus-visible:ring-offset-zinc-950;
+        @apply relative flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm text-zinc-700 transition hover:border-zinc-200 hover:bg-zinc-100/80 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/45 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/[0.065] dark:hover:text-zinc-100 dark:focus-visible:ring-gold-400/45 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-sidebar-nav-link-active {
@@ -1058,11 +1279,12 @@
     }
 
     .admin-sidebar-icon-frame {
-        @apply grid h-8 w-8 shrink-0 place-items-center rounded-md border border-zinc-200/70 bg-zinc-100 text-zinc-500 transition group-hover:border-gold-500/30 group-hover:bg-gold-500/10 group-hover:text-gold-600 dark:border-white/[0.08] dark:bg-white/[0.06] dark:text-zinc-400 dark:group-hover:border-gold-400/25 dark:group-hover:bg-gold-400/10 dark:group-hover:text-gold-400;
+        @apply grid h-8 w-8 shrink-0 place-items-center rounded-md border border-zinc-200/70 bg-zinc-100 text-zinc-500 transition group-hover:border-gold-600/30 group-hover:bg-gold-500/10 group-hover:text-gold-display dark:border-white/[0.08] dark:bg-white/[0.06] dark:text-zinc-400 dark:group-hover:border-gold-400/25 dark:group-hover:bg-gold-400/10 dark:group-hover:text-gold-400;
     }
 
     .admin-sidebar-icon-frame-active {
-        @apply border-gold-500/25 bg-gold-500/15 text-gold-600 shadow-[0_8px_18px_rgba(254,172,24,0.12)] dark:border-gold-400/20 dark:bg-gold-500/15 dark:text-gold-400;
+        @apply border-gold-600/25 bg-gold-500/15 shadow-[0_8px_18px_rgba(254,172,24,0.10)] dark:border-gold-400/20 dark:bg-gold-500/15;
+        color: var(--color-gold-text);
     }
 
     .admin-sidebar-icon-svg {
@@ -1070,7 +1292,8 @@
     }
 
     .admin-nav-link {
-        @apply relative flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-bold text-zinc-600 transition hover:border-zinc-200 hover:bg-zinc-100/80 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/[0.065] dark:hover:text-white dark:focus-visible:ring-offset-zinc-950;
+        @apply relative flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm text-zinc-700 transition hover:border-zinc-200 hover:bg-zinc-100/80 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-zinc-300 dark:hover:border-white/10 dark:hover:bg-white/[0.065] dark:hover:text-zinc-100 dark:focus-visible:ring-gold-400/40 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-control);
     }
 
     .admin-nav-link-active {
@@ -1078,23 +1301,24 @@
     }
 
     .admin-nav-icon {
-        @apply grid h-8 w-8 shrink-0 place-items-center rounded-md bg-zinc-100 text-zinc-500 transition group-hover:text-gold-600 dark:bg-white/[0.06] dark:text-zinc-400 dark:group-hover:text-gold-400;
+        @apply grid h-8 w-8 shrink-0 place-items-center rounded-md bg-zinc-100 text-zinc-500 transition group-hover:text-gold-display dark:bg-white/[0.06] dark:text-zinc-400 dark:group-hover:text-gold-400;
     }
 
     .admin-nav-icon-active {
-        @apply bg-gold-500/15 text-gold-600 dark:bg-gold-500/15 dark:text-gold-400;
+        @apply bg-gold-500/15 dark:bg-gold-500/15;
+        color: var(--color-gold-text);
     }
 
     .owner-mobile-menu-button {
-        @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-500/45 hover:bg-gold-500/10 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:border-transparent dark:bg-gold-500 dark:text-zinc-950;
+        @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-gold-600/45 hover:bg-gold-500/10 hover:text-gold-text-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:border-transparent dark:bg-gold-500 dark:text-zinc-950 dark:focus-visible:ring-gold-400/50;
     }
 
     .owner-card {
-        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_14px_38px_rgba(15,23,42,0.045)] backdrop-blur-sm dark:border-white/10 dark:bg-[#18181b]/90 dark:shadow-[0_18px_54px_rgba(0,0,0,0.22)] sm:p-6;
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_8px_22px_rgba(15,23,42,0.045)] backdrop-blur-sm dark:border-white/10 dark:bg-[#18181b]/90 dark:shadow-[0_12px_34px_rgba(0,0,0,0.22)] sm:p-6;
     }
 
     .owner-page-header {
-        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_16px_44px_rgba(15,23,42,0.055)] dark:border-white/10 dark:bg-[#1f1f23]/90 sm:p-6;
+        @apply min-w-0 rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_10px_26px_rgba(15,23,42,0.055)] dark:border-white/10 dark:bg-[#1f1f23]/90 sm:p-6;
     }
 
     .owner-panel {
@@ -1102,31 +1326,38 @@
     }
 
     .owner-eyebrow {
-        @apply text-xs font-black uppercase tracking-[0.18em] text-gold-600 dark:text-gold-400;
+        @apply text-xs uppercase tracking-[0.12em] text-zinc-700 dark:text-gold-400;
+        font-weight: var(--font-weight-control);
     }
 
     .owner-title {
-        @apply text-2xl font-black leading-tight text-zinc-950 dark:text-white sm:text-3xl;
+        @apply text-2xl leading-tight text-zinc-950 dark:text-zinc-100 sm:text-3xl;
+        font-weight: var(--font-weight-title);
     }
 
     .owner-copy {
-        @apply text-sm font-medium leading-7 text-zinc-600 dark:text-zinc-400;
+        @apply text-sm leading-7 text-zinc-600 dark:text-zinc-400;
+        font-weight: var(--font-weight-body);
     }
 
     .owner-button-primary {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg bg-gold-500 px-4 py-2.5 text-center text-sm font-black text-zinc-950 shadow-[0_8px_22px_rgba(254,172,24,0.20)] transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg bg-gold-500 px-4 py-2.5 text-center text-sm text-zinc-950 shadow-[0_6px_16px_rgba(254,172,24,0.16)] transition hover:bg-gold-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/55 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:focus-visible:ring-gold-400/50 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-emphasis);
     }
 
     .owner-button-secondary {
-        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-bold text-zinc-700 shadow-sm transition hover:border-gold-500/50 hover:bg-zinc-50 hover:text-gold-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.055] dark:text-zinc-200 dark:hover:border-white/15 dark:hover:bg-white/[0.075] dark:hover:text-gold-400 dark:focus-visible:ring-offset-zinc-950;
+        @apply inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm text-zinc-700 shadow-sm transition hover:border-gold-600/50 hover:bg-zinc-50 hover:text-gold-text-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-700/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.055] dark:text-zinc-200 dark:hover:border-white/15 dark:hover:bg-white/[0.075] dark:hover:text-gold-400 dark:focus-visible:ring-gold-400/40 dark:focus-visible:ring-offset-zinc-950;
+        font-weight: var(--font-weight-control);
     }
 
     .owner-form-input {
-        @apply min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-950 shadow-sm transition placeholder:text-zinc-400 hover:border-zinc-300 focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 dark:border-white/10 dark:bg-white/[0.045] dark:text-white dark:placeholder:text-zinc-500 dark:hover:border-white/20;
+        @apply min-h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 shadow-sm transition placeholder:text-zinc-500 hover:border-zinc-300 focus:border-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-700/30 dark:border-white/10 dark:bg-white/[0.045] dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:hover:border-white/20 dark:focus:border-gold-400 dark:focus:ring-gold-400/30;
+        font-weight: var(--font-weight-compact);
     }
 
     .owner-status-pill {
-        @apply inline-flex min-h-7 items-center rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs font-black text-zinc-700 dark:border-white/10 dark:bg-white/[0.07] dark:text-zinc-300;
+        @apply inline-flex min-h-7 items-center rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs text-zinc-700 dark:border-white/10 dark:bg-white/[0.07] dark:text-zinc-300;
+        font-weight: var(--font-weight-control);
     }
 
     .owner-chart-shell {

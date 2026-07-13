@@ -14,6 +14,8 @@ use App\Models\Promo;
 use App\Models\QrToken;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\MemberQrAccess;
+use App\Support\OperationalHours;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -48,7 +50,7 @@ class GymmiLiveDataProvider
     /**
      * @return array<int, string>
      */
-    public function memberSnippets(User $user, string $message): array
+    public function memberSnippets(User $user, string $message, ?GymmiTurnPlan $plan = null): array
     {
         $member = $user->member()->first();
 
@@ -57,26 +59,32 @@ class GymmiLiveDataProvider
         }
 
         $normalized = $this->normalize($message);
-        $snippets = [];
+        $intent = $plan?->primaryIntent() ?? $this->intentDetector->detect($message)['intent'];
+        $snippets = match ($intent) {
+            'member_membership' => $this->memberMembershipSnippets($member),
+            'member_session' => $this->memberSessionSnippets($member),
+            'member_payment' => $this->memberPaymentSnippets($member),
+            'member_booking' => $this->memberBookingSnippets($member),
+            'member_qr' => [$this->memberQrSnippet($member)],
+            default => [],
+        };
 
-        if ($this->hasAny($normalized, ['membership', 'member', 'masa aktif', 'aktif', 'qr'])) {
-            $snippets = array_merge($snippets, $this->memberMembershipSnippets($member));
-        }
-
-        if ($this->hasAny($normalized, ['sesi', 'paket sesi', 'pt', 'personal trainer', 'trainer'])) {
-            $snippets = array_merge($snippets, $this->memberSessionSnippets($member));
-        }
-
-        if ($this->hasAny($normalized, ['transaksi', 'payment', 'pembayaran', 'tagihan', 'invoice', 'bayar'])) {
-            $snippets = array_merge($snippets, $this->memberPaymentSnippets($member));
-        }
-
-        if ($this->hasAny($normalized, ['booking', 'kelas saya', 'jadwal saya', 'reservasi'])) {
-            $snippets = array_merge($snippets, $this->memberBookingSnippets($member));
-        }
-
-        if ($this->hasAny($normalized, ['qr', 'check in', 'check-in', 'kartu'])) {
-            $snippets[] = $this->memberQrSnippet($member);
+        if ($snippets === [] && $plan === null) {
+            if ($this->hasAny($normalized, ['membership saya', 'status membership', 'masa aktif saya'])) {
+                $snippets = array_merge($snippets, $this->memberMembershipSnippets($member));
+            }
+            if ($this->hasAny($normalized, ['sesi saya', 'paket sesi saya'])) {
+                $snippets = array_merge($snippets, $this->memberSessionSnippets($member));
+            }
+            if ($this->hasAny($normalized, ['transaksi saya', 'pembayaran saya', 'tagihan saya', 'invoice saya'])) {
+                $snippets = array_merge($snippets, $this->memberPaymentSnippets($member));
+            }
+            if ($this->hasAny($normalized, ['booking saya', 'kelas saya', 'jadwal saya', 'reservasi saya'])) {
+                $snippets = array_merge($snippets, $this->memberBookingSnippets($member));
+            }
+            if ($this->hasAny($normalized, ['qr saya', 'qr member'])) {
+                $snippets[] = $this->memberQrSnippet($member);
+            }
         }
 
         return $this->limit($snippets, 8);
@@ -162,7 +170,26 @@ class GymmiLiveDataProvider
             return [];
         }
 
-        $packages = $this->focusedPackageRows($message, $rows)
+        $packages = $this->focusedPackageRows($message, $rows);
+        $durationMonths = $this->requestedDurationMonths($message);
+        $sessionCount = $this->requestedSessionCount($message);
+
+        if ($durationMonths !== null) {
+            $durationFocused = $packages->filter(function (array $row) use ($durationMonths): bool {
+                $package = $row['package'];
+                $baseDays = (int) ($package->base_duration_days ?: $package->duration_days);
+
+                return $baseDays > 0 && (int) round($baseDays / 30) === $durationMonths;
+            });
+            $packages = $durationFocused->isNotEmpty() ? $durationFocused->values() : $packages;
+        }
+
+        if ($sessionCount !== null) {
+            $sessionFocused = $packages->filter(fn (array $row): bool => (int) $row['package']->session_count === $sessionCount);
+            $packages = $sessionFocused->isNotEmpty() ? $sessionFocused->values() : $packages;
+        }
+
+        $packages = $packages
             ->take(5)
             ->pluck('package')
             ->values();
@@ -232,17 +259,30 @@ class GymmiLiveDataProvider
         $subject = $intent['subject'] ?? null;
         $intentName = (string) ($intent['intent'] ?? 'class_schedule');
         $limit = in_array($intentName, ['private_or_group', 'class_capacity', 'class_price', 'class_coach'], true) ? 2 : 6;
+        $requestedDay = $this->requestedDayOfWeek($message);
 
-        $snippets = ClassSchedule::query()
+        $query = ClassSchedule::query()
             ->with([
                 'gymClass:id,name,class_type,access_type,required_package_type,member_price,non_member_price,promo_price,is_active',
                 'trainer:id,name,specialization,is_active',
             ])
             ->where('is_active', true)
             ->whereHas('gymClass', fn ($query) => $query->where('is_active', true))
+            ->where(function ($query): void {
+                $query->whereNull('trainer_id')
+                    ->orWhereHas('trainer', fn ($trainerQuery) => $trainerQuery->where('is_active', true));
+            });
+
+        if ($requestedDay !== null) {
+            $query->where('day_of_week', $requestedDay);
+        }
+
+        $query
             ->orderBy('day_of_week')
             ->orderBy('start_time')
-            ->limit(24)
+            ->limit(24);
+
+        $snippets = $query
             ->get(['id', 'gym_class_id', 'trainer_id', 'day_of_week', 'start_time', 'end_time', 'room', 'capacity'])
             ->map(function (ClassSchedule $schedule) use ($message, $tokens, $subject, $intentName): array {
                 $haystack = collect([
@@ -308,7 +348,7 @@ class GymmiLiveDataProvider
     private function settingSnippets(string $message): array
     {
         $settings = Setting::query()
-            ->whereIn('key', ['address', 'phone_display', 'whatsapp_number', 'instagram_handle', 'instagram_url', 'maps_url', 'maps_search_url', 'maps_shared_url'])
+            ->whereIn('key', ['address', 'phone_display', 'whatsapp_number', 'instagram_handle', 'instagram_url', 'maps_url', 'maps_search_url', 'maps_shared_url', 'operational_hours'])
             ->pluck('value', 'key');
 
         $snippets = [];
@@ -327,6 +367,11 @@ class GymmiLiveDataProvider
 
         if ($this->hasAny($message, ['instagram', 'ig'])) {
             $this->pushIfFilled($snippets, 'Instagram Platinum Gym', $settings->get('instagram_handle') ?: $settings->get('instagram_url'));
+        }
+
+        if ($this->hasAny($message, ['jam', 'buka', 'operasional', 'minggu'])) {
+            $hours = OperationalHours::normalize($settings->get('operational_hours'));
+            $snippets[] = OperationalHours::sentence($hours);
         }
 
         return $snippets;
@@ -434,7 +479,7 @@ class GymmiLiveDataProvider
 
     private function memberQrSnippet(Member $member): string
     {
-        $hasActiveQr = QrToken::query()
+        $hasActiveToken = QrToken::query()
             ->where('tokenable_type', Member::class)
             ->where('tokenable_id', $member->id)
             ->where('is_revoked', false)
@@ -442,10 +487,14 @@ class GymmiLiveDataProvider
                 $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
             })
             ->exists();
+        $hasAccess = Membership::query()
+            ->whereBelongsTo($member)
+            ->activeForAccess()
+            ->exists() || MemberQrAccess::hasActiveStandaloneSession($member);
 
-        return $hasActiveQr
-            ? 'QR member Anda aktif untuk check-in. Kode QR mentah tidak ditampilkan demi keamanan.'
-            : 'QR member Anda belum aktif atau sudah tidak berlaku. Pastikan membership aktif di portal member.';
+        return $hasActiveToken && $hasAccess
+            ? 'QR member Anda aktif dan memenuhi syarat akses untuk check-in. Kode QR mentah tidak ditampilkan demi keamanan.'
+            : 'QR member Anda belum dapat dipakai untuk check-in. Pastikan token QR tersedia serta membership atau paket sesi yang memenuhi syarat masih aktif.';
     }
 
     /**
@@ -487,6 +536,10 @@ class GymmiLiveDataProvider
      */
     private function packageReply(string $message, Collection $packages): string
     {
+        if ($this->hasSpecificPackageQuantity($message) && $packages->count() === 1) {
+            return 'Harga '.$this->packageText($packages->first()).'.';
+        }
+
         if ($this->isClassPackageMessage($message) && ! $this->wantsPackageList($message)) {
             return $this->compactClassPackageReply($message, $packages);
         }
@@ -566,6 +619,29 @@ class GymmiLiveDataProvider
         }
 
         return true;
+    }
+
+    private function hasSpecificPackageQuantity(string $message): bool
+    {
+        return $this->requestedDurationMonths($message) !== null || $this->requestedSessionCount($message) !== null;
+    }
+
+    private function requestedDurationMonths(string $message): ?int
+    {
+        if (preg_match('/\b(\d+)\s*bulan\b/u', $message, $matches) !== 1) {
+            return null;
+        }
+
+        return max(1, (int) $matches[1]);
+    }
+
+    private function requestedSessionCount(string $message): ?int
+    {
+        if (preg_match('/\b(\d+)\s*(?:x|sesi)\b/u', $message, $matches) !== 1) {
+            return null;
+        }
+
+        return max(1, (int) $matches[1]);
     }
 
     private function packageText(Package $package): string
@@ -765,6 +841,25 @@ class GymmiLiveDataProvider
     private function timeLabel(mixed $time): string
     {
         return substr((string) $time, 0, 5);
+    }
+
+    private function requestedDayOfWeek(string $message): ?int
+    {
+        if (str_contains($message, 'hari ini')) {
+            return now()->dayOfWeekIso;
+        }
+
+        if (str_contains($message, 'besok')) {
+            return now()->addDay()->dayOfWeekIso;
+        }
+
+        foreach ([1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 5 => 'jumat', 6 => 'sabtu', 7 => 'minggu'] as $day => $label) {
+            if (str_contains($message, $label)) {
+                return $day;
+            }
+        }
+
+        return null;
     }
 
     private function dayLabel(int $day): string
